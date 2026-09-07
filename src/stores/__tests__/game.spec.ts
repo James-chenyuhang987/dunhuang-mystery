@@ -1,0 +1,523 @@
+import { createPinia, setActivePinia } from 'pinia'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { gameAuthors, gameLevels } from '@/data/game'
+import { GAME_STORAGE_KEY, useGameStore } from '@/stores/game'
+import type { Difficulty } from '@/types/game'
+
+function answerCurrent(store: ReturnType<typeof useGameStore>): void {
+  const question = store.currentProblem
+  expect(question).not.toBeNull()
+  if (question) expect(store.submitAnswer(question.true_answer)).toBe(true)
+}
+
+function finishLevel(store: ReturnType<typeof useGameStore>): void {
+  while (store.currentProblem) answerCurrent(store)
+}
+
+function saveWith(store: ReturnType<typeof useGameStore>, changes: Record<string, unknown>): void {
+  store.pauseTimer()
+  localStorage.setItem(GAME_STORAGE_KEY, JSON.stringify({ version: 1, ...store.$state, ...changes }))
+}
+
+beforeEach(() => {
+  setActivePinia(createPinia())
+  localStorage.clear()
+  vi.useFakeTimers()
+  vi.setSystemTime(new Date('2026-01-01T00:00:00.000Z'))
+  vi.spyOn(Math, 'random').mockReturnValue(0)
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  vi.useRealTimers()
+})
+
+describe('game selections and answers', () => {
+  it.each<[Difficulty, number]>([[1, 1], [2, 2], [3, 3]])('selects tier %i with %i of three questions', (difficulty, count) => {
+    const store = useGameStore()
+    store.setDifficulty(difficulty)
+    store.startGame()
+    expect(store.selectedQuestionIndexes).toHaveLength(count)
+    expect(new Set(store.selectedQuestionIndexes).size).toBe(count)
+    expect(store.rounds[0]?.questionOrder).toEqual([1, 2, 0])
+  })
+
+  it.each<[number, Difficulty, number]>([
+    [0, 1, 1], [0, 2, 2], [0, 3, 3],
+    [1, 1, 1], [1, 2, 2], [1, 3, 4],
+    [2, 1, 1], [2, 2, 2], [2, 3, 3],
+  ])('asks %i level at tier %i exactly %i questions', (index, difficulty, count) => {
+    const store = useGameStore()
+    store.setDifficulty(difficulty)
+    store.startGame(index)
+    expect(store.selectedQuestionIndexes).toHaveLength(count)
+    finishLevel(store)
+    expect(store.attempts).toHaveLength(count)
+    expect(store.advanceLevel()).toBe(true)
+    expect(store.currentLevelIndex).toBe(index)
+  })
+
+  it('preserves the full random order and answers across live difficulty switches', () => {
+    const store = useGameStore()
+    store.setDifficulty(3)
+    store.startGame()
+    const order = [...store.selectedQuestionIndexes]
+    answerCurrent(store)
+    answerCurrent(store)
+    const attempts = [...store.attempts]
+    store.setDifficulty(1)
+    expect(store.selectedQuestionIndexes).toEqual(order.slice(0, 1))
+    expect(store.levelSolved).toBe(true)
+    expect(store.correctCount).toBe(2)
+    store.setDifficulty(3)
+    expect(store.selectedQuestionIndexes).toEqual(order)
+    expect(store.attempts).toEqual(attempts)
+    expect(store.currentProblemIndex).toBe(order[2])
+    expect(store.levelSolved).toBe(false)
+  })
+
+  it('records original indexes, retries wrong answers, and counts unique correct answers', () => {
+    const store = useGameStore()
+    store.startGame(1)
+    const index = store.currentProblemIndex
+    const question = store.currentProblem
+    expect(index).toBe(1)
+    if (!question) throw new Error('Missing question')
+    expect(store.submitAnswer((question.true_answer + 1) % 4)).toBe(false)
+    expect(store.submitAnswer((question.true_answer + 1) % 4)).toBe(false)
+    expect(store.currentProblemIndex).toBe(index)
+    expect(store.submitAnswer(question.true_answer)).toBe(true)
+    expect(store.submitAnswer(question.true_answer)).toBeNull()
+    expect(store.wrongCount).toBe(2)
+    expect(store.correctCount).toBe(1)
+    expect(store.attempts.map(({ levelIndex, problemIndex, correct }) => ({ levelIndex, problemIndex, correct }))).toEqual([
+      { levelIndex: 1, problemIndex: index, correct: false },
+      { levelIndex: 1, problemIndex: index, correct: false },
+      { levelIndex: 1, problemIndex: index, correct: true },
+    ])
+  })
+
+  it('keeps home selection separate from the active level and rejects invalid inputs', () => {
+    const store = useGameStore()
+    expect(store.submitAnswer(0)).toBeNull()
+    expect(store.currentProblem).toBeNull()
+    store.selectLevel(1)
+    expect(store.currentLevelIndex).toBe(0)
+    store.startGame()
+    expect(store.currentLevelIndex).toBe(1)
+    store.selectLevel(2)
+    expect(store.currentLevelIndex).toBe(1)
+    store.selectLevel(-1)
+    expect(store.selectedLevelIndex).toBe(2)
+    store.startGame(999)
+    expect(store.currentLevelIndex).toBe(1)
+    for (const answer of [-1, 4, 0.5, Number.NaN]) expect(store.submitAnswer(answer)).toBeNull()
+    expect(store.attempts).toEqual([])
+  })
+
+  it('refreshes authors and presentation in an existing store without losing progress', () => {
+    const store = useGameStore()
+    store.startGame(1)
+    answerCurrent(store)
+    const attempts = [...store.attempts]
+    const order = [...store.selectedQuestionIndexes]
+    store.authors = [{ name: '旧作者', job: '旧身份' }]
+    const level = store.levels[1]
+    if (!level) throw new Error('Missing level')
+    level.panorama_url = '/old.jpg'
+    store.refreshConfig()
+    expect(store.authors).toEqual(gameAuthors)
+    expect(store.levels).toEqual(gameLevels)
+    expect(store.attempts).toEqual(attempts)
+    expect(store.selectedQuestionIndexes).toEqual(order)
+    expect(store.currentLevelIndex).toBe(1)
+    expect(store.hasProgress).toBe(true)
+  })
+
+  it('resets an active round on an incompatible live config refresh', () => {
+    const store = useGameStore()
+    store.startGame(1)
+    answerCurrent(store)
+    const question = store.levels[1]?.problems[0]
+    if (!question) throw new Error('Missing question')
+    question.title = '旧问题'
+    store.refreshConfig()
+    expect(store.levels).toEqual(gameLevels)
+    expect(store.authors).toEqual(gameAuthors)
+    expect(store.hasProgress).toBe(false)
+    expect(store.attempts).toEqual([])
+    expect(store.persistenceError).toContain('题目配置已更新')
+  })
+
+  it('does not mutate the exported seed configuration', () => {
+    const store = useGameStore()
+    const original = gameLevels[0]?.name
+    if (store.levels[0]) store.levels[0].name = '测试'
+    expect(gameLevels[0]?.name).toBe(original)
+  })
+})
+
+describe('completion and replay', () => {
+  it.each([0, 1, 2])('finishes only selected level %i and restores its ending', (index) => {
+    const store = useGameStore()
+    store.startGame(index)
+    expect(store.advanceLevel()).toBe(false)
+    expect(store.currentLevelIndex).toBe(index)
+    finishLevel(store)
+    expect(store.advanceLevel()).toBe(true)
+    expect(store.currentLevelIndex).toBe(index)
+    expect(store.completedLevelIndexes).toEqual([index])
+    expect(store.rounds).toHaveLength(1)
+    expect(store.completed).toBe(true)
+    expect(store.startedAt).toBeNull()
+    expect(store.advanceLevel()).toBe(true)
+    store.resumeTimer()
+    expect(store.startedAt).toBeNull()
+    store.persist()
+    setActivePinia(createPinia())
+    const restored = useGameStore()
+    restored.restore()
+    expect(restored.persistenceError).toBe('')
+    expect(restored.currentLevelIndex).toBe(index)
+    expect(restored.selectedLevelIndex).toBe(index)
+    expect(restored.completed).toBe(true)
+    expect(restored.levelSolved).toBe(true)
+    expect(restored.completedLevelIndexes).toEqual([index])
+  })
+
+  it.each([0, 1, 2])('reopens only selected level %i on increased difficulty without losing results', (index) => {
+    const store = useGameStore()
+    store.startGame(index)
+    finishLevel(store)
+    store.advanceLevel()
+    const order = [...(store.rounds[0]?.questionOrder ?? [])]
+    const attempts = [...store.attempts]
+    expect(store.completed).toBe(true)
+    store.setDifficulty(3)
+    expect(store.completed).toBe(false)
+    expect(store.currentLevelIndex).toBe(index)
+    expect(store.selectedLevelIndex).toBe(index)
+    expect(store.completedLevelIndexes).toEqual([])
+    expect(store.correctCount).toBe(1)
+    expect(store.attempts).toEqual(attempts)
+    expect(store.selectedQuestionIndexes).toEqual(order)
+    expect(store.currentProblemIndex).toBe(order[1])
+    finishLevel(store)
+    expect(store.advanceLevel()).toBe(true)
+    expect(store.completed).toBe(true)
+    expect(store.correctCount).toBe(gameLevels[index]?.problems.length)
+    store.setDifficulty(1)
+    expect(store.completed).toBe(true)
+  })
+
+  it('resets counters, timer and rounds on replay, preserving chosen tier and level', () => {
+    const store = useGameStore()
+    store.setDifficulty(2)
+    store.startGame(1)
+    answerCurrent(store)
+    vi.advanceTimersByTime(800)
+    store.replay()
+    expect(store.difficulty).toBe(2)
+    expect(store.currentLevelIndex).toBe(1)
+    expect(store.correctCount).toBe(0)
+    expect(store.wrongCount).toBe(0)
+    expect(store.elapsedMs).toBe(0)
+    expect(store.completedLevelIndexes).toEqual([])
+    expect(store.rounds).toHaveLength(1)
+    expect(store.hasProgress).toBe(true)
+  })
+})
+
+describe('active elapsed time', () => {
+  it('counts active segments once and excludes paused time', () => {
+    const store = useGameStore()
+    store.startGame()
+    vi.advanceTimersByTime(1000)
+    store.tick()
+    expect(store.elapsedMs).toBe(1000)
+    store.tick()
+    store.resumeTimer()
+    vi.advanceTimersByTime(500)
+    store.pauseTimer()
+    expect(store.elapsedMs).toBe(1500)
+    vi.advanceTimersByTime(10000)
+    store.tick()
+    expect(store.elapsedMs).toBe(1500)
+    store.resumeTimer()
+    store.resumeTimer()
+    vi.advanceTimersByTime(200)
+    store.pauseTimer()
+    expect(store.elapsedMs).toBe(1700)
+  })
+
+  it('does not subtract or double-count a backwards wall clock adjustment', () => {
+    const store = useGameStore()
+    store.startGame()
+    const start = Date.now()
+    vi.setSystemTime(start - 1000)
+    store.tick()
+    expect(store.elapsedMs).toBe(0)
+    vi.setSystemTime(start + 500)
+    store.tick()
+    expect(store.elapsedMs).toBe(500)
+  })
+})
+
+describe('persistence', () => {
+  it('immediately saves difficulty, answers and the selected round ending', () => {
+    const store = useGameStore()
+    store.startGame(1)
+    store.setDifficulty(2)
+    answerCurrent(store)
+    setActivePinia(createPinia())
+    const restored = useGameStore()
+    restored.restore()
+    expect(restored.difficulty).toBe(2)
+    expect(restored.attempts).toEqual(store.attempts)
+    expect(restored.currentLevelIndex).toBe(1)
+    finishLevel(restored)
+    restored.advanceLevel()
+    setActivePinia(createPinia())
+    const finished = useGameStore()
+    finished.restore()
+    expect(finished.completed).toBe(true)
+    expect(finished.currentLevelIndex).toBe(1)
+    finished.setDifficulty(3)
+    setActivePinia(createPinia())
+    const reopened = useGameStore()
+    reopened.restore()
+    expect(reopened.completed).toBe(false)
+    expect(reopened.difficulty).toBe(3)
+    expect(reopened.currentLevelIndex).toBe(1)
+    expect(reopened.correctCount).toBe(2)
+  })
+
+  it('restores validated config, random order, attempts and duration, but remains paused', () => {
+    const store = useGameStore()
+    store.setDifficulty(2)
+    store.startGame(1)
+    answerCurrent(store)
+    vi.advanceTimersByTime(1400)
+    store.persist()
+    const savedOrder = [...store.selectedQuestionIndexes]
+    const savedAttempts = [...store.attempts]
+    setActivePinia(createPinia())
+    const restored = useGameStore()
+    vi.advanceTimersByTime(60000)
+    restored.restore()
+    expect(restored.persistenceError).toBe('')
+    expect(restored.levels).toEqual(store.levels)
+    expect(restored.authors).toEqual(store.authors)
+    expect(restored.selectedQuestionIndexes).toEqual(savedOrder)
+    expect(restored.attempts).toEqual(savedAttempts)
+    expect(restored.currentLevelIndex).toBe(1)
+    expect(restored.elapsedMs).toBe(1400)
+    expect(restored.startedAt).toBeNull()
+    restored.resumeTimer()
+    vi.advanceTimersByTime(100)
+    restored.pauseTimer()
+    expect(restored.elapsedMs).toBe(1500)
+  })
+
+  it.each([false, true])('uses current authors and presentation config with saved fingerprint=%s', (fingerprinted) => {
+    const store = useGameStore()
+    store.startGame(1)
+    answerCurrent(store)
+    vi.advanceTimersByTime(700)
+    store.authors = [{ name: '旧作者', job: '旧身份' }]
+    const oldLevel = store.levels[1]
+    if (!oldLevel) throw new Error('Missing level')
+    oldLevel.name = '旧关卡名称'
+    oldLevel.panorama_url = '/old-panorama.jpg'
+    oldLevel.clues = [{ name: '旧线索', type: 'text', data: '旧内容' }]
+    const oldQuestion = oldLevel.problems[0]
+    if (!oldQuestion) throw new Error('Missing question')
+    oldQuestion.reason = '旧解析'
+    if (fingerprinted) store.persist()
+    else saveWith(store, {})
+    const attempts = [...store.attempts]
+    const rounds = store.rounds.map((round) => ({ ...round, questionOrder: [...round.questionOrder] }))
+    setActivePinia(createPinia())
+    const restored = useGameStore()
+    restored.restore()
+    expect(restored.persistenceError).toBe('')
+    expect(restored.authors).toEqual(gameAuthors)
+    expect(restored.levels).toEqual(gameLevels)
+    expect(restored.attempts).toEqual(attempts)
+    expect(restored.rounds).toEqual(rounds)
+    expect(restored.elapsedMs).toBe(700)
+    expect(restored.currentLevelIndex).toBe(1)
+    expect(restored.startedAt).toBeNull()
+    const migrated: unknown = JSON.parse(localStorage.getItem(GAME_STORAGE_KEY) ?? 'null')
+    expect(migrated).toMatchObject({ authors: gameAuthors, levels: gameLevels, questionFingerprint: expect.any(String) })
+  })
+
+  it.each(['title', 'options', 'answer', 'count', 'order', 'levels'])('resets legacy progress when question %s changes', (change) => {
+    const store = useGameStore()
+    store.startGame(1)
+    const oldLevel = store.levels[1]
+    const question = oldLevel?.problems[0]
+    if (!oldLevel || !question) throw new Error('Missing question')
+    if (change === 'title') question.title = '旧题目'
+    if (change === 'options') question.select[0] = '旧选项'
+    if (change === 'answer') question.true_answer = (question.true_answer + 1) % 4
+    if (change === 'count') oldLevel.problems.push({ ...question, select: [...question.select] })
+    if (change === 'order') oldLevel.problems.reverse()
+    if (change === 'levels') store.levels.reverse()
+    store.startGame(1)
+    answerCurrent(store)
+    saveWith(store, {})
+    store.restore()
+    expect(store.persistenceError).toContain('题目配置已更新')
+    expect(store.levels).toEqual(gameLevels)
+    expect(store.authors).toEqual(gameAuthors)
+    expect(store.attempts).toEqual([])
+    expect(store.hasStarted).toBe(false)
+    expect(store.completed).toBe(false)
+    store.startGame(1)
+    store.restore()
+    expect(store.persistenceError).toBe('')
+  })
+
+  it('rejects incompatible fingerprinted progress without restoring old levels', () => {
+    const store = useGameStore()
+    const question = store.levels[0]?.problems[0]
+    if (!question) throw new Error('Missing question')
+    question.title = '旧题目'
+    store.startGame()
+    answerCurrent(store)
+    store.persist()
+    setActivePinia(createPinia())
+    const restored = useGameStore()
+    restored.restore()
+    expect(restored.persistenceError).toContain('题目配置已更新')
+    expect(restored.levels).toEqual(gameLevels)
+    expect(restored.hasProgress).toBe(false)
+  })
+
+  it('migrates a legacy campaign to only its active round, retaining aggregate active time', () => {
+    const store = useGameStore()
+    store.startGame(0)
+    finishLevel(store)
+    const previousAttempts = [...store.attempts]
+    const previousRounds = [...store.rounds]
+    store.startGame(1)
+    finishLevel(store)
+    const currentAttempts = [...store.attempts]
+    const currentRounds = [...store.rounds]
+    saveWith(store, {
+      attempts: [...previousAttempts, ...currentAttempts],
+      rounds: [...previousRounds, ...currentRounds],
+      completedLevelIndexes: [0, 1],
+      selectedLevelIndex: 0,
+      elapsedMs: 2500,
+    })
+    setActivePinia(createPinia())
+    const restored = useGameStore()
+    restored.restore()
+    expect(restored.persistenceError).toBe('')
+    expect(restored.currentLevelIndex).toBe(1)
+    expect(restored.selectedLevelIndex).toBe(1)
+    expect(restored.attempts).toEqual(currentAttempts)
+    expect(restored.rounds).toEqual(currentRounds)
+    expect(restored.completedLevelIndexes).toEqual([1])
+    expect(restored.elapsedMs).toBe(2500)
+    expect(restored.advanceLevel()).toBe(true)
+    expect(restored.currentLevelIndex).toBe(1)
+  })
+
+  it('round-trips both untouched and completed states', () => {
+    const store = useGameStore()
+    store.persist()
+    store.restore()
+    expect(store.hasProgress).toBe(false)
+    expect(store.persistenceError).toBe('')
+    store.startGame()
+    finishLevel(store)
+    store.advanceLevel()
+    store.persist()
+    store.restore()
+    expect(store.persistenceError).toBe('')
+    expect(store.completed).toBe(true)
+  })
+
+  it('rejects corrupt JSON without partially overwriting state; a fresh game replaces it', () => {
+    const store = useGameStore()
+    store.startGame(1)
+    answerCurrent(store)
+    const attempts = [...store.attempts]
+    localStorage.setItem(GAME_STORAGE_KEY, '{broken')
+    expect(() => store.restore()).not.toThrow()
+    expect(store.persistenceError).not.toBe('')
+    expect(store.attempts).toEqual(attempts)
+    expect(store.currentLevelIndex).toBe(1)
+    store.startGame(0)
+    expect(store.persistenceError).toBe('')
+    store.restore()
+    expect(store.persistenceError).toBe('')
+    expect(store.attempts).toEqual([])
+  })
+
+  it.each([
+    { currentLevelIndex: 99 },
+    { selectedLevelIndex: -1 },
+    { difficulty: 4 },
+    { questionFingerprint: 'invalid' },
+    { questionFingerprint: 1 },
+    { elapsedMs: -1 },
+    { startedAt: 'yesterday' },
+    { levels: [{ name: 'bad', problems: [] }] },
+    { authors: [{ name: 1, job: 'bad' }] },
+    { completed: true },
+    { hasStarted: false },
+    { completedLevelIndexes: [999] },
+    { completedLevelIndexes: [0] },
+    { rounds: [{ levelIndex: 0, questionOrder: [0, 0, 2] }] },
+    { rounds: [{ levelIndex: 0, questionOrder: [0, 1, 99] }] },
+    { attempts: [{ levelIndex: 0, problemIndex: 999, selectedAnswer: 0, correct: false, at: 100 }] },
+    { attempts: [{ levelIndex: 999, problemIndex: 0, selectedAnswer: 0, correct: false, at: 100 }] },
+    { attempts: [{ levelIndex: 0, problemIndex: 0, selectedAnswer: 9, correct: false, at: 100 }] },
+    { attempts: [{ levelIndex: 0, problemIndex: 0, selectedAnswer: 0, correct: true, at: 100 }] },
+  ])('rejects invalid snapshot fields: %j', (changes) => {
+    const store = useGameStore()
+    store.startGame()
+    saveWith(store, changes)
+    store.restore()
+    expect(store.persistenceError).not.toBe('')
+    expect(store.currentLevelIndex).toBe(0)
+    expect(store.attempts).toEqual([])
+    expect(store.difficulty).toBe(1)
+  })
+
+  it('rejects duplicate correct results and attempts after a solved question', () => {
+    const store = useGameStore()
+    store.startGame()
+    answerCurrent(store)
+    saveWith(store, { attempts: [...store.attempts, ...store.attempts] })
+    store.restore()
+    expect(store.persistenceError).not.toBe('')
+    expect(store.correctCount).toBe(1)
+  })
+
+  it('reports save failures and provides a successful retry', () => {
+    const store = useGameStore()
+    store.startGame()
+    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => {
+      throw new DOMException('Quota exceeded', 'QuotaExceededError')
+    })
+    expect(() => store.persist()).not.toThrow()
+    expect(store.persistenceError).not.toBe('')
+    store.retryPersistence()
+    expect(setItem).toHaveBeenCalledTimes(2)
+    expect(store.persistenceError).toBe('')
+    expect(localStorage.getItem(GAME_STORAGE_KEY)).not.toBeNull()
+  })
+
+  it('handles storage read restrictions without crashing', () => {
+    const store = useGameStore()
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementationOnce(() => { throw new Error('Blocked') })
+    expect(() => store.restore()).not.toThrow()
+    expect(store.persistenceError).not.toBe('')
+    expect(store.hasProgress).toBe(false)
+  })
+})
