@@ -14,6 +14,9 @@ export interface clue {
 export interface level {
   name: string
   panorama_url: string
+  thumbnail_url?: string
+  subtitle?: string
+  description?: string
   clues: clue[]
   problems: problem[]
 }

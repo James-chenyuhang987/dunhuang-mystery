@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/game'
+import { siteConfig } from '@/data/game'
 import type { problem } from '@/types/game'
 import PanoramaViewer from '@/components/PanoramaViewer.vue'
 import CluePanel from '@/components/CluePanel.vue'
@@ -50,7 +51,7 @@ onBeforeUnmount(() => { game.pauseTimer(); game.persist() })
       <div v-if="cluesOpen" class="clues-scroll"><p class="eyebrow">拾起线索，让壁画开口。</p><CluePanel v-for="(clue, index) in game.currentLevel.clues" :key="`${game.currentLevelIndex}-${index}`" :item="clue" :index="index"/></div>
     </aside>
     <div class="panorama-guide"><AppIcon name="compass"/><span>拖动环顾 · 双指 / 滚轮缩放</span><small>360° IMMERSIVE EXPLORATION</small></div>
-    <footer class="game-toolbar"><div class="game-stats"><span>已解谜题<strong>{{ solvedCount }} <small>/ {{ game.selectedQuestionIndexes.length }}</small></strong></span><span>探索用时<strong>{{ elapsed }}</strong></span><span class="attempt-stats">答对 / 答错<strong>{{ game.correctCount }} <small>/ {{ game.wrongCount }}</small></strong></span></div><button class="primary" @click="openQuestions"><AppIcon name="eye"/>{{ game.levelSolved ? '本卷已解 · 继续探索' : '开启谜题' }}<AppIcon name="arrow"/></button></footer>
+    <footer class="game-toolbar"><div class="game-stats"><span>已解谜题<strong>{{ solvedCount }} <small>/ {{ game.selectedQuestionIndexes.length }}</small></strong></span><span>探索用时<strong>{{ elapsed }}</strong></span><span class="attempt-stats">答对 / 答错<strong>{{ game.correctCount }} <small>/ {{ game.wrongCount }}</small></strong></span></div><button class="primary" @click="openQuestions"><AppIcon name="eye"/>{{ game.levelSolved ? (game.currentLevel.problems.length ? '本卷已解 · 继续探索' : '完成本关') : '开启谜题' }}<AppIcon name="arrow"/></button></footer>
     <dialog ref="questionDialog" class="question-dialog surface" aria-labelledby="question-title" @close="feedback = null">
       <button class="icon-button dialog-close" aria-label="关闭题目" @click="questionDialog?.close()"><AppIcon name="close"/></button>
       <p class="eyebrow">THE MISSING PIECE · {{ game.currentLevel.name }}</p>
@@ -58,10 +59,10 @@ onBeforeUnmount(() => { game.pauseTimer(); game.persist() })
       <template v-if="question">
         <div class="question-progress">解谜进度 {{ solvedCount }} / {{ game.selectedQuestionIndexes.length }}</div>
         <h2 id="question-title">{{ question.title }}</h2><p class="muted">结合手札中的线索，选择你的推断。</p>
-        <div class="answer-list"><button v-for="(option, index) in question.select" :key="index" class="answer-option" :class="{ correct: feedback && index === question.true_answer, incorrect: feedback && !feedback.correct && feedback.selected === index }" :disabled="!!feedback" @click="answer(index)"><span>{{ ['甲', '乙', '丙', '丁'][index] }}</span>{{ option }}<AppIcon v-if="feedback && index === question.true_answer" name="check"/></button></div>
+        <div class="answer-list"><button v-for="(option, index) in question.select" :key="index" class="answer-option" :class="{ correct: feedback && index === question.true_answer, incorrect: feedback && !feedback.correct && feedback.selected === index }" :disabled="!!feedback" @click="answer(index)"><span>{{ index + 1 }}</span>{{ option }}<AppIcon v-if="feedback && index === question.true_answer" name="check"/></button></div>
         <div v-if="feedback" class="answer-feedback" :class="{ wrong: !feedback.correct }" role="status"><strong>{{ feedback.correct ? '推断正确 · 线索已连接' : '尚差一步 · 再看看线索' }}</strong><p>{{ feedback.question.reason }}</p><button class="primary" @click="continueAnswer">{{ feedback.correct ? (game.levelSolved ? '查看本卷结果' : '下一道谜题') : '再次推断' }}<AppIcon name="arrow"/></button></div>
       </template>
-      <template v-else-if="game.levelSolved"><div class="completion-symbol">✧</div><h2 id="question-title">此卷疑云，已然散尽。</h2><p>散落的线索在你的手中，重新连成了故事。</p><p class="muted">已完成「{{ game.currentLevel.name }}」本档全部 {{ game.selectedQuestionIndexes.length }} 道谜题。</p><button class="primary" @click="nextLevel">落款 · 查看探索回响<AppIcon name="arrow"/></button></template>
+      <template v-else-if="game.levelSolved"><div class="completion-symbol">✧</div><h2 id="question-title">{{ game.currentLevel.problems.length ? siteConfig.chapterCompleteHeading : '本关没有题目，可自由探索。' }}</h2><p>散落的线索在你的手中，重新连成了故事。</p><p class="muted">已完成「{{ game.currentLevel.name }}」本档全部 {{ game.selectedQuestionIndexes.length }} 道谜题。</p><button class="primary" @click="nextLevel">{{ game.mode === 'campaign' && game.currentLevelIndex < game.levels.length - 1 ? '完成本关 · 前往下一关' : '落款 · 查看探索回响' }}<AppIcon name="arrow"/></button></template>
     </dialog>
   </main>
 </template>
