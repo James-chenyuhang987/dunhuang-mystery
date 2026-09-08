@@ -4,7 +4,11 @@ import type { Attempt, author, Difficulty, level, problem, Round } from '@/types
 
 export const GAME_STORAGE_KEY = 'dunhuang-mystery:game:v1'
 
+type GameMode = 'single' | 'campaign'
+type GameRound = Round & { completedDifficulty?: Difficulty }
+
 interface GameState {
+  mode: GameMode
   levels: level[]
   authors: author[]
   difficulty: Difficulty
@@ -16,11 +20,11 @@ interface GameState {
   persistenceError: string
   attempts: Attempt[]
   completedLevelIndexes: number[]
-  rounds: Round[]
+  rounds: GameRound[]
   hasStarted: boolean
 }
 
-type Snapshot = Omit<GameState, 'persistenceError'> & { version: 1; questionFingerprint?: string }
+type Snapshot = Omit<GameState, 'persistenceError' | 'mode'> & { version: 1; mode?: GameMode; questionFingerprint?: string }
 
 function questionFingerprint(levels: level[]): string {
   // Presentation and explanation edits do not invalidate answers or shuffled indexes.
@@ -61,13 +65,13 @@ function shuffle(total: number): number[] {
 function selectedIndexes(state: Pick<GameState, 'levels' | 'rounds' | 'difficulty'>, index: number): number[] {
   const entry = state.levels[index]
   const round = state.rounds.find((item) => item.levelIndex === index)
-  return entry && round ? round.questionOrder.slice(0, countFor(entry.problems.length, state.difficulty)) : []
+  return entry && round ? round.questionOrder.slice(0, countFor(entry.problems.length, round.completedDifficulty ?? state.difficulty)) : []
 }
 
 function solvedIndexes(state: Pick<GameState, 'levels' | 'rounds' | 'difficulty' | 'attempts'>): number[] {
   return state.levels.flatMap((_, levelIndex) => {
     const selected = selectedIndexes(state, levelIndex)
-    return selected.length > 0 && selected.every((problemIndex) =>
+    return state.rounds.some((round) => round.levelIndex === levelIndex) && selected.every((problemIndex) =>
       state.attempts.some((attempt) => attempt.levelIndex === levelIndex && attempt.problemIndex === problemIndex && attempt.correct),
     ) ? [levelIndex] : []
   })
@@ -101,34 +105,38 @@ function isLevel(value: unknown): value is level {
     && Array.isArray(value.clues) && value.clues.every((entry: unknown) =>
       isRecord(entry) && ['image', 'audio', 'text', 'video'].includes(String(entry.type))
       && typeof entry.name === 'string' && typeof entry.data === 'string',
-    ) && Array.isArray(value.problems) && value.problems.length > 0 && value.problems.every(isProblem)
+    ) && Array.isArray(value.problems) && value.problems.every(isProblem)
 }
 
 function isSnapshot(value: unknown): value is Snapshot {
   if (!isRecord(value) || value.version !== 1
-    || !Array.isArray(value.levels) || value.levels.length === 0 || !value.levels.every(isLevel)
+    || !(value.mode === undefined || value.mode === 'single' || value.mode === 'campaign')
+    || !Array.isArray(value.levels) || !value.levels.every(isLevel)
     || !Array.isArray(value.authors) || !value.authors.every((entry: unknown) =>
       isRecord(entry) && typeof entry.name === 'string' && typeof entry.job === 'string')
     || !isDifficulty(value.difficulty)
-    || !isInteger(value.currentLevelIndex, 0, value.levels.length - 1)
-    || !isInteger(value.selectedLevelIndex, 0, value.levels.length - 1)
+    || !isInteger(value.currentLevelIndex, 0, Math.max(0, value.levels.length - 1))
+    || !isInteger(value.selectedLevelIndex, 0, Math.max(0, value.levels.length - 1))
     || !(value.startedAt === null || isTime(value.startedAt)) || !isTime(value.elapsedMs)
     || typeof value.completed !== 'boolean' || typeof value.hasStarted !== 'boolean'
     || !Array.isArray(value.attempts) || !Array.isArray(value.rounds)
     || !Array.isArray(value.completedLevelIndexes)) return false
 
   const savedLevels: level[] = value.levels
-  const rounds: Round[] = []
+  const rounds: GameRound[] = []
   const visited = new Set<number>()
   for (const entry of value.rounds as unknown[]) {
     if (!isRecord(entry) || !isInteger(entry.levelIndex, 0, savedLevels.length - 1)
-      || visited.has(entry.levelIndex) || !Array.isArray(entry.questionOrder)) return false
+      || visited.has(entry.levelIndex) || !Array.isArray(entry.questionOrder)
+      || (entry.completedDifficulty !== undefined && !isDifficulty(entry.completedDifficulty))) return false
     const count = savedLevels[entry.levelIndex]?.problems.length ?? 0
     if (entry.questionOrder.length !== count
       || !entry.questionOrder.every((index: unknown) => isInteger(index, 0, count - 1))
       || new Set(entry.questionOrder).size !== count) return false
     visited.add(entry.levelIndex)
-    rounds.push({ levelIndex: entry.levelIndex, questionOrder: entry.questionOrder })
+    rounds.push({ levelIndex: entry.levelIndex, questionOrder: entry.questionOrder,
+      ...(isDifficulty(entry.completedDifficulty) ? { completedDifficulty: entry.completedDifficulty } : {}),
+    })
   }
 
   const attempts: Attempt[] = []
@@ -156,6 +164,18 @@ function isSnapshot(value: unknown): value is Snapshot {
   if (!value.hasStarted && (rounds.length > 0 || attempts.length > 0 || value.elapsedMs !== 0 || value.startedAt !== null || value.completed)) return false
   if (value.hasStarted && !visited.has(value.currentLevelIndex)) return false
   if (value.completed && (!solved.includes(value.currentLevelIndex) || value.startedAt !== null)) return false
+  if (value.mode === 'campaign') {
+    const currentLevelIndex = value.currentLevelIndex
+    if (value.hasStarted && (rounds.length !== currentLevelIndex + 1
+      || rounds.some((round, index) => round.levelIndex !== index)
+      || rounds.some((round) => round.levelIndex < currentLevelIndex
+        && (round.completedDifficulty === undefined || !solved.includes(round.levelIndex)))
+      || rounds.some((round) => round.levelIndex === currentLevelIndex && round.completedDifficulty !== undefined))) return false
+    if (value.completed && currentLevelIndex !== savedLevels.length - 1) return false
+  } else if (value.mode === 'single') {
+    if (rounds.length !== (value.hasStarted ? 1 : 0)
+      || rounds.some((round) => round.levelIndex !== value.currentLevelIndex || round.completedDifficulty !== undefined)) return false
+  } else if (rounds.some((round) => round.completedDifficulty !== undefined)) return false
   if (value.questionFingerprint !== undefined
     && value.questionFingerprint !== questionFingerprint(savedLevels)) return false
   return true
@@ -164,6 +184,7 @@ function isSnapshot(value: unknown): value is Snapshot {
 export const useGameStore = defineStore('game', {
   state: (): GameState => ({
     ...copyConfig(),
+    mode: 'single',
     difficulty: 1,
     currentLevelIndex: 0,
     selectedLevelIndex: 0,
@@ -191,7 +212,12 @@ export const useGameStore = defineStore('game', {
       .map((entry) => `${entry.levelIndex}:${entry.problemIndex}`)).size,
     wrongCount: (state): number => state.attempts.filter((entry) => !entry.correct).length,
     levelSolved(): boolean {
-      return this.selectedQuestionIndexes.length > 0 && this.currentProblemIndex === null
+      return this.hasStarted && this.rounds.some((round) => round.levelIndex === this.currentLevelIndex)
+        && this.currentProblemIndex === null
+    },
+    isLastLevel: (state): boolean => state.mode === 'single' || state.currentLevelIndex === state.levels.length - 1,
+    canAdvance(): boolean {
+      return this.levelSolved && !this.completed
     },
     hasProgress: (state): boolean => state.hasStarted,
   },
@@ -218,19 +244,27 @@ export const useGameStore = defineStore('game', {
     },
     startGame(requestedIndex?: number): void {
       const index = requestedIndex ?? this.selectedLevelIndex
-      if (!isInteger(index, 0, this.levels.length - 1) || !this.levels[index]?.problems.length) return
+      if (!isInteger(index, 0, this.levels.length - 1)) return
       this.pauseTimer()
+      this.mode = 'single'
       this.currentLevelIndex = index
       this.selectedLevelIndex = index
       this.attempts = []
       this.completedLevelIndexes = []
-      this.rounds = [{ levelIndex: index, questionOrder: shuffle(this.levels[index].problems.length) }]
+      this.rounds = [{ levelIndex: index, questionOrder: shuffle(this.levels[index]?.problems.length ?? 0) }]
+      this.completedLevelIndexes = solvedIndexes(this)
       this.elapsedMs = 0
       this.completed = false
       this.hasStarted = true
       this.persistenceError = ''
       this.resumeTimer()
       // An explicit new game replaces a corrupt or stale save immediately.
+      this.persist()
+    },
+    startCampaign(): void {
+      if (this.levels.length === 0) return
+      this.startGame(0)
+      this.mode = 'campaign'
       this.persist()
     },
     submitAnswer(answer: number): boolean | null {
@@ -246,6 +280,20 @@ export const useGameStore = defineStore('game', {
     advanceLevel(): boolean {
       if (this.completed) return true
       if (!this.hasStarted || !this.levelSolved) return false
+      if (this.mode === 'campaign' && !this.isLastLevel) {
+        const round = this.rounds.find((entry) => entry.levelIndex === this.currentLevelIndex)
+        if (!round) return false
+        // Only departed rounds freeze their requirement; the active round stays live.
+        round.completedDifficulty = this.difficulty
+        this.currentLevelIndex += 1
+        this.selectedLevelIndex = this.currentLevelIndex
+        this.rounds.push({ levelIndex: this.currentLevelIndex,
+          questionOrder: shuffle(this.currentLevel?.problems.length ?? 0),
+        })
+        this.completedLevelIndexes = solvedIndexes(this)
+        this.persist()
+        return false
+      }
       this.completedLevelIndexes = solvedIndexes(this)
       this.pauseTimer()
       this.completed = true
@@ -253,7 +301,8 @@ export const useGameStore = defineStore('game', {
       return true
     },
     replay(): void {
-      this.startGame()
+      if (this.mode === 'campaign') this.startCampaign()
+      else this.startGame()
     },
     resumeTimer(): void {
       if (this.hasStarted && !this.completed && this.startedAt === null) this.startedAt = Date.now()
@@ -276,6 +325,7 @@ export const useGameStore = defineStore('game', {
       try {
         const snapshot: Snapshot = {
           version: 1,
+          mode: this.mode,
           questionFingerprint: questionFingerprint(this.levels),
           levels: this.levels,
           authors: this.authors,
@@ -317,20 +367,22 @@ export const useGameStore = defineStore('game', {
           this.persistenceError = '题目配置已更新，旧进度不兼容，已重置。请重新开始。'
           return
         }
-        // Legacy campaigns retain only the active round. Their aggregate active time
-        // is retained because v1 did not record per-level durations. Restore paused.
+        // No-mode v1 saves migrate to a single active round; explicit campaigns retain all rounds.
+        // Aggregate active time is retained in both cases. Restore paused.
         const currentLevelIndex = snapshot.currentLevelIndex
+        const campaign = snapshot.mode === 'campaign'
         this.$patch({
           ...config,
+          mode: snapshot.mode ?? 'single',
           difficulty: snapshot.difficulty,
           currentLevelIndex,
           selectedLevelIndex: snapshot.hasStarted ? currentLevelIndex : snapshot.selectedLevelIndex,
           startedAt: null,
           elapsedMs: snapshot.elapsedMs,
           completed: snapshot.completed,
-          attempts: snapshot.attempts.filter((entry) => entry.levelIndex === currentLevelIndex),
-          completedLevelIndexes: snapshot.completedLevelIndexes.filter((index) => index === currentLevelIndex),
-          rounds: snapshot.rounds.filter((entry) => entry.levelIndex === currentLevelIndex),
+          attempts: snapshot.attempts.filter((entry) => campaign || entry.levelIndex === currentLevelIndex),
+          completedLevelIndexes: snapshot.completedLevelIndexes.filter((index) => campaign || index === currentLevelIndex),
+          rounds: snapshot.rounds.filter((entry) => campaign || entry.levelIndex === currentLevelIndex),
           hasStarted: snapshot.hasStarted,
           persistenceError: '',
         })

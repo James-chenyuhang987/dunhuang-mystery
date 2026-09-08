@@ -2,7 +2,26 @@ import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { gameAuthors, gameLevels } from '@/data/game'
 import { GAME_STORAGE_KEY, useGameStore } from '@/stores/game'
-import type { Difficulty } from '@/types/game'
+import type { Difficulty, level } from '@/types/game'
+
+vi.mock('@/data/game', async (importOriginal) => ({
+  ...await importOriginal<typeof import('@/data/game')>(),
+  gameLevels: [],
+}))
+
+function configureLevels(questionCounts: number[], duplicateNames = false): void {
+  gameLevels.splice(0, gameLevels.length, ...questionCounts.map((count, index): level => ({
+    name: duplicateNames ? '同名关卡' : `关卡 ${index}`,
+    panorama_url: `/level-${index}.svg`,
+    clues: [],
+    problems: Array.from({ length: count }, (_, questionIndex) => ({
+      title: `题目 ${index}-${questionIndex}`,
+      select: ['甲', '乙', '丙', '丁'],
+      true_answer: (questionIndex + 1) % 4,
+      reason: '测试解析',
+    })),
+  })))
+}
 
 function answerCurrent(store: ReturnType<typeof useGameStore>): void {
   const question = store.currentProblem
@@ -20,6 +39,7 @@ function saveWith(store: ReturnType<typeof useGameStore>, changes: Record<string
 }
 
 beforeEach(() => {
+  configureLevels([3, 4, 3])
   setActivePinia(createPinia())
   localStorage.clear()
   vi.useFakeTimers()
@@ -228,6 +248,216 @@ describe('completion and replay', () => {
   })
 })
 
+describe('linear campaigns and configurable levels', () => {
+  it.each([1, 5, 7])('plays all %i levels by index, even with duplicate names, and restores the ending', (count) => {
+    configureLevels(Array.from({ length: count }, () => 3), true)
+    const store = useGameStore()
+    store.selectLevel(count - 1)
+    store.startCampaign()
+    expect(store.mode).toBe('campaign')
+    expect(store.currentLevelIndex).toBe(0)
+    expect(store.canAdvance).toBe(false)
+    for (let index = 0; index < count; index += 1) {
+      expect(store.currentLevelIndex).toBe(index)
+      expect(store.isLastLevel).toBe(index === count - 1)
+      expect(store.advanceLevel()).toBe(false)
+      finishLevel(store)
+      expect(store.canAdvance).toBe(true)
+      expect(store.advanceLevel()).toBe(index === count - 1)
+    }
+    expect(store.completed).toBe(true)
+    expect(store.canAdvance).toBe(false)
+    expect(store.rounds).toHaveLength(count)
+    expect(store.correctCount).toBe(count)
+    expect(store.completedLevelIndexes).toEqual(Array.from({ length: count }, (_, index) => index))
+    setActivePinia(createPinia())
+    const restored = useGameStore()
+    restored.restore()
+    expect(restored.persistenceError).toBe('')
+    expect(restored.mode).toBe('campaign')
+    expect(restored.completed).toBe(true)
+    expect(restored.attempts).toEqual(store.attempts)
+    expect(restored.rounds).toEqual(store.rounds)
+    expect(restored.advanceLevel()).toBe(true)
+    restored.replay()
+    expect(restored.mode).toBe('campaign')
+    expect(restored.currentLevelIndex).toBe(0)
+    expect(restored.attempts).toEqual([])
+    expect(restored.rounds).toHaveLength(1)
+  })
+
+  it('keeps single-level selection independent after starting a campaign', () => {
+    configureLevels([1, 2, 3, 4, 5])
+    const store = useGameStore()
+    store.startCampaign()
+    finishLevel(store)
+    store.advanceLevel()
+    store.startGame(3)
+    expect(store.mode).toBe('single')
+    expect(store.isLastLevel).toBe(true)
+    expect(store.rounds).toHaveLength(1)
+    expect(store.attempts).toEqual([])
+    finishLevel(store)
+    expect(store.advanceLevel()).toBe(true)
+    expect(store.currentLevelIndex).toBe(3)
+    expect(store.completedLevelIndexes).toEqual([3])
+  })
+
+  it('freezes departed campaign rounds while live difficulty changes and partial restoration remain valid', () => {
+    configureLevels([3, 4, 5, 2, 3])
+    const store = useGameStore()
+    store.startCampaign()
+    const question = store.currentProblem
+    if (!question) throw new Error('Missing question')
+    store.submitAnswer((question.true_answer + 1) % 4)
+    finishLevel(store)
+    vi.advanceTimersByTime(1000)
+    expect(store.advanceLevel()).toBe(false)
+    const previousAttempts = [...store.attempts]
+    expect(store.rounds[0]?.completedDifficulty).toBe(1)
+    store.setDifficulty(3)
+    expect(store.completedLevelIndexes).toEqual([0])
+    answerCurrent(store)
+    const order = [...store.selectedQuestionIndexes]
+    store.setDifficulty(1)
+    expect(store.levelSolved).toBe(true)
+    store.setDifficulty(3)
+    expect(store.levelSolved).toBe(false)
+    store.pauseTimer()
+    store.persist()
+    setActivePinia(createPinia())
+    const restored = useGameStore()
+    restored.restore()
+    expect(restored.persistenceError).toBe('')
+    expect(restored.mode).toBe('campaign')
+    expect(restored.currentLevelIndex).toBe(1)
+    expect(restored.selectedQuestionIndexes).toEqual(order)
+    expect(restored.attempts.slice(0, previousAttempts.length)).toEqual(previousAttempts)
+    expect(restored.attempts).toEqual(store.attempts)
+    expect(restored.completedLevelIndexes).toEqual([0])
+    expect(restored.elapsedMs).toBe(1000)
+    expect(restored.startedAt).toBeNull()
+    restored.resumeTimer()
+    finishLevel(restored)
+    expect(restored.advanceLevel()).toBe(false)
+    restored.setDifficulty(1)
+    expect(restored.completedLevelIndexes).toEqual([0, 1])
+    expect(restored.rounds[1]?.completedDifficulty).toBe(3)
+    while (!restored.completed) {
+      finishLevel(restored)
+      restored.advanceLevel()
+    }
+    restored.setDifficulty(3)
+    expect(restored.completed).toBe(false)
+    expect(restored.completedLevelIndexes).toEqual([0, 1, 2, 3])
+    expect(restored.currentLevelIndex).toBe(4)
+    restored.restore()
+    expect(restored.persistenceError).toBe('')
+    finishLevel(restored)
+    expect(restored.advanceLevel()).toBe(true)
+  })
+
+  it('cannot start an empty level list and safely restores its untouched state', () => {
+    configureLevels([])
+    const store = useGameStore()
+    store.startCampaign()
+    store.startGame()
+    store.selectLevel(0)
+    expect(store.hasStarted).toBe(false)
+    expect(store.levelSolved).toBe(false)
+    expect(store.canAdvance).toBe(false)
+    expect(store.advanceLevel()).toBe(false)
+    expect(store.currentLevel).toBeUndefined()
+    store.setDifficulty(3)
+    setActivePinia(createPinia())
+    const restored = useGameStore()
+    restored.restore()
+    expect(restored.persistenceError).toBe('')
+    expect(restored.levels).toEqual([])
+    expect(restored.hasStarted).toBe(false)
+    expect(restored.difficulty).toBe(3)
+  })
+
+  it.each(['single', 'campaign'] as const)('starts and manually completes empty question rounds in %s mode', (mode) => {
+    configureLevels([0, 2, 0, 0, 1])
+    const store = useGameStore()
+    expect(store.levelSolved).toBe(false)
+    if (mode === 'campaign') store.startCampaign()
+    else store.startGame(0)
+    expect(store.levelSolved).toBe(true)
+    expect(store.canAdvance).toBe(true)
+    expect(store.completed).toBe(false)
+    expect(store.currentProblem).toBeNull()
+    expect(store.submitAnswer(0)).toBeNull()
+    expect(store.rounds[0]?.questionOrder).toEqual([])
+    store.restore()
+    expect(store.persistenceError).toBe('')
+    expect(store.completedLevelIndexes).toEqual([0])
+    expect(store.advanceLevel()).toBe(mode === 'single')
+    if (mode === 'campaign') {
+      finishLevel(store)
+      expect(store.advanceLevel()).toBe(false)
+      expect(store.currentLevelIndex).toBe(2)
+      store.setDifficulty(3)
+      expect(store.completedLevelIndexes).toEqual([0, 1, 2])
+      store.restore()
+      expect(store.persistenceError).toBe('')
+      expect(store.levelSolved).toBe(true)
+      expect(store.advanceLevel()).toBe(false)
+      expect(store.currentLevelIndex).toBe(3)
+      expect(store.advanceLevel()).toBe(false)
+      finishLevel(store)
+      expect(store.advanceLevel()).toBe(true)
+      expect(store.completedLevelIndexes).toEqual([0, 1, 2, 3, 4])
+    }
+  })
+
+  it.each([1, 5])('allows an all-empty %i-round campaign to finish manually and restore', (count) => {
+    configureLevels(Array.from({ length: count }, () => 0))
+    const store = useGameStore()
+    store.startCampaign()
+    for (let index = 0; index < count; index += 1) {
+      expect(store.levelSolved).toBe(true)
+      expect(store.advanceLevel()).toBe(index === count - 1)
+    }
+    store.restore()
+    expect(store.persistenceError).toBe('')
+    expect(store.completed).toBe(true)
+    expect(store.correctCount).toBe(0)
+    expect(store.rounds).toHaveLength(count)
+  })
+
+  it.each(['missing', 'future', 'reordered', 'unfrozen', 'badDifficulty', 'frozenCurrent', 'unsolvedPrevious', 'prematureEnding', 'unknownMode', 'singleWithHistory'])('rejects inconsistent campaign %s state without overwriting current progress', (change) => {
+    const store = useGameStore()
+    store.startCampaign()
+    finishLevel(store)
+    store.advanceLevel()
+    finishLevel(store)
+    const rounds = store.rounds.map((round) => ({ ...round, questionOrder: [...round.questionOrder] }))
+    const changes: Record<string, unknown> = {}
+    if (change === 'missing') changes.rounds = rounds.slice(1)
+    if (change === 'future') changes.rounds = [...rounds, { levelIndex: 2, questionOrder: [0, 1, 2] }]
+    if (change === 'reordered') changes.rounds = rounds.reverse()
+    if (change === 'unfrozen') changes.rounds = rounds.map(({ completedDifficulty: _, ...round }) => round)
+    if (change === 'badDifficulty') changes.rounds = rounds.map((round) => ({ ...round, completedDifficulty: 4 }))
+    if (change === 'frozenCurrent') changes.rounds = rounds.map((round) => ({ ...round, completedDifficulty: 1 }))
+    if (change === 'unsolvedPrevious') {
+      changes.attempts = store.attempts.filter((attempt) => attempt.levelIndex === 1)
+      changes.completedLevelIndexes = [1]
+    }
+    if (change === 'prematureEnding') changes.completed = true
+    if (change === 'unknownMode') changes.mode = 'invalid'
+    if (change === 'singleWithHistory') changes.mode = 'single'
+    saveWith(store, changes)
+    const attempts = [...store.attempts]
+    store.restore()
+    expect(store.persistenceError).not.toBe('')
+    expect(store.mode).toBe('campaign')
+    expect(store.currentLevelIndex).toBe(1)
+    expect(store.attempts).toEqual(attempts)
+  })
+})
+
 describe('active elapsed time', () => {
   it('counts active segments once and excludes paused time', () => {
     const store = useGameStore()
@@ -406,6 +636,7 @@ describe('persistence', () => {
     const currentAttempts = [...store.attempts]
     const currentRounds = [...store.rounds]
     saveWith(store, {
+      mode: undefined,
       attempts: [...previousAttempts, ...currentAttempts],
       rounds: [...previousRounds, ...currentRounds],
       completedLevelIndexes: [0, 1],

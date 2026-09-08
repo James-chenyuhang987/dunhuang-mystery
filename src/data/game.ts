@@ -4,6 +4,8 @@ import type { authors, levels } from '@/types/game'
 export const gameLevels: levels = [
   {
     name: '沙海遗简',
+    subtitle: '入境',
+    description: '一卷遗落沙海的行记，一段被风藏起的往事。循着驼铃，寻找故事的起点。',
     panorama_url: '/art/cave-01.svg',
     clues: [
       { type: 'text', name: '虚构案卷 · 阅读须知', data: '本游戏是以敦煌文化为背景的虚构教育推理，不是历史事件复原。所有失踪案、人物与证物编号均为编写；请以案内证据推理，不将它们当作真实文献。' },
@@ -19,6 +21,8 @@ export const gameLevels: levels = [
   },
   {
     name: '九色秘语',
+    subtitle: '寻迹',
+    description: '循九色而入，辨壁画中的隐语。在斑驳的色彩之间，找回被遗忘的承诺。',
     panorama_url: '/art/cave-02.svg',
     clues: [
       { type: 'text', name: '策展人的故事卡', data: '本关谜题为虚构。教学故事卡借用九色鹿故事的“救助与守信”主题：受助者许诺不泄露救助者的所在，却为奖赏背弃承诺。具体展签与排序密码仅属于本游戏。' },
@@ -34,6 +38,8 @@ export const gameLevels: levels = [
   },
   {
     name: '藏经余音',
+    subtitle: '回响',
+    description: '叩开藏经洞的记忆，在残卷与回声里拼合线索，让沉睡的故事重见天光。',
     panorama_url: '/art/cave-03.svg',
     clues: [
       { type: 'text', name: '虚构整理室日志', data: '教学整理室有三份数字摹本：A记录入库，B记录临时借阅，C记录归还。时间先后是A、B、C。C的备注为“已归还原位，编号待核”，没有任何失窃的确认记录。' },
@@ -49,5 +55,36 @@ export const gameLevels: levels = [
   },
 ]
 
-export const gameAuthors: authors = [{ name: 'OpenAI GPT6-Astra', job: 'Coding' },{name:"陈禹行",job:"aabbcc"}]
-export const mediaConfig = { introVideoUrl: '/entrance.mp4', introPosterUrl: '/background.jpeg' }
+export const gameAuthors: authors = [
+  { name: 'OpenAI GPT6-Astra', job: 'Coding' },
+  { name: '陈禹行 杲子挺 阮泓凯 鲍致成', job: 'Developers' },
+]
+export const mediaConfig = { introVideoUrl: '', introPosterUrl: '' }
+
+export const siteConfig = {
+  title: '敦煌壁画探索',
+  subtitle: '一眼千年',
+  brand: '敦煌 · 探迹',
+  brandEnglish: 'DUNHUANG EXPLORER',
+  heroEnglish: 'BEYOND THE MURALS',
+  introduction: '风沙掩埋了足迹，却未曾带走故事。化身壁画探秘者，在方寸洞窟之间，拾起散落的线索，解开沉睡千年的谜题。',
+  homeHeading: '执灯，开启探索',
+  selectionHeading: '择一卷，入画境',
+  endingHeading: '画卷有终，探索无尽。',
+  aboutHeading: '让千年壁画，再次开口。',
+  chapterCompleteHeading: '此卷疑云，已然散尽。',
+  backgroundUrl: '/art/landscape.svg',
+  backgroundAlt: '敦煌莫高窟风格山崖与沙海插画',
+  headerNote: '一眼千年 · 一步一谜',
+  eyebrow: '一场穿越千年的壁画寻踪',
+  edition: 'VOL. 01 — 2026',
+  seal: ['循迹', '千年'],
+  verticalText: '于无声处，听见历史的回响',
+  coordinates: '40°02′ N · 94°48′ E',
+  location: '中国 · 甘肃 · 敦煌莫高窟',
+  artCaption: '莫高窟 · 九层楼',
+  artCaptionEnglish: 'MOGAO CAVES, DUNHUANG',
+  footerText: '以好奇为灯，照见千年之美。',
+  footerMotto: '大漠有境，探索无尽',
+  artworkNotice: '原创示意画境 · 非实景影像',
+}

@@ -3,8 +3,9 @@ import { gameLevels } from '../src/data/game'
 
 test('desktop: finish selected chapter, track wrong answer, persist progress', async ({ page }) => {
   await page.goto('/')
+  await page.getByRole('button', { name: '选关', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1 })).toContainText('敦煌壁画')
-  await page.getByRole('button', { name: '启程 · 探索壁画' }).click()
+  await page.getByRole('button', { name: '开始所选关卡' }).click()
   await expect(page).toHaveURL(/\/game$/)
   await expect(page.locator('.panorama canvas')).toBeVisible()
   await expect(page.locator('.panorama-status')).toHaveCount(0)
@@ -36,12 +37,13 @@ test('desktop: finish selected chapter, track wrong answer, persist progress', a
 test('mobile: responsive layout, live difficulty and isolated clue gestures', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')
+  await page.getByRole('button', { name: '选关', exact: true }).click()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   const slider = page.getByRole('slider', { name: '探索难度' })
   await slider.focus()
   await slider.press('End')
   await expect(slider).toHaveValue('3')
-  await page.getByRole('button', { name: '启程 · 探索壁画' }).click()
+  await page.getByRole('button', { name: '开始所选关卡' }).click()
   await expect(page.locator('.panorama-status')).toHaveCount(0)
   await page.getByRole('button', { name: '难度 · 解谜' }).click()
   await page.getByRole('slider').focus()
@@ -65,7 +67,8 @@ test('mobile: responsive layout, live difficulty and isolated clue gestures', as
 test('panorama and clue failures offer working reload buttons', async ({ page }) => {
   await page.route('**/art/cave-01.svg', route => route.abort())
   await page.goto('/')
-  await page.getByRole('button', { name: '启程 · 探索壁画' }).click()
+  await page.getByRole('button', { name: '选关', exact: true }).click()
+  await page.getByRole('button', { name: '开始所选关卡' }).click()
   await expect(page.getByRole('button', { name: '重新加载全景' })).toBeVisible()
   await page.unroute('**/art/cave-01.svg')
   await page.getByRole('button', { name: '重新加载全景' }).click()
