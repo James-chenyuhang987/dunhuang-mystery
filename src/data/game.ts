@@ -50,4 +50,4 @@ export const gameLevels: levels = [
 ]
 
 export const gameAuthors: authors = [{ name: 'OpenAI GPT6-Astra', job: 'Coding' },{name:"陈禹行",job:"aabbcc"}]
-export const mediaConfig = { introVideoUrl: '', introPosterUrl: '' }
+export const mediaConfig = { introVideoUrl: '/entrance.mp4', introPosterUrl: '/background.jpeg' }

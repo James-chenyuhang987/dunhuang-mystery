@@ -42,6 +42,7 @@ function dispose() {
   renderer?.domElement.removeEventListener('webglcontextlost', onLost)
   material?.map?.dispose(); material?.dispose(); geometry?.dispose(); renderer?.dispose()
   renderer?.domElement.remove()
+  console.log(renderer?.info.memory)
   renderer = undefined
 }
 function load() {
