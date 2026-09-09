@@ -122,7 +122,7 @@ export const gameAuthors: authors = [
   { name: 'OpenAI GPT6-Astra', job: 'Coding' },
   { name: '陈禹行 杲子挺 阮泓凯 鲍致成', job: 'Developers' },
 ]
-export const mediaConfig = { introVideoUrl: '', introPosterUrl: '', locationPauseRatio: 0.5 }
+export const mediaConfig = { introVideoUrl: '/entrance.mp4', introPosterUrl: '/background.jpeg', locationPauseRatio: 0.5 }
 
 export const siteConfig = {
   title: '敦煌壁画探索',
