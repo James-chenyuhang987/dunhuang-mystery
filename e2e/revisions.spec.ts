@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { chooseDefaultLocation } from './helpers'
 import { gameAuthors, gameLevels } from '../src/data/game'
 
 for (const difficulty of [1, 2, 3]) {
@@ -7,6 +8,7 @@ for (const difficulty of [1, 2, 3]) {
     if (!level) throw new Error('Missing second chapter')
     const count = difficulty === 1 ? 1 : difficulty === 2 ? Math.ceil(level.problems.length / 2) : level.problems.length
     await page.goto('/')
+  await chooseDefaultLocation(page)
   await page.getByRole('button', { name: '选关', exact: true }).click()
     await page.getByRole('button', { name: /九色秘语/ }).click()
     await page.getByRole('slider').fill(String(difficulty))
@@ -51,6 +53,7 @@ for (const difficulty of [1, 2, 3]) {
 
 test('difficulty changes inside open questions update actual remaining questions', async ({ page }) => {
   await page.goto('/')
+  await chooseDefaultLocation(page)
   await page.getByRole('button', { name: '选关', exact: true }).click()
   await page.getByRole('button', { name: '开始所选关卡' }).click()
   await page.getByRole('button', { name: '开启谜题', exact: true }).click()
@@ -70,9 +73,11 @@ test('difficulty changes inside open questions update actual remaining questions
 test('fullscreen image supports zoom, pinch, reset and close without moving panorama', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')
+  await chooseDefaultLocation(page)
   await page.getByRole('button', { name: '选关', exact: true }).click()
   await page.getByRole('button', { name: '开始所选关卡' }).click()
   const imageIndex = gameLevels[0]?.clues.findIndex(item => item.type === 'image') ?? -1
+  await page.locator('.clue-drawer-heading').click()
   await page.locator('.clue-toggle').nth(imageIndex).click()
   await page.getByRole('button', { name: '全屏查看与缩放' }).click()
   const dialog = page.getByRole('dialog')

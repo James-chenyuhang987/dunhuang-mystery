@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test'
+import { chooseDefaultLocation } from './helpers'
 import { gameLevels } from '../src/data/game'
 
 test('desktop: finish selected chapter, track wrong answer, persist progress', async ({ page }) => {
   await page.goto('/')
+  await chooseDefaultLocation(page)
   await page.getByRole('button', { name: '选关', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1 })).toContainText('敦煌壁画')
   await page.getByRole('button', { name: '开始所选关卡' }).click()
@@ -11,6 +13,7 @@ test('desktop: finish selected chapter, track wrong answer, persist progress', a
   await expect(page.locator('.panorama-status')).toHaveCount(0)
   await page.getByRole('button', { name: '放大全景' }).click()
   await expect(page.locator('.panorama')).toHaveAttribute('data-fov', '65')
+  await page.locator('.clue-drawer-heading').click()
   await page.locator('.clue-toggle').first().click()
   await expect(page.locator('.clue-body').first()).toBeVisible()
   await page.getByRole('button', { name: '开启谜题', exact: true }).click()
@@ -18,10 +21,9 @@ test('desktop: finish selected chapter, track wrong answer, persist progress', a
   const problem = gameLevels[0]?.problems.find(item => item.title === title)
   if (!problem) throw new Error(`Missing fixture: ${title}`)
   await page.locator('.answer-option').nth((problem.true_answer + 1) % 4).click()
-  await expect(page.getByRole('status').filter({ hasText: '尚差一步' })).toBeVisible()
-  await page.getByRole('button', { name: '再次推断' }).click()
-  await page.locator('.answer-option').nth(problem.true_answer).click()
-  await expect(page.getByRole('status').filter({ hasText: '推断正确' })).toBeVisible()
+  await expect(page.getByRole('status').filter({ hasText: '推断有误' })).toBeVisible()
+  await expect(page.locator('.answer-option.correct')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: '再次推断' })).toHaveCount(0)
   await page.getByRole('button', { name: '查看本卷结果' }).click()
   await page.getByRole('button', { name: '关闭题目' }).click()
   await page.reload()
@@ -30,13 +32,14 @@ test('desktop: finish selected chapter, track wrong answer, persist progress', a
   await page.getByRole('button', { name: '落款 · 查看探索回响' }).click()
   await expect(page).toHaveURL(/\/ending$/)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('画卷有终，探索无尽。')
-  await expect(page.locator('.ending-stats strong').nth(0)).toHaveText('1')
+  await expect(page.locator('.ending-stats strong').nth(0)).toHaveText('0')
   await expect(page.locator('.ending-stats strong').nth(1)).toHaveText('1')
 })
 
 test('mobile: responsive layout, live difficulty and isolated clue gestures', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')
+  await chooseDefaultLocation(page)
   await page.getByRole('button', { name: '选关', exact: true }).click()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   const slider = page.getByRole('slider', { name: '探索难度' })
@@ -51,6 +54,7 @@ test('mobile: responsive layout, live difficulty and isolated clue gestures', as
   await expect(page.getByRole('button', { name: '难度 · 初探' })).toBeVisible()
   await page.getByRole('button', { name: '难度 · 初探' }).click()
   const previous = await page.locator('.panorama').getAttribute('data-fov')
+  await page.locator('.clue-drawer-heading').click()
   await page.locator('.clue-toggle').first().click()
   await page.locator('.clue-body').dispatchEvent('wheel', { deltaY: 200 })
   await expect(page.locator('.panorama')).toHaveAttribute('data-fov', previous ?? '')
@@ -67,6 +71,7 @@ test('mobile: responsive layout, live difficulty and isolated clue gestures', as
 test('panorama and clue failures offer working reload buttons', async ({ page }) => {
   await page.route('**/art/cave-01.svg', route => route.abort())
   await page.goto('/')
+  await chooseDefaultLocation(page)
   await page.getByRole('button', { name: '选关', exact: true }).click()
   await page.getByRole('button', { name: '开始所选关卡' }).click()
   await expect(page.getByRole('button', { name: '重新加载全景' })).toBeVisible()
@@ -76,6 +81,7 @@ test('panorama and clue failures offer working reload buttons', async ({ page })
   await page.route('**/art/clue.svg', route => route.abort())
   const imageIndex = gameLevels[0]?.clues.findIndex(item => item.type === 'image') ?? -1
   expect(imageIndex).toBeGreaterThanOrEqual(0)
+  await page.locator('.clue-drawer-heading').click()
   await page.locator('.clue-toggle').nth(imageIndex).click()
   await page.getByRole('button', { name: '重新加载线索' }).waitFor()
   await page.unroute('**/art/clue.svg')

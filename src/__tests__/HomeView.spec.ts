@@ -8,8 +8,9 @@ import { siteConfig } from '@/data/game'
 import type { level } from '@/types/game'
 
 const wrappers: ReturnType<typeof mount>[] = []
-afterEach(() => { wrappers.splice(0).forEach(wrapper => wrapper.unmount()); vi.restoreAllMocks(); localStorage.clear() })
+afterEach(() => { wrappers.splice(0).forEach(wrapper => wrapper.unmount()); vi.restoreAllMocks(); localStorage.clear(); sessionStorage.clear() })
 async function setup(levels: level[], path = '/') {
+  sessionStorage.setItem('dunhuang-mystery:location-selected', '1')
   const pinia = createPinia()
   setActivePinia(pinia)
   const game = useGameStore()
@@ -31,10 +32,10 @@ const entries: level[] = Array.from({ length: 12 }, (_, index) => ({
 describe('configuration-driven menus', () => {
   it('only exposes start and selection on the first menu, then renders every configured chapter', async () => {
     const { wrapper, router, game } = await setup(entries)
-    expect(wrapper.findAll('button').map(button => button.text())).toEqual(['开始', '选关'])
+    expect(wrapper.findAll('.journey-panel > .start-button').map(button => button.text())).toEqual(['开始', '选关'])
     expect(wrapper.findAll('.chapter-card')).toHaveLength(0)
     expect(wrapper.find('h1').text()).toBe(siteConfig.title)
-    await wrapper.findAll('button')[1]!.trigger('click')
+    await wrapper.findAll('.journey-panel > .start-button')[1]!.trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.path).toBe('/levels')
     expect(wrapper.findAll('.chapter-card')).toHaveLength(12)
@@ -54,7 +55,7 @@ describe('configuration-driven menus', () => {
   it('disables starting when the configuration is empty', async () => {
     const { wrapper, router } = await setup([])
     expect(wrapper.text()).toContain('暂无关卡')
-    expect(wrapper.find('button').attributes('disabled')).toBeDefined()
+    expect(wrapper.find('.journey-panel > .start-button').attributes('disabled')).toBeDefined()
     await router.push('/levels')
     await flushPromises()
     expect(wrapper.find('.start-button').attributes('disabled')).toBeDefined()
@@ -63,7 +64,7 @@ describe('configuration-driven menus', () => {
   it('starts a campaign from the first chapter regardless of the selected index', async () => {
     const { wrapper, game } = await setup(entries)
     game.selectLevel(8)
-    await wrapper.find('button').trigger('click')
+    await wrapper.find('.journey-panel > .start-button').trigger('click')
     expect(game.mode).toBe('campaign')
     expect(game.currentLevelIndex).toBe(0)
   })

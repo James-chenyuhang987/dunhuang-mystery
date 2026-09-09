@@ -1,26 +1,36 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { gameAuthors, gameLevels } from '@/data/game'
+import { gameAuthors, gameLevels, gameLocations } from '@/data/game'
 import { GAME_STORAGE_KEY, useGameStore } from '@/stores/game'
 import type { Difficulty, level } from '@/types/game'
 
-vi.mock('@/data/game', async (importOriginal) => ({
-  ...await importOriginal<typeof import('@/data/game')>(),
-  gameLevels: [],
-}))
+vi.mock('@/data/game', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@/data/game')>()
+  const gameLevels: level[] = []
+  return {
+    ...original,
+    gameLevels,
+    gameLocations: [{ id: 'default', name: '默认地点', subtitle: '测试', coordinates: '0,0',
+      background_url: '/default.svg', levels: gameLevels }],
+  }
+})
 
-function configureLevels(questionCounts: number[], duplicateNames = false): void {
-  gameLevels.splice(0, gameLevels.length, ...questionCounts.map((count, index): level => ({
-    name: duplicateNames ? '同名关卡' : `关卡 ${index}`,
-    panorama_url: `/level-${index}.svg`,
+function createLevels(questionCounts: number[], prefix = '', duplicateNames = false): level[] {
+  return questionCounts.map((count, index): level => ({
+    name: duplicateNames ? '同名关卡' : `${prefix}关卡 ${index}`,
+    panorama_url: `/${prefix}level-${index}.svg`,
     clues: [],
     problems: Array.from({ length: count }, (_, questionIndex) => ({
-      title: `题目 ${index}-${questionIndex}`,
+      title: `${prefix}题目 ${index}-${questionIndex}`,
       select: ['甲', '乙', '丙', '丁'],
       true_answer: (questionIndex + 1) % 4,
       reason: '测试解析',
     })),
-  })))
+  }))
+}
+
+function configureLevels(questionCounts: number[], duplicateNames = false): void {
+  gameLevels.splice(0, gameLevels.length, ...createLevels(questionCounts, '', duplicateNames))
 }
 
 function answerCurrent(store: ReturnType<typeof useGameStore>): void {
@@ -39,6 +49,9 @@ function saveWith(store: ReturnType<typeof useGameStore>, changes: Record<string
 }
 
 beforeEach(() => {
+  gameLocations.splice(1)
+  gameLocations[0] = { id: 'default', name: '默认地点', subtitle: '测试', coordinates: '0,0',
+    background_url: '/default.svg', levels: gameLevels }
   configureLevels([3, 4, 3])
   setActivePinia(createPinia())
   localStorage.clear()
@@ -96,24 +109,48 @@ describe('game selections and answers', () => {
     expect(store.levelSolved).toBe(false)
   })
 
-  it('records original indexes, retries wrong answers, and counts unique correct answers', () => {
+  it('records original indexes and completes a question after one wrong answer', () => {
     const store = useGameStore()
+    store.setDifficulty(2)
     store.startGame(1)
     const index = store.currentProblemIndex
     const question = store.currentProblem
     expect(index).toBe(1)
     if (!question) throw new Error('Missing question')
     expect(store.submitAnswer((question.true_answer + 1) % 4)).toBe(false)
-    expect(store.submitAnswer((question.true_answer + 1) % 4)).toBe(false)
-    expect(store.currentProblemIndex).toBe(index)
-    expect(store.submitAnswer(question.true_answer)).toBe(true)
-    expect(store.submitAnswer(question.true_answer)).toBeNull()
-    expect(store.wrongCount).toBe(2)
+    expect(store.currentProblemIndex).toBe(2)
+    const nextQuestion = store.currentProblem
+    if (!nextQuestion) throw new Error('Missing next question')
+    expect(store.submitAnswer(nextQuestion.true_answer)).toBe(true)
+    expect(store.wrongCount).toBe(1)
     expect(store.correctCount).toBe(1)
+    expect(store.skippedCount).toBe(0)
     expect(store.attempts.map(({ levelIndex, problemIndex, correct }) => ({ levelIndex, problemIndex, correct }))).toEqual([
       { levelIndex: 1, problemIndex: index, correct: false },
-      { levelIndex: 1, problemIndex: index, correct: false },
-      { levelIndex: 1, problemIndex: index, correct: true },
+      { levelIndex: 1, problemIndex: 2, correct: true },
+    ])
+  })
+
+  it('skips each current problem once and tracks skipped separately from wrong answers', () => {
+    const store = useGameStore()
+    store.setDifficulty(3)
+    store.startGame()
+    const [first, second, third] = store.selectedQuestionIndexes
+    expect(store.skipCurrentProblem()).toBe(true)
+    expect(store.currentProblemIndex).toBe(second)
+    expect(store.skipCurrentProblem()).toBe(true)
+    expect(store.currentProblemIndex).toBe(third)
+    answerCurrent(store)
+    expect(store.levelSolved).toBe(true)
+    expect(store.skipCurrentProblem()).toBe(false)
+    expect(store.submitAnswer(0)).toBeNull()
+    expect(store.skippedCount).toBe(2)
+    expect(store.wrongCount).toBe(0)
+    expect(store.correctCount).toBe(1)
+    expect(store.attempts).toEqual([
+      expect.objectContaining({ problemIndex: first, selectedAnswer: null, correct: false, skipped: true }),
+      expect.objectContaining({ problemIndex: second, selectedAnswer: null, correct: false, skipped: true }),
+      expect.objectContaining({ problemIndex: third, skipped: false }),
     ])
   })
 
@@ -241,6 +278,7 @@ describe('completion and replay', () => {
     expect(store.currentLevelIndex).toBe(1)
     expect(store.correctCount).toBe(0)
     expect(store.wrongCount).toBe(0)
+    expect(store.skippedCount).toBe(0)
     expect(store.elapsedMs).toBe(0)
     expect(store.completedLevelIndexes).toEqual([])
     expect(store.rounds).toHaveLength(1)
@@ -458,6 +496,80 @@ describe('linear campaigns and configurable levels', () => {
   })
 })
 
+describe('location-scoped progress', () => {
+  function addSecondLocation(): level[] {
+    const levels = createLevels([2, 3, 1], '异地')
+    gameLocations.push({ id: 'second', name: '第二地点', subtitle: '异地测试', coordinates: '1,1',
+      background_url: '/second.svg', levels })
+    return levels
+  }
+
+  it('switches config and resets all progress and indexes', () => {
+    const secondLevels = addSecondLocation()
+    const store = useGameStore()
+    store.setDifficulty(2)
+    store.selectLevel(2)
+    store.startGame()
+    answerCurrent(store)
+    expect(store.selectLocation('second')).toBe(true)
+    expect(store.locationId).toBe('second')
+    expect(store.levels).toEqual(secondLevels)
+    expect(store.difficulty).toBe(2)
+    expect(store.currentLevelIndex).toBe(0)
+    expect(store.selectedLevelIndex).toBe(0)
+    expect(store.hasStarted).toBe(false)
+    expect(store.completed).toBe(false)
+    expect(store.attempts).toEqual([])
+    expect(store.rounds).toEqual([])
+    expect(store.completedLevelIndexes).toEqual([])
+    expect(store.selectLocation('missing')).toBe(false)
+    expect(store.locationId).toBe('second')
+  })
+
+  it('runs and restores campaign only within the selected location', () => {
+    const secondLevels = addSecondLocation()
+    const store = useGameStore()
+    store.selectLocation('second')
+    store.startCampaign()
+    while (!store.completed) {
+      finishLevel(store)
+      store.advanceLevel()
+    }
+    expect(store.rounds.map((round) => round.levelIndex)).toEqual([0, 1, 2])
+    expect(store.currentLevelIndex).toBe(2)
+    expect(store.levels).toEqual(secondLevels)
+    setActivePinia(createPinia())
+    const restored = useGameStore()
+    restored.restore()
+    expect(restored.persistenceError).toBe('')
+    expect(restored.locationId).toBe('second')
+    expect(restored.levels).toEqual(secondLevels)
+    expect(restored.completed).toBe(true)
+    expect(restored.rounds).toHaveLength(3)
+  })
+
+  it('migrates missing location to the first location and rejects unknown locations safely', () => {
+    addSecondLocation()
+    const store = useGameStore()
+    store.startGame(1)
+    answerCurrent(store)
+    saveWith(store, { locationId: undefined })
+    setActivePinia(createPinia())
+    const legacy = useGameStore()
+    legacy.restore()
+    expect(legacy.persistenceError).toBe('')
+    expect(legacy.locationId).toBe('default')
+    expect(legacy.currentLevelIndex).toBe(1)
+    const attempts = [...legacy.attempts]
+    saveWith(legacy, { locationId: 'unknown' })
+    legacy.restore()
+    expect(legacy.persistenceError).toContain('存档地点无效')
+    expect(legacy.locationId).toBe('default')
+    expect(legacy.currentLevelIndex).toBe(1)
+    expect(legacy.attempts).toEqual(attempts)
+  })
+})
+
 describe('active elapsed time', () => {
   it('counts active segments once and excludes paused time', () => {
     const store = useGameStore()
@@ -520,6 +632,24 @@ describe('persistence', () => {
     expect(reopened.difficulty).toBe(3)
     expect(reopened.currentLevelIndex).toBe(1)
     expect(reopened.correctCount).toBe(2)
+  })
+
+  it('accepts and preserves optional clue, hotspot and comparison config', () => {
+    const configured = gameLevels[0]
+    if (!configured) throw new Error('Missing level')
+    configured.clues = [{ type: 'text', name: '关联线索', data: '线索内容', problem_indexes: [0, 2] }]
+    configured.hotspots = [{ clue_index: 0, x: 25, y: 75 }]
+    configured.comparison = { reference_url: '/reference.svg', title: '图像比对' }
+    const store = useGameStore()
+    store.startGame()
+    store.persist()
+    setActivePinia(createPinia())
+    const restored = useGameStore()
+    restored.restore()
+    expect(restored.persistenceError).toBe('')
+    expect(restored.levels[0]?.clues[0]?.problem_indexes).toEqual([0, 2])
+    expect(restored.levels[0]?.hotspots).toEqual([{ clue_index: 0, x: 25, y: 75 }])
+    expect(restored.levels[0]?.comparison).toEqual({ reference_url: '/reference.svg', title: '图像比对' })
   })
 
   it('restores validated config, random order, attempts and duration, but remains paused', () => {
@@ -655,6 +785,50 @@ describe('persistence', () => {
     expect(restored.elapsedMs).toBe(2500)
     expect(restored.advanceLevel()).toBe(true)
     expect(restored.currentLevelIndex).toBe(1)
+  })
+
+  it('migrates legacy v1 retries and treats an old wrong answer as completed', () => {
+    const store = useGameStore()
+    store.setDifficulty(2)
+    store.startGame()
+    const problemIndex = store.currentProblemIndex
+    const question = store.currentProblem
+    if (problemIndex === null || !question) throw new Error('Missing question')
+    const wrongAnswer = (question.true_answer + 1) % 4
+    saveWith(store, {
+      attempts: [{ levelIndex: 0, problemIndex, selectedAnswer: wrongAnswer, correct: false, at: Date.now() }],
+      completionRule: undefined,
+      completedLevelIndexes: [],
+    })
+    store.restore()
+    expect(store.persistenceError).toBe('')
+    expect(store.currentProblemIndex).not.toBe(problemIndex)
+    expect(store.wrongCount).toBe(1)
+    expect(store.skippedCount).toBe(0)
+    const migrated: unknown = JSON.parse(localStorage.getItem(GAME_STORAGE_KEY) ?? 'null')
+    expect(migrated).toMatchObject({ completionRule: 'first-attempt', attempts: [expect.objectContaining({
+      levelIndex: 0, problemIndex, legacy: true,
+    })] })
+    store.restore()
+    expect(store.persistenceError).toBe('')
+    expect(store.currentProblemIndex).not.toBe(problemIndex)
+  })
+
+  it('persists skipped records and restores their exact problem indexes', () => {
+    const store = useGameStore()
+    store.setDifficulty(3)
+    store.startGame(1)
+    const skippedIndex = store.currentProblemIndex
+    expect(store.skipCurrentProblem()).toBe(true)
+    setActivePinia(createPinia())
+    const restored = useGameStore()
+    restored.restore()
+    expect(restored.persistenceError).toBe('')
+    expect(restored.skippedCount).toBe(1)
+    expect(restored.wrongCount).toBe(0)
+    expect(restored.currentProblemIndex).not.toBe(skippedIndex)
+    expect(restored.attempts[0]).toMatchObject({ levelIndex: 1, problemIndex: skippedIndex,
+      selectedAnswer: null, correct: false, skipped: true })
   })
 
   it('round-trips both untouched and completed states', () => {

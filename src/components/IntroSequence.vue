@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { mediaConfig } from '@/data/game'
+const props = withDefaults(defineProps<{ chooseLocation?: boolean }>(), { chooseLocation: false })
 const emit = defineEmits<{ ready: [] }>()
 const video = ref<HTMLVideoElement | null>(null)
-const phase = ref<'loading' | 'playing' | 'blocked' | 'error' | 'done'>(mediaConfig.introVideoUrl ? 'loading' : 'done')
+const phase = ref<'loading' | 'playing' | 'blocked' | 'error' | 'choosing' | 'done'>(mediaConfig.introVideoUrl ? 'loading' : props.chooseLocation ? 'choosing' : 'done')
 const progress = ref(0)
 let timeout: ReturnType<typeof setTimeout> | undefined
-function deadline() { clearTimeout(timeout); timeout = setTimeout(() => { phase.value = 'error' }, 45000) }
+function deadline() { if (phase.value === 'choosing' || phase.value === 'done') return; clearTimeout(timeout); timeout = setTimeout(() => { phase.value = 'error' }, 45000) }
 function updateProgress() {
   const el = video.value
   if (el && Number.isFinite(el.duration) && el.duration > 0 && el.buffered.length) progress.value = Math.min(100, Math.round(el.buffered.end(el.buffered.length - 1) / el.duration * 100))
@@ -14,20 +15,33 @@ function updateProgress() {
 async function play() {
   clearTimeout(timeout)
   phase.value = 'playing'
-  try { await video.value?.play() } catch { phase.value = 'blocked' }
+  try { await video.value?.play() } catch { if (phase.value === 'playing') phase.value = 'blocked' }
 }
 function ready() { if (phase.value === 'loading') { progress.value = 100; void play() } }
 function finish() { clearTimeout(timeout); video.value?.pause(); phase.value = 'done'; emit('ready') }
+function chooseOrFinish() {
+  if (!props.chooseLocation) { finish(); return }
+  clearTimeout(timeout)
+  video.value?.pause()
+  phase.value = 'choosing'
+}
+function checkPausePoint() {
+  const el = video.value
+  if (!props.chooseLocation || phase.value !== 'playing' || !el || !Number.isFinite(el.duration) || el.duration <= 0) return
+  const ratio = Math.min(.95, Math.max(.05, mediaConfig.locationPauseRatio))
+  if (el.currentTime >= el.duration * ratio) chooseOrFinish()
+}
 function retry() { phase.value = 'loading'; progress.value = 0; video.value?.load(); deadline() }
 function playing() { clearTimeout(timeout) }
-function failed() { clearTimeout(timeout); phase.value = 'error' }
-onMounted(() => { if (mediaConfig.introVideoUrl) deadline(); else emit('ready') })
+function failed() { if (phase.value === 'choosing' || phase.value === 'done') return; clearTimeout(timeout); phase.value = 'error' }
+onMounted(() => { if (mediaConfig.introVideoUrl) deadline(); else if (!props.chooseLocation) emit('ready') })
 onBeforeUnmount(() => clearTimeout(timeout))
 </script>
 <template>
   <Transition name="fade">
     <section v-if="phase !== 'done'" class="intro-screen" aria-label="开场动画">
-      <video ref="video" :src="mediaConfig.introVideoUrl" preload="auto" muted playsinline @canplaythrough="ready" @progress="updateProgress" @ended="finish" @error="failed" @waiting="deadline" @playing="playing" />
+      <video v-if="mediaConfig.introVideoUrl" ref="video" :src="mediaConfig.introVideoUrl" preload="auto" muted playsinline @canplaythrough="ready" @progress="updateProgress" @timeupdate="checkPausePoint" @ended="chooseOrFinish" @error="failed" @waiting="deadline" @playing="playing" />
+      <slot v-if="phase === 'choosing'" name="locations" :complete="finish" />
       <Transition name="fade">
         <div v-if="phase === 'loading'" class="intro-loading" role="status">
           <svg viewBox="0 0 400 400" class="loader-art" aria-label="正在载入敦煌画卷">
@@ -41,9 +55,9 @@ onBeforeUnmount(() => clearTimeout(timeout))
         <h2>{{ phase === 'error' ? '画卷暂未展开' : '轻触，走入敦煌' }}</h2>
         <p>{{ phase === 'error' ? '开场视频加载失败或超时，请检查素材地址与网络。' : '浏览器需要你的许可才能播放开场动画。' }}</p>
         <button class="primary" @click="phase === 'error' ? retry() : play()">{{ phase === 'error' ? '重新加载' : '播放开场' }}</button>
-        <button class="text-button" @click="finish">跳过开场</button>
+        <button class="text-button" @click="chooseOrFinish">跳过开场</button>
       </div>
-      <button v-if="phase === 'playing'" class="skip-intro" @click="finish">跳过开场 →</button>
+      <button v-if="phase === 'playing'" class="skip-intro" @click="chooseOrFinish">跳过开场 →</button>
     </section>
   </Transition>
 </template>

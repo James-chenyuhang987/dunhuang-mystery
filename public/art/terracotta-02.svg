@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 800" role="img" aria-labelledby="title desc">
+  <title id="title">陶俑修复室全景</title>
+  <desc id="desc">原创2比1等距柱状全景教育插画，虚构呈现陶俑记录、拼接、补配和保护工作区域。</desc>
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#355b5d"/><stop offset=".55" stop-color="#566b62"/><stop offset="1" stop-color="#9a7456"/></linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#715442"/><stop offset="1" stop-color="#292323"/></linearGradient>
+    <linearGradient id="table" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d2aa77"/><stop offset="1" stop-color="#78523d"/></linearGradient>
+    <radialGradient id="light"><stop stop-color="#ffe5af" stop-opacity=".8"/><stop offset="1" stop-color="#ffe5af" stop-opacity="0"/></radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0v40" fill="none" stroke="#d5c09a" stroke-width="1" opacity=".1"/></pattern>
+    <filter id="paper"><feTurbulence baseFrequency=".9" numOctaves="2" seed="9" result="n"/><feBlend in="SourceGraphic" in2="n" mode="multiply"/></filter>
+    <symbol id="fragment" viewBox="0 0 100 80"><path d="m8 18 27-12 18 14 33-5 8 32-24 25-30-9-30 8-7-29z" fill="#a76645" stroke="#51382f" stroke-width="4"/><path d="M26 20 43 33l-8 25m21-35 6 17 25 4" fill="none" stroke="#d59b68" stroke-width="3" opacity=".55"/></symbol>
+    <symbol id="bust" viewBox="0 0 170 260"><ellipse cx="85" cy="55" rx="46" ry="55" fill="#a46845"/><path d="M40 43q45-50 90 0v20H40z" fill="#50382f"/><path d="M62 62q23 12 46 0M69 82q16 8 32 0" fill="none" stroke="#5e3d32" stroke-width="5"/><path d="M27 119q58-38 116 0l15 125H12z" fill="#8e5b40"/><g fill="none" stroke="#d39a66" stroke-width="7" opacity=".62"><path d="M22 145h126M18 174h134M15 203h140"/><path d="m35 121 99 121m0-121L36 242"/></g><path d="m86 22 8 16-11 10" fill="none" stroke="#d59a6a" stroke-width="4" opacity=".7"/></symbol>
+  </defs>
+  <rect width="1600" height="800" fill="url(#wall)"/>
+  <rect width="1600" height="520" fill="url(#grid)"/>
+  <path d="M0 535Q400 500 800 535t800 0v265H0z" fill="url(#floor)"/>
+  <g fill="url(#light)"><ellipse cx="230" cy="180" rx="210" ry="190"/><ellipse cx="800" cy="160" rx="250" ry="210"/><ellipse cx="1370" cy="180" rx="210" ry="190"/></g>
+  <g fill="#263f41" stroke="#d3b27f" stroke-width="7">
+    <path d="M20 150h350v305H20z"/><path d="M1230 150h350v305h-350z"/>
+  </g>
+  <g fill="#d5c398" opacity=".95">
+    <path d="M46 178h134v102H46zm164 0h134v102H210zM46 306h298v122H46z"/>
+    <path d="M1256 178h298v102h-298zm0 128h134v122h-134zm164 0h134v122h-134z"/>
+  </g>
+  <g fill="none" stroke="#6e4938" stroke-width="5" opacity=".75">
+    <path d="M77 255q35-64 70 0M99 209h27m-13-15v69M242 256l33-56 36 58M229 222h93M75 340h238M75 365h190M75 390h221"/>
+    <path d="M1278 211h254M1278 239h190M1281 335l35-25 35 44 22-16M1450 331q37-38 75 0v68h-75z"/>
+  </g>
+  <g font-family="sans-serif" fill="#6b4434" font-size="18" font-weight="700"><text x="66" y="329">形制记录</text><text x="1275" y="202">修复流程</text></g>
+  <g transform="translate(375 356)">
+    <path d="M0 60 425 0l425 60-56 147H56z" fill="url(#table)" stroke="#3a2b28" stroke-width="8"/>
+    <path d="M58 207h31l-9 208H48zm703 0h31l10 208h-52z" fill="#44342e"/>
+    <path d="M130 52h560l-23 117H151z" fill="#e3cfaa" opacity=".85"/>
+    <path d="M166 77h180M166 102h150M166 127h198" stroke="#79827a" stroke-width="4"/>
+    <use href="#fragment" x="445" y="52" width="105" height="84"/><use href="#fragment" x="548" y="65" width="85" height="68"/>
+    <g fill="#31565a"><circle cx="382" cy="117" r="13"/><path d="M374 105 391 45h8l-7 67z"/></g>
+  </g>
+  <g transform="translate(677 205)"><path d="M0 48h246v14H0zM22 0h202l22 48H0z" fill="#3a2d29"/><use href="#bust" x="54" y="-21" width="138" height="210"/><path d="M35 62h16v147H35zm160 0h16v147h-16z" fill="#594238"/></g>
+  <g transform="translate(91 467)"><path d="M0 36h244v28H0zM24 64h18v210H24zm178 0h18v210h-18z" fill="#3b302d"/><use href="#fragment" x="45" y="-20" width="95" height="76"/><use href="#fragment" x="125" y="-8" width="78" height="62"/><path d="M35 88h176M35 142h176M35 196h176" stroke="#b7845d" stroke-width="6"/></g>
+  <g transform="translate(1265 467)"><path d="M0 36h244v28H0zM24 64h18v210H24zm178 0h18v210h-18z" fill="#3b302d"/><use href="#fragment" x="42" y="-15" width="80" height="64"/><use href="#fragment" x="119" y="-22" width="96" height="77"/><path d="M35 88h176M35 142h176M35 196h176" stroke="#b7845d" stroke-width="6"/></g>
+  <g fill="#efe1bc" stroke="#3d5655" stroke-width="5">
+    <path d="M478 254h116v72H478z"/><path d="M1006 254h116v72h-116z"/>
+  </g>
+  <g stroke="#a46545" stroke-width="5"><path d="M494 276h82M494 298h61M1022 276h82M1022 298h61"/></g>
+  <g stroke="#d6b77c" stroke-width="6"><path d="M0 96h1600"/><path d="M245 96v56m555-56v72m555-72v56"/></g>
+  <g fill="#f3c77d"><path d="M202 140h86l-17 24h-52zM750 156h100l-20 28h-60zM1312 140h86l-17 24h-52z"/></g>
+  <path d="M0 754h1600" stroke="#d19b62" stroke-width="5" opacity=".3"/>
+  <rect width="1600" height="800" fill="none" stroke="#213637" stroke-width="8"/>
+</svg>

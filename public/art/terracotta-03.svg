@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 800" role="img" aria-labelledby="title desc">
+  <title id="title">秦陵甬道全景</title>
+  <desc id="desc">原创2比1等距柱状全景教育插画，虚构表现秦陵夯土甬道、排水结构、车马纹样和勘探标记。</desc>
+  <defs>
+    <linearGradient id="ceiling" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#131a1d"/><stop offset="1" stop-color="#344442"/></linearGradient>
+    <linearGradient id="earth" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#996245"/><stop offset=".5" stop-color="#5d4035"/><stop offset="1" stop-color="#2b2423"/></linearGradient>
+    <linearGradient id="path" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#715441"/><stop offset="1" stop-color="#171719"/></linearGradient>
+    <radialGradient id="torch"><stop stop-color="#ffd68a" stop-opacity=".95"/><stop offset=".3" stop-color="#de8246" stop-opacity=".48"/><stop offset="1" stop-color="#c85239" stop-opacity="0"/></radialGradient>
+    <pattern id="layers" width="140" height="70" patternUnits="userSpaceOnUse"><path d="M-12 18q38-19 76 0t85-3M-8 48q45-16 88 2t72-3" fill="none" stroke="#d09868" stroke-width="4" opacity=".18"/></pattern>
+    <pattern id="brick" width="80" height="42" patternUnits="userSpaceOnUse"><path d="M0 0h80v42H0zM40 0v21M0 21h80" fill="none" stroke="#bc8257" stroke-width="3" opacity=".35"/></pattern>
+    <filter id="rough"><feTurbulence baseFrequency=".38" numOctaves="3" seed="23" result="n"/><feBlend in="SourceGraphic" in2="n" mode="soft-light"/></filter>
+    <symbol id="marker" viewBox="0 0 70 110"><path d="M34 10v88M10 30h49" stroke="#e4c274" stroke-width="6"/><circle cx="34" cy="12" r="9" fill="#a84c3c"/><path d="M18 50h34v26H18z" fill="#e1c995" stroke="#513a32" stroke-width="3"/></symbol>
+  </defs>
+  <rect width="1600" height="800" fill="url(#ceiling)"/>
+  <path d="M0 0h1600v125Q1220 89 800 125T0 125z" fill="#131417"/>
+  <path d="M0 105Q400 145 800 105t800 0v472Q1215 515 800 565T0 577z" fill="url(#earth)" filter="url(#rough)"/>
+  <path d="M0 105Q400 145 800 105t800 0v472Q1215 515 800 565T0 577z" fill="url(#layers)"/>
+  <path d="M0 580Q400 515 800 580t800 0v220H0z" fill="url(#path)"/>
+  <g fill="#1d2020">
+    <path d="M0 145h170v410L0 580zM1430 145h170v435l-170-25z"/>
+    <path d="M262 125h90v413l-90 8zm986 0h90v421l-90-8zM744 110h112v447H744z"/>
+  </g>
+  <g fill="url(#brick)" opacity=".75"><path d="M0 145h170v410L0 580zM1430 145h170v435l-170-25z"/><path d="M262 125h90v413l-90 8zm986 0h90v421l-90-8zM744 110h112v447H744z"/></g>
+  <g fill="#181719" stroke="#a06d4c" stroke-width="7">
+    <path d="M390 236q170-93 340 0v300q-170-38-340 0z"/><path d="M870 236q170-93 340 0v300q-170-38-340 0z"/>
+  </g>
+  <g fill="none" stroke="#bd8758" stroke-width="8" opacity=".65">
+    <path d="M420 286q140-84 280 0M425 324q135-72 270 0M438 372q122-55 244 0"/>
+    <path d="M900 286q140-84 280 0M905 324q135-72 270 0M918 372q122-55 244 0"/>
+  </g>
+  <g fill="#c18859" opacity=".8">
+    <path d="M485 450q25-58 50 0h28q25-58 50 0h45v28H451v-28z"/><circle cx="512" cy="483" r="22"/><circle cx="610" cy="483" r="22"/>
+    <path d="M965 450q25-58 50 0h28q25-58 50 0h45v28H931v-28z"/><circle cx="992" cy="483" r="22"/><circle cx="1090" cy="483" r="22"/>
+  </g>
+  <g fill="url(#torch)"><ellipse cx="225" cy="305" rx="180" ry="220"/><ellipse cx="800" cy="292" rx="210" ry="240"/><ellipse cx="1375" cy="305" rx="180" ry="220"/></g>
+  <g>
+    <path d="M215 327h20v123h-20zM790 314h20v136h-20zM1365 327h20v123h-20z" fill="#332722"/>
+    <path d="M225 326c-35-35 0-54-4-78 33 26 42 49 4 78zM800 313c-39-40 0-61-4-88 38 29 47 56 4 88zM1375 326c-35-35 0-54-4-78 33 26 42 49 4 78z" fill="#f0ad58"/>
+    <path d="M226 308q-13-18 1-35 15 19-1 35zm575-17q-15-21 1-40 17 21-1 40zm575 17q-13-18 1-35 15 19-1 35z" fill="#ffe09a"/>
+  </g>
+  <g opacity=".9"><use href="#marker" x="104" y="470" width="64" height="101"/><use href="#marker" x="1190" y="480" width="60" height="94"/></g>
+  <path d="M0 664Q400 592 800 664t800 0" fill="none" stroke="#bc8357" stroke-width="18" opacity=".65"/>
+  <path d="M0 690Q400 618 800 690t800 0" fill="none" stroke="#241e1d" stroke-width="34"/>
+  <path d="M0 690Q400 618 800 690t800 0" fill="none" stroke="#6f5944" stroke-width="8" stroke-dasharray="22 16"/>
+  <g stroke="#cf9862" stroke-width="6" opacity=".35"><path d="M70 599 200 790M290 565l85 235M520 553l42 247M1080 553l-42 247M1310 565l-85 235M1530 599l-130 191"/></g>
+  <g fill="#ac714e" stroke="#332725" stroke-width="5"><path d="m690 630 43-28 42 17-8 40-44 13z"/><path d="m900 706 34-24 48 18-14 35-44 9z"/><path d="m257 699 36-20 33 19-12 31-39 4z"/></g>
+  <path d="M0 25h1600M0 70h1600" stroke="#52625c" stroke-width="5" opacity=".45"/>
+  <rect width="1600" height="800" fill="none" stroke="#111517" stroke-width="10"/>
+</svg>

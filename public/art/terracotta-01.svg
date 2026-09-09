@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 800" role="img" aria-labelledby="title desc">
+  <title id="title">军阵遗址全景</title>
+  <desc id="desc">原创2比1等距柱状全景教育插画，虚构呈现夯土兵马俑坑、陶俑军阵与考古步道。</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#173e49"/><stop offset=".7" stop-color="#b6774f"/><stop offset="1" stop-color="#d5a06b"/></linearGradient>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#bb8054"/><stop offset="1" stop-color="#59392f"/></linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#714936"/><stop offset="1" stop-color="#21191a"/></linearGradient>
+    <radialGradient id="lamp"><stop stop-color="#ffd795" stop-opacity=".9"/><stop offset="1" stop-color="#ef9b50" stop-opacity="0"/></radialGradient>
+    <pattern id="strata" width="120" height="54" patternUnits="userSpaceOnUse"><path d="M-15 18Q22 1 62 20t73-1M-8 40q38-15 79 0t69-2" fill="none" stroke="#e2aa73" stroke-width="3" opacity=".19"/></pattern>
+    <filter id="grain"><feTurbulence baseFrequency=".55" numOctaves="2" seed="3" result="n"/><feBlend in="SourceGraphic" in2="n" mode="soft-light"/></filter>
+    <symbol id="soldier" viewBox="0 0 70 190">
+      <ellipse cx="35" cy="27" rx="19" ry="24" fill="#a86a45"/>
+      <path d="M16 21q19-23 38 0v8H16z" fill="#3d2e2a"/><path d="M22 28q13 8 26 0" fill="none" stroke="#6a3f31" stroke-width="3"/>
+      <path d="M10 57q25-18 50 0l6 90H4z" fill="#8b5940"/>
+      <g fill="none" stroke="#cf9361" stroke-width="4" opacity=".72"><path d="M8 72h54M6 90h58M5 108h60M5 126h60"/><path d="m13 58 42 88M55 58 14 146"/></g>
+      <path d="m12 145-5 43h20l8-39 8 39h20l-5-43z" fill="#49342d"/><path d="M1 65 0 139h11l10-67m48-7 1 74H59L49 72" fill="#89583f"/>
+    </symbol>
+    <symbol id="beam" viewBox="0 0 100 800"><path d="M18 0h64l12 800H6z" fill="#211d1c"/><path d="M31 0h18L39 800H18z" fill="#7f563c" opacity=".48"/></symbol>
+  </defs>
+  <rect width="1600" height="800" fill="url(#sky)"/>
+  <path d="M0 239C220 210 380 251 570 225s386 13 578-12c180-23 308-2 452 26v90H0z" fill="#45605a"/>
+  <path d="M0 284h1600v256H0z" fill="url(#wall)"/>
+  <path d="M0 284h1600v256H0z" fill="url(#strata)" filter="url(#grain)"/>
+  <path d="M0 370h1600M0 424h1600M0 484h1600" stroke="#402c28" stroke-width="9" opacity=".5"/>
+  <path d="M0 505Q400 465 800 505t800 0v295H0z" fill="url(#floor)"/>
+  <g fill="#1b1717" stroke="#a3714d" stroke-width="5">
+    <path d="M35 545 345 493l198 307H90z"/><path d="m401 500 286-23 81 323H558z"/><path d="m752 476 297 14-28 310H784z"/><path d="m1115 492 320 45-50 263h-296z"/>
+  </g>
+  <g stroke="#bd8054" stroke-width="8" opacity=".55">
+    <path d="m65 583 392-60M82 639l414-72M104 703l427-89M1146 526l259 40M1133 574l263 43M1120 628l266 44M1105 688l269 44"/>
+  </g>
+  <g opacity=".98">
+    <use href="#soldier" x="80" y="454" width="72" height="195"/><use href="#soldier" x="172" y="440" width="68" height="185"/><use href="#soldier" x="263" y="429" width="64" height="174"/><use href="#soldier" x="351" y="418" width="59" height="161"/>
+    <use href="#soldier" x="469" y="444" width="71" height="193"/><use href="#soldier" x="560" y="435" width="65" height="177"/><use href="#soldier" x="647" y="427" width="60" height="163"/>
+    <use href="#soldier" x="805" y="428" width="60" height="163"/><use href="#soldier" x="893" y="435" width="65" height="177"/><use href="#soldier" x="986" y="444" width="71" height="193"/>
+    <use href="#soldier" x="1190" y="418" width="59" height="161"/><use href="#soldier" x="1275" y="429" width="64" height="174"/><use href="#soldier" x="1361" y="440" width="68" height="185"/><use href="#soldier" x="1450" y="454" width="72" height="195"/>
+  </g>
+  <g opacity=".5"><use href="#soldier" x="326" y="355" width="45" height="122"/><use href="#soldier" x="386" y="354" width="45" height="122"/><use href="#soldier" x="708" y="351" width="45" height="122"/><use href="#soldier" x="849" y="351" width="45" height="122"/><use href="#soldier" x="1097" y="354" width="45" height="122"/><use href="#soldier" x="1157" y="355" width="45" height="122"/></g>
+  <g>
+    <use href="#beam" x="0" y="0" width="72" height="800"/><use href="#beam" x="764" y="0" width="72" height="800"/><use href="#beam" x="1528" y="0" width="72" height="800"/>
+    <path d="M0 35h1600v42H0zM0 179h1600v27H0z" fill="#27201e"/>
+    <g stroke="#76513b" stroke-width="12"><path d="M0 38 230 180 470 38 700 180 800 38 900 180 1130 38 1370 180 1600 38" fill="none"/></g>
+  </g>
+  <g fill="url(#lamp)"><ellipse cx="385" cy="226" rx="150" ry="115"/><ellipse cx="800" cy="226" rx="150" ry="115"/><ellipse cx="1215" cy="226" rx="150" ry="115"/></g>
+  <g fill="#f2bb72"><circle cx="385" cy="202" r="8"/><circle cx="800" cy="202" r="8"/><circle cx="1215" cy="202" r="8"/></g>
+  <path d="M0 720h1600v80H0z" fill="#161416" opacity=".52"/>
+  <path d="M72 728h1456M72 760h1456" stroke="#d0a066" stroke-width="7" opacity=".75"/>
+  <g fill="#d0a066"><path d="M116 704h12v96h-12zm180 0h12v96h-12zm180 0h12v96h-12zm180 0h12v96h-12zm280 0h12v96h-12zm180 0h12v96h-12zm180 0h12v96h-12zm180 0h12v96h-12z"/></g>
+  <rect width="1600" height="800" fill="none" stroke="#1d1919" stroke-width="8"/>
+</svg>

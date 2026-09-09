@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test'
+import { chooseDefaultLocation } from './helpers'
 import { gameLevels, siteConfig } from '../src/data/game'
 
 test('main menu starts a linear campaign, survives reload and ends only after last chapter', async ({ page }) => {
   await page.goto('/')
+  await chooseDefaultLocation(page)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(siteConfig.title)
-  await expect(page.getByRole('button')).toHaveCount(2)
+  await expect(page.locator('.journey-panel > .start-button')).toHaveCount(2)
   await expect(page.locator('.chapter-card')).toHaveCount(0)
   await page.getByRole('button', { name: '选关', exact: true }).click()
   await page.locator('.chapter-card').last().click()

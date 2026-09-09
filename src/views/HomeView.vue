@@ -2,11 +2,12 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/game'
-import { mediaConfig, siteConfig } from '@/data/game'
+import { gameLocations, mediaConfig, siteConfig } from '@/data/game'
 import AppIcon from '@/components/AppIcon.vue'
 import ChapterThumbnail from '@/components/ChapterThumbnail.vue'
 import DifficultyControl from '@/components/DifficultyControl.vue'
 import IntroSequence from '@/components/IntroSequence.vue'
+import LocationSelector from '@/components/LocationSelector.vue'
 const game = useGameStore()
 const router = useRouter()
 const route = useRoute()
@@ -14,6 +15,8 @@ const selecting = computed(() => route.path === '/levels')
 const posterFailed = ref(false)
 const posterRevision = ref(0)
 const introReady = ref(false)
+const choosingLocation = ref(route.path === '/' && sessionStorage.getItem('dunhuang-mystery:location-selected') !== '1')
+const activeLocation = computed(() => gameLocations.find(location => location.id === game.locationId) ?? gameLocations[0])
 const selected = computed(() => game.levels[game.selectedLevelIndex])
 function start(campaign: boolean) {
   if (!game.levels.length || !introReady.value) return
@@ -23,26 +26,35 @@ function start(campaign: boolean) {
   if (game.hasProgress) void router.push('/game')
 }
 function resume() { void router.push(game.completed ? '/ending' : '/game') }
+function selectLocation(id: string) {
+  if (game.hasProgress && id !== game.locationId && !window.confirm('切换地点将替换此设备上的当前探索记录，是否继续？')) return false
+  game.selectLocation(id)
+  sessionStorage.setItem('dunhuang-mystery:location-selected', '1')
+  const location = gameLocations.find(entry => entry.id === id)
+  document.title = `${location?.title ?? siteConfig.title} · ${siteConfig.subtitle}`
+  choosingLocation.value = false
+  return true
+}
 onMounted(() => game.pauseTimer())
 </script>
 <template>
   <div class="home-page">
-    <img :key="posterRevision" class="landscape" :src="mediaConfig.introPosterUrl || siteConfig.backgroundUrl" :alt="siteConfig.backgroundAlt" @error="posterFailed = true">
+    <img :key="`${game.locationId}-${posterRevision}`" class="landscape" :src="activeLocation?.background_url || mediaConfig.introPosterUrl || siteConfig.backgroundUrl" :alt="activeLocation ? `${activeLocation.name}风格探索插画` : siteConfig.backgroundAlt" @error="posterFailed = true">
     <div class="landscape-shade" />
     <div class="grain-overlay" />
     <header class="site-header">
       <div class="brand"><span class="brand-mark">✧</span><span>{{ siteConfig.brand }}<small>{{ siteConfig.brandEnglish }}</small></span></div>
-      <span class="header-note">{{ siteConfig.headerNote }}</span>
+      <button class="header-note location-switch" @click="choosingLocation = true">{{ activeLocation?.name }} · 切换地点</button>
     </header>
     <main class="home-main">
       <section class="hero-copy">
         <div class="eyebrow"><span />{{ siteConfig.eyebrow }}<span class="edition">{{ siteConfig.edition }}</span></div>
-        <div class="title-layout"><h1>{{ siteConfig.title }}</h1><span class="seal"><span v-for="(line, index) in siteConfig.seal" :key="index">{{ line }}<br></span></span><p class="vertical-text">{{ siteConfig.verticalText }}</p></div>
+        <div class="title-layout"><h1>{{ activeLocation?.title ?? siteConfig.title }}</h1><span class="seal"><span v-for="(line, index) in siteConfig.seal" :key="index">{{ line }}<br></span></span><p class="vertical-text">{{ siteConfig.verticalText }}</p></div>
         <p class="hero-english">{{ siteConfig.heroEnglish }}</p>
         <div class="hero-rule"><span>✧</span></div>
-        <p class="hero-description">{{ siteConfig.introduction }}</p>
+        <p class="hero-description">{{ activeLocation?.introduction ?? siteConfig.introduction }}</p>
         <div class="feature-row"><span><AppIcon name="compass"/>360° 全景探索</span><i/><span><AppIcon name="eye"/>沉浸式线索解谜</span></div>
-        <div class="hero-coordinate"><span class="coordinate-cross">＋</span><span>{{ siteConfig.coordinates }}<small>{{ siteConfig.location }}</small></span><span class="coordinate-line"/></div>
+        <div class="hero-coordinate"><span class="coordinate-cross">＋</span><span>{{ activeLocation?.coordinates }}<small>{{ activeLocation?.name }}</small></span><span class="coordinate-line"/></div>
       </section>
       <section class="journey-panel" aria-labelledby="journey-title">
         <div class="panel-corner top-left"/><div class="panel-corner bottom-right"/>
@@ -52,7 +64,7 @@ onMounted(() => game.pauseTimer())
         <template v-if="!selecting">
           <p class="panel-subtitle">从第一关依次探索，或选取一关独立游玩。</p>
           <button class="primary start-button" :disabled="!introReady || !game.levels.length" @click="start(true)"><AppIcon name="compass"/><span>开始</span><AppIcon name="arrow"/></button>
-          <button class="outline-button start-button" :disabled="!introReady" @click="router.push('/levels')">选关</button>
+          <button class="primary start-button" :disabled="!introReady" @click="router.push('/levels')"><AppIcon name="compass"/><span>选关</span><AppIcon name="arrow"/></button>
         </template>
         <template v-else>
           <RouterLink to="/" class="text-button">← 返回主菜单</RouterLink>
@@ -74,11 +86,14 @@ onMounted(() => game.pauseTimer())
           <p class="panel-footnote">所选关卡独立结算；进入游戏后仍可切换难度。</p>
         </template>
       </section>
-      <div class="art-caption"><span>{{ siteConfig.artCaption }}</span><small>{{ siteConfig.artCaptionEnglish }}</small><span class="caption-line"/></div>
+      <div class="art-caption"><span>{{ activeLocation?.art_caption ?? siteConfig.artCaption }}</span><small>{{ activeLocation?.art_caption_english ?? siteConfig.artCaptionEnglish }}</small><span class="caption-line"/></div>
     </main>
+    <Transition name="fade"><LocationSelector v-if="introReady && choosingLocation" :locations="gameLocations" :selected-id="game.locationId" @select="selectLocation" /></Transition>
     <footer class="site-footer"><span>{{ siteConfig.footerText }}</span><span class="footer-center">✧ &nbsp; {{ siteConfig.footerMotto }} &nbsp; ✧</span><span>{{ siteConfig.artworkNotice }}</span></footer>
     <div v-if="posterFailed" class="asset-error" role="alert">背景图片加载失败<button @click="posterFailed = false; posterRevision++">重新加载</button></div>
-    <IntroSequence @ready="introReady = true" />
+    <IntroSequence :choose-location="choosingLocation" @ready="introReady = true">
+      <template #locations="{ complete }"><LocationSelector :locations="gameLocations" :selected-id="game.locationId" @select="id => { if (selectLocation(id)) complete() }" /></template>
+    </IntroSequence>
 
   </div>
 </template>

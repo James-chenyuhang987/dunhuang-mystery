@@ -1,17 +1,18 @@
-import type { authors, levels } from '@/types/game'
+import type { authors, level, location } from '@/types/game'
 
 // All case events and evidence below are fictional educational material, not historical claims.
-export const gameLevels: levels = [
+const dunhuangLevels: level[] = [
   {
     name: '沙海遗简',
     subtitle: '入境',
     description: '一卷遗落沙海的行记，一段被风藏起的往事。循着驼铃，寻找故事的起点。',
     panorama_url: '/art/cave-01.svg',
+    hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: 0, pitch: -3 }, { clue_index: 2, yaw: 12, pitch: 7 }],
+    comparison: { reference_url: '/art/clue.svg', title: '复原蓝签纹样', description: '比较你拍摄的纹样，贡献同一场景的不同角度照片，帮助积累数字复原素材。', pass_score: 62 },
     clues: [
-      { type: 'text', name: '虚构案卷 · 阅读须知', data: '本游戏是以敦煌文化为背景的虚构教育推理，不是历史事件复原。所有失踪案、人物与证物编号均为编写；请以案内证据推理，不将它们当作真实文献。' },
-      { type: 'text', name: '抄录员的交接簿', data: '虚构案卷记载：甲匣存蓝签摹本，乙匣存红签摹本。交接时蓝签摹本暂移至乙匣，归还记录尚未填写。这里的匣子与摹本均为教学道具。' },
-      { type: 'image', name: '线索图 · 教学示意，非出土文物', data: '/art/clue.svg' },
-      { type: 'text', name: '保管员便笺', data: '现场只见蓝色纸签，不见破锁或撕裂。纸签颜色只能提示分类，不能单独证明是谁移动了摹本。核对交接簿后，应先向当值保管员询问。' },
+      { type: 'image', name: '抄录员的交接簿', problem_indexes: [0], data: '/art/clue.svg', hint: '虚构交接簿记载：甲匣原存蓝签摹本，乙匣原存红签摹本。交接时蓝签摹本暂移至乙匣，归还记录尚未填写。图像为教学示意。' },
+      { type: 'text', name: '保管员便笺', problem_indexes: [1], data: '纸签颜色只能提示分类，不能说明移动经过。请核对交接记录，并向当值保管员了解情况。' },
+      { type: 'text', name: '现场勘查记录', problem_indexes: [2], data: '本案为虚构教学故事。现场未见破锁或撕裂，也没有指认行为人的直接证据。记录缺漏与盗窃是不同的判断，不能互相替代。' },
     ],
     problems: [
       { title: '按交接簿，蓝签摹本最后被记载移到了哪里？', select: ['甲匣', '乙匣', '洞外沙地', '无法判断任何位置'], true_answer: 1, reason: '交接簿明确写着“蓝签摹本暂移至乙匣”，这是案内最后一条位置记录，并不证明它现在仍在那里。' },
@@ -24,10 +25,12 @@ export const gameLevels: levels = [
     subtitle: '寻迹',
     description: '循九色而入，辨壁画中的隐语。在斑驳的色彩之间，找回被遗忘的承诺。',
     panorama_url: '/art/cave-02.svg',
+    hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: -4, pitch: -5 }, { clue_index: 2, yaw: 5, pitch: 8 }, { clue_index: 3, yaw: 12, pitch: -2 }],
     clues: [
-      { type: 'text', name: '策展人的故事卡', data: '本关谜题为虚构。教学故事卡借用九色鹿故事的“救助与守信”主题：受助者许诺不泄露救助者的所在，却为奖赏背弃承诺。具体展签与排序密码仅属于本游戏。' },
-      { type: 'text', name: '展签修复记录', data: '虚构展签顺序写作：先“救助”，再“承诺”，最后“背弃”。柜门提示：取第二张展签上的两个字。褪色处只做记录，不自行描补。' },
-      { type: 'image', name: '线索图 · 展签教学示意', data: '/art/clue.svg' },
+      { type: 'text', name: '展签顺序记录', problem_indexes: [0], data: '教学展签依次写着“救助”“承诺”“背弃”。柜门要求取第二张展签上的两个字。' },
+      { type: 'text', name: '策展人的故事卡', problem_indexes: [1], data: '受助者许诺不泄露救助者的所在，后来却为了奖赏泄露了位置。比较许诺的内容与后来的行为。' },
+      { type: 'text', name: '褪色观察记录', problem_indexes: [2], data: '记录褪色区域的位置、范围与变化，交由专业人员判断；不自行擦拭、描补或揭取表层。' },
+      { type: 'image', name: '教学展签说明', problem_indexes: [3], data: '/art/clue.svg', hint: '展签、柜门和密码均为本游戏编写。图示帮助理解教学谜题，不能据此推断真实文物也包含相同密码。' },
     ],
     problems: [
       { title: '依照修复记录，柜门的两个字应当是什么？', select: ['救助', '承诺', '背弃', '奖赏'], true_answer: 1, reason: '提示要求取第二张展签，记录中第二项是“承诺”。这只是案内编写的文字谜题。' },
@@ -41,11 +44,11 @@ export const gameLevels: levels = [
     subtitle: '回响',
     description: '叩开藏经洞的记忆，在残卷与回声里拼合线索，让沉睡的故事重见天光。',
     panorama_url: '/art/cave-03.svg',
+    hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: 0, pitch: -3 }, { clue_index: 2, yaw: 12, pitch: 7 }],
     clues: [
-      { type: 'text', name: '虚构整理室日志', data: '教学整理室有三份数字摹本：A记录入库，B记录临时借阅，C记录归还。时间先后是A、B、C。C的备注为“已归还原位，编号待核”，没有任何失窃的确认记录。' },
-      { type: 'text', name: '核验清单', data: '先核对编号，再核对交接时间，最后联系记录人确认。数字图像应保留出处与使用授权信息。把教学摹本当成原件、把游戏剧情当成史实，都会误导阅读者。' },
-      { type: 'image', name: '线索图 · 摹本核验示意', data: '/art/clue.svg' },
-      { type: 'text', name: '结案提示', data: '只有编号、时间和记录人说明互相吻合，才可确认摹本流转。若仍有疑点，应保留“待核验”，不能用猜测补齐证据。' },
+      { type: 'text', name: '虚构整理室日志', problem_indexes: [0], data: '教学整理室有三份数字摹本记录：A为入库，B为临时借阅，C为归还。时间先后是A、B、C；C备注“已归还原位，编号待核”。' },
+      { type: 'text', name: '核验清单', problem_indexes: [1], data: '先核对编号，再核对交接时间，最后联系记录人确认。只有三者吻合才能确认流转；仍有疑点时保留“待核验”，不能凭猜测补齐证据。' },
+      { type: 'image', name: '数字摹本传播说明', problem_indexes: [2], data: '/art/clue.svg', hint: '传播数字摹本需保留出处、使用授权和教学材料性质。不能把教学摹本当作新发现的真迹，也不能把游戏剧情当成历史结论。' },
     ],
     problems: [
       { title: '哪份记录在案内时间线上最后出现？', select: ['A：入库', 'B：临时借阅', 'C：归还', '三份没有时间顺序'], true_answer: 2, reason: '日志明确给出A、B、C的先后顺序，因此C是最新记录；其“编号待核”仍需进一步检查。' },
@@ -55,11 +58,71 @@ export const gameLevels: levels = [
   },
 ]
 
+
+const terracottaLevels: level[] = [
+  {
+    name: '军阵失序', subtitle: '列阵',
+    description: '步入陶俑军阵，从姿态、方位与编号记录中找出一尊错列的教学复原俑。',
+    panorama_url: '/art/terracotta-01.svg',
+    hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: 0, pitch: -3 }, { clue_index: 2, yaw: 12, pitch: 7 }],
+    comparison: { reference_url: '/art/terracotta-clue.svg', title: '比对铠甲纹样', description: '拍摄同一军阵或纹样的不同角度，比较后贡献照片，积累场景复原素材。', pass_score: 58 },
+    clues: [
+      { type: 'text', name: '虚构军阵记录', problem_indexes: [0], data: '教学记录按朝向编号：一列与二列面向东，三列面向南。编号B-07原记于二列，不应出现在三列。' },
+      { type: 'image', name: '陶片纹样 · 原创教学示意', problem_indexes: [1], data: '/art/terracotta-clue.svg' },
+      { type: 'text', name: '观察守则', problem_indexes: [2], data: '姿态与服饰可以协助分类，但仅凭外观不能断定身份。应同时核对编号、位置与修复记录。' },
+    ],
+    problems: [
+      { title: '按军阵记录，哪一编号的位置需要复核？', select: ['A-02', 'B-07', 'C-11', 'D-04'], true_answer: 1, reason: 'B-07原记于二列，却出现在三列，因此需要复核。' },
+      { title: '图示中反复出现的主要几何纹样是哪一种？', select: ['连续菱格', '同心圆', '水波线', '五角星'], true_answer: 0, reason: '原创教学示意以连续菱格为主要视觉结构。' },
+      { title: '判断陶俑是否错列，最可靠的做法是什么？', select: ['只看面部', '凭身高猜测', '核对编号、位置与修复记录', '移动陶俑查看底部'], true_answer: 2, reason: '交叉核对记录最审慎，也能避免不必要的接触。' },
+    ],
+  },
+  {
+    name: '陶片密码', subtitle: '合纹',
+    description: '在修复室里寻找相邻陶片，让断开的纹样和编号重新衔接。',
+    panorama_url: '/art/terracotta-02.svg',
+    hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: 0, pitch: -3 }, { clue_index: 2, yaw: 12, pitch: 7 }],
+    clues: [
+      { type: 'text', name: '修复台编号表', problem_indexes: [0], data: '虚构编号表：T12左缘为双斜线，T13右缘为双斜线；两片登记在同一层位，但仍需核对断面。' },
+      { type: 'image', name: '断面记录 · 原创教学示意', problem_indexes: [1], data: '/art/terracotta-clue.svg', hint: '用数字图像与尺寸记录比较断面，由专业人员核验；强行拼压实物可能造成二次损伤。' },
+      { type: 'text', name: '数字复原说明', problem_indexes: [2], data: '数字拼合只是提出候选关系；真正结论还需尺寸、材质、层位与专业人员共同核验。' },
+    ],
+    problems: [
+      { title: '编号表首先提示哪两片可能相邻？', select: ['T01与T03', 'T12与T13', 'T13与T20', '无法提出候选'], true_answer: 1, reason: 'T12和T13边缘都记录为双斜线，且来自同一层位。' },
+      { title: '比较断面时，不应采取哪种方式？', select: ['查看数字图像', '记录尺寸', '强行拼压实物', '交由专业人员核验'], true_answer: 2, reason: '强行拼压会造成二次损伤，应优先使用非接触记录。' },
+      { title: '数字拼合结果应被理解为什么？', select: ['最终历史定论', '可供核验的候选关系', '可以忽略层位', '自动获得文物身份'], true_answer: 1, reason: '数字结果是辅助证据，必须与其他记录共同核验。' },
+    ],
+  },
+  {
+    name: '甬道回声', subtitle: '寻源',
+    description: '沿虚构甬道追踪三份巡查记录，判断异常声响来自哪里。',
+    panorama_url: '/art/terracotta-03.svg',
+    hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: 0, pitch: -3 }, { clue_index: 2, yaw: 12, pitch: 7 }],
+    clues: [
+      { type: 'text', name: '巡查日志对照', problem_indexes: [0], data: '甲：20:10东段无异常，20:18中段听到两次金属轻响。乙：20:19中段通风设备启动，外罩有一处松动，随后停止运行。对照两份日志的位置。' },
+      { type: 'text', name: '设备安全提示', problem_indexes: [1], data: '发现松动设施应先封控并报告，由专业人员检查；不擅自拆除、继续运行设备或移动周边陶俑。' },
+      { type: 'image', name: '甬道声源核验图', problem_indexes: [2], data: '/art/terracotta-clue.svg', hint: '声响与设备启动的时间、位置相近，使设备成为需检查的声源候选。相关性不能单独证明原因，也没有证据表明文物受损。' },
+    ],
+    problems: [
+      { title: '两份日志共同指向哪个区域需要先检查？', select: ['东段', '中段', '西段', '入口外'], true_answer: 1, reason: '声响与设备启动都记录在中段，且时间相邻。' },
+      { title: '面对松动的设备外罩，合适的处理是什么？', select: ['自行拆除', '继续运行观察', '封控、报告并由专业人员检查', '搬动附近陶俑'], true_answer: 2, reason: '安全和遗产保护都要求避免擅自操作。' },
+      { title: '目前证据能够支持的结论是哪一项？', select: ['设备一定损坏了文物', '有人进入甬道', '中段设备是需核验的声源候选', '声响来自陶俑'], true_answer: 2, reason: '时间和位置使设备成为候选，但尚不足以断言最终原因。' },
+    ],
+  },
+]
+
+export const gameLocations: location[] = [
+  { id: 'dunhuang', name: '敦煌莫高窟', title: '敦煌壁画探索', subtitle: '壁画与残卷的千年回响', introduction: '风沙掩埋了足迹，却未曾带走故事。化身壁画探秘者，在方寸洞窟之间，拾起散落的线索，解开沉睡千年的谜题。', coordinates: '40°02′ N · 94°48′ E', background_url: '/art/landscape.svg', art_caption: '莫高窟 · 九层楼', art_caption_english: 'MOGAO CAVES, DUNHUANG', levels: dunhuangLevels },
+  { id: 'terracotta', name: '秦始皇帝陵博物院', title: '兵马俑秘境探索', subtitle: '陶俑军阵中的失落线索', introduction: '暂别大漠壁画，步入沉静的陶俑军阵。循编号、纹样与巡查记录，让深埋地下的线索重新排列。', coordinates: '34°23′ N · 109°16′ E', background_url: '/art/terracotta-landscape.svg', art_caption: '秦俑军阵 · 原创画境', art_caption_english: 'TERRACOTTA ARMY, XI’AN', levels: terracottaLevels },
+]
+
+export const gameLevels: level[] = gameLocations[0]?.levels ?? []
+
 export const gameAuthors: authors = [
   { name: 'OpenAI GPT6-Astra', job: 'Coding' },
   { name: '陈禹行 杲子挺 阮泓凯 鲍致成', job: 'Developers' },
 ]
-export const mediaConfig = { introVideoUrl: '', introPosterUrl: '' }
+export const mediaConfig = { introVideoUrl: '', introPosterUrl: '', locationPauseRatio: 0.5 }
 
 export const siteConfig = {
   title: '敦煌壁画探索',

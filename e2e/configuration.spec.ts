@@ -28,9 +28,10 @@ for (const empty of [false, true]) {
   test(`custom configuration renders and plays without sample assumptions (empty=${empty})`, async ({ page }) => {
     const errors: string[] = []
     page.on('pageerror', error => errors.push(error.message))
-    await page.route('**/src/data/game.ts*', route => route.fulfill({ contentType: 'application/javascript', body: `export const gameLevels = ${JSON.stringify(empty ? [] : levels)}; export const gameAuthors = []; export const mediaConfig = ${JSON.stringify(mediaConfig)}; export const siteConfig = ${JSON.stringify({ ...siteConfig, title: '自定义探索标题', backgroundUrl: '/art/landscape.svg' })};` }))
+    await page.route('**/src/data/game.ts*', route => route.fulfill({ contentType: 'application/javascript', body: `export const gameLevels = ${JSON.stringify(empty ? [] : levels)}; export const gameLocations = [{ id: 'custom', name: '自定义地点', title: '自定义探索标题', subtitle: '测试', coordinates: '0°', background_url: '/art/landscape.svg', levels: gameLevels }]; export const gameAuthors = []; export const mediaConfig = ${JSON.stringify(mediaConfig)}; export const siteConfig = ${JSON.stringify({ ...siteConfig, title: '自定义探索标题', backgroundUrl: '/art/landscape.svg' })};` }))
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto(fixtureUrl)
+    await page.locator('.location-option').click()
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('自定义探索标题')
     await expect(page).toHaveTitle(/自定义探索标题/)
     await expect(page.getByRole('button')).toHaveCount(2)

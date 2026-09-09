@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">秦陵与兵马俑双地点入口</title>
+  <desc id="desc">原创敦煌色系教育探秘入口插画，展现秦陵封土、兵马俑坑与通往两处地点的道路。</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#173f4c"/><stop offset=".48" stop-color="#44706b"/><stop offset="1" stop-color="#d49a61"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ffe0a0" stop-opacity=".95"/><stop offset=".48" stop-color="#e9a65e" stop-opacity=".4"/><stop offset="1" stop-color="#e9a65e" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="far" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#65745f"/><stop offset="1" stop-color="#374f4c"/>
+    </linearGradient>
+    <linearGradient id="earth" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#bd8050"/><stop offset="1" stop-color="#603d32"/>
+    </linearGradient>
+    <linearGradient id="mound" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#817552"/><stop offset=".55" stop-color="#4f5a45"/><stop offset="1" stop-color="#303f3c"/>
+    </linearGradient>
+    <linearGradient id="pit" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#3b2724"/><stop offset="1" stop-color="#160f12"/>
+    </linearGradient>
+    <pattern id="cloudPattern" width="210" height="80" patternUnits="userSpaceOnUse">
+      <path d="M10 54c23-26 44-28 65-7 16-34 64-27 66 8 19-15 42-7 51 9H16z" fill="none" stroke="#f1c58a" stroke-width="3" opacity=".12"/>
+    </pattern>
+    <pattern id="soilLines" width="90" height="38" patternUnits="userSpaceOnUse">
+      <path d="M-8 26C18 10 44 39 72 20S112 18 120 8" fill="none" stroke="#e3a66a" stroke-width="2" opacity=".14"/>
+    </pattern>
+    <filter id="grain" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="17" result="n"/>
+      <feColorMatrix in="n" type="saturate" values="0" result="g"/>
+      <feBlend in="SourceGraphic" in2="g" mode="soft-light"/>
+    </filter>
+    <filter id="soft"><feGaussianBlur stdDeviation="18"/></filter>
+    <symbol id="warrior" viewBox="0 0 40 100">
+      <ellipse cx="20" cy="15" rx="10" ry="13" fill="#a56743"/>
+      <path d="M12 8q8-10 16 0v5H12z" fill="#4c342d"/>
+      <path d="M10 28q10-7 20 0l5 47H5z" fill="#8f5c40"/>
+      <path d="M9 34h22M8 45h24M7 56h26" stroke="#d49a66" stroke-width="2" opacity=".55"/>
+      <path d="M11 74 8 98h8l4-22 4 22h8l-3-24z" fill="#50372f"/>
+    </symbol>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <circle cx="1220" cy="205" r="190" fill="url(#sun)"/>
+  <circle cx="1220" cy="205" r="52" fill="#f2bd74" opacity=".75"/>
+  <rect y="70" width="1600" height="330" fill="url(#cloudPattern)"/>
+  <path d="M0 430 170 335l145 60 175-142 156 115 185-154 180 154 151-89 198 109 240-115v256H0z" fill="#355253" opacity=".72"/>
+  <path d="M0 487 190 389l143 74 191-104 163 91 170-77 175 112 174-100 164 93 130-62v134H0z" fill="url(#far)"/>
+  <path d="M0 500C269 449 413 527 638 491c237-38 415-10 612-31 127-14 235-2 350 35v405H0z" fill="url(#earth)"/>
+  <path d="M0 500C269 449 413 527 638 491c237-38 415-10 612-31 127-14 235-2 350 35v405H0z" fill="url(#soilLines)"/>
+  <path d="M975 489c73-159 160-226 266-217 117 10 189 92 248 224-151 34-365 33-514-7z" fill="url(#mound)" filter="url(#grain)"/>
+  <path d="M1050 474c84-117 169-161 260-137 65 17 112 63 157 139-111-35-237-29-417-2z" fill="#99a069" opacity=".28"/>
+  <path d="M1155 361c60-34 117-35 170-3M1102 412c103-45 206-41 298 7" fill="none" stroke="#c4ae71" stroke-width="6" opacity=".25"/>
+  <g fill="#252b29" opacity=".85">
+    <path d="M1105 473q12-54 24 0zm44 0q10-70 22 0zm153 4q14-74 27 0zm54 0q10-52 21 0z"/>
+  </g>
+  <g transform="translate(125 500)">
+    <path d="M0 62 420 0l292 75-409 117z" fill="#2a1c1b" stroke="#e0a361" stroke-width="5"/>
+    <path d="m26 72 394-57 257 65-383 95z" fill="url(#pit)"/>
+    <g stroke="#b6794e" stroke-width="8" opacity=".7">
+      <path d="M120 57 386 132M221 40l273 67M322 25l281 56M73 97l272 72"/>
+    </g>
+    <g opacity=".95">
+      <use href="#warrior" x="92" y="37" width="28" height="70"/><use href="#warrior" x="150" y="45" width="28" height="70"/>
+      <use href="#warrior" x="210" y="52" width="28" height="70"/><use href="#warrior" x="270" y="61" width="28" height="70"/>
+      <use href="#warrior" x="332" y="69" width="28" height="70"/><use href="#warrior" x="394" y="77" width="28" height="70"/>
+      <use href="#warrior" x="456" y="86" width="28" height="70"/><use href="#warrior" x="518" y="95" width="28" height="70"/>
+    </g>
+    <path d="M0 62v25l300 126 412-123V75L303 192z" fill="#6f4535" opacity=".65"/>
+  </g>
+  <path d="M788 900c-25-143-13-245 37-310 47-62 135-74 213-93-57 52-115 99-105 174 9 68 69 131 116 229z" fill="#d6ae72" opacity=".82"/>
+  <path d="M803 900c-18-133-9-228 36-287 30-39 72-62 122-84" fill="none" stroke="#f1d49b" stroke-width="4" stroke-dasharray="16 18" opacity=".7"/>
+  <g transform="translate(70 745)" fill="#f0c884">
+    <path d="M0 35h260v7H0zm0 70h260v7H0z" opacity=".75"/>
+    <path d="M18 0h12v130H18zm72 0h12v130H90zm72 0h12v130h-12zm72 0h12v130h-12z" opacity=".65"/>
+  </g>
+  <g transform="translate(1195 668)">
+    <path d="M0 49h330v18H0zM25 0h280l25 49H0z" fill="#49302b"/>
+    <path d="M42 67h18v120H42zm228 0h18v120h-18z" fill="#6c4938"/>
+    <circle cx="53" cy="126" r="5" fill="#d4a262"/><circle cx="279" cy="126" r="5" fill="#d4a262"/>
+  </g>
+  <path d="M0 820c285-35 497-14 725 23 282 45 563-37 875-23v80H0z" fill="#302b29" opacity=".48"/>
+  <rect width="1600" height="900" fill="none" stroke="#d7a967" stroke-width="14" opacity=".3"/>
+</svg>
