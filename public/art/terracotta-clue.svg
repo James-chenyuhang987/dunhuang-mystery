@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">兵马俑陶片纹理教学示意</title>
+  <desc id="desc">原创教学参考图，以陶片剖面、甲衣纹、衣褶纹和残留彩绘示意观察线索，不代表真实文物复原。</desc>
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#efe0bd"/><stop offset=".52" stop-color="#d8b884"/><stop offset="1" stop-color="#b78358"/></linearGradient>
+    <radialGradient id="sherd" cx="35%" cy="28%" r="78%"><stop stop-color="#cb8555"/><stop offset=".55" stop-color="#9c5d42"/><stop offset="1" stop-color="#563a32"/></radialGradient>
+    <linearGradient id="section" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#d79862"/><stop offset=".5" stop-color="#8f513b"/><stop offset="1" stop-color="#4b3430"/></linearGradient>
+    <pattern id="fibers" width="54" height="34" patternUnits="userSpaceOnUse"><path d="M-8 24Q12 7 31 21T65 14M5 30l10-8m24-12 9-6" fill="none" stroke="#5e3b31" stroke-width="2" opacity=".2"/></pattern>
+    <pattern id="armor" width="76" height="58" patternUnits="userSpaceOnUse"><path d="M5 4h66v42H5z" fill="#8b563e" stroke="#d0935e" stroke-width="4"/><circle cx="16" cy="15" r="4" fill="#3e302c"/><circle cx="60" cy="15" r="4" fill="#3e302c"/><path d="M38 46v12" stroke="#d0935e" stroke-width="4"/></pattern>
+    <filter id="grain"><feTurbulence baseFrequency=".45" numOctaves="3" seed="31" result="n"/><feColorMatrix in="n" type="saturate" values="0" result="g"/><feBlend in="SourceGraphic" in2="g" mode="soft-light"/></filter>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#2b2020" flood-opacity=".38"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 10 5 0 10z" fill="#315b5a"/></marker>
+  </defs>
+  <rect width="1200" height="900" fill="#243f42"/>
+  <path d="M38 34h1124v832H38z" fill="url(#paper)" stroke="#d7aa6d" stroke-width="6"/>
+  <path d="M70 70h1060v760H70z" fill="none" stroke="#5e3d31" stroke-width="3" stroke-dasharray="5 10" opacity=".45"/>
+  <g font-family="sans-serif">
+    <text x="92" y="125" font-size="38" font-weight="700" fill="#3f3731">陶片观察卡</text>
+    <text x="94" y="158" font-size="17" fill="#6e5140">教学示意 · 从表面、断面与工艺痕迹读取信息</text>
+  </g>
+  <g filter="url(#shadow)">
+    <path d="M165 242 290 179l119 29 78-28 81 91-26 116 41 90-65 118-134 38-76-50-117 7-63-104 35-106-30-72z" fill="url(#sherd)" stroke="#4b342f" stroke-width="10"/>
+    <path d="M165 242 290 179l119 29 78-28 81 91-26 116 41 90-65 118-134 38-76-50-117 7-63-104 35-106-30-72z" fill="url(#fibers)"/>
+    <path d="M233 281q90-57 202-18 77 27 80 120-6 99-104 154-98 23-176-44-53-98-2-212z" fill="none" stroke="#d29964" stroke-width="14" opacity=".72"/>
+    <path d="M255 328q96-56 193 3M235 382q123-54 250 9M239 447q113-35 224 22" fill="none" stroke="#59382f" stroke-width="9" stroke-linecap="round" opacity=".75"/>
+    <path d="M286 231q34 20 69 6M142 310q38 5 59 31M493 212q-4 35 24 59M508 568q-31-24-36-57M201 551q26-27 18-65" fill="none" stroke="#efb878" stroke-width="7" opacity=".55"/>
+    <path d="M372 281q25 28 11 66t18 62q20 24 6 70" fill="none" stroke="#743e34" stroke-width="6"/>
+    <path d="M385 283q14 26 3 62" fill="none" stroke="#315b5a" stroke-width="5" opacity=".8"/>
+  </g>
+  <g transform="translate(675 205)">
+    <rect width="378" height="156" rx="12" fill="#ead2a5" stroke="#5c4035" stroke-width="5"/>
+    <path d="M24 58h330v68H24z" fill="url(#section)"/>
+    <path d="M24 70h330M24 92h330M24 113h330" stroke="#f0b979" stroke-width="3" opacity=".42"/>
+    <g font-family="sans-serif" font-size="16" fill="#4b3b32"><text x="20" y="30" font-weight="700">断面放大</text><text x="290" y="52">表层</text><text x="290" y="148">胎体</text></g>
+    <path d="M282 48v31M282 139v-27" stroke="#315b5a" stroke-width="3" marker-end="url(#arrow)"/>
+  </g>
+  <g transform="translate(675 402)">
+    <rect width="174" height="180" rx="12" fill="#513a33" stroke="#ead2a5" stroke-width="5"/>
+    <rect x="18" y="18" width="138" height="125" fill="url(#armor)"/>
+    <text x="87" y="168" text-anchor="middle" font-family="sans-serif" font-size="16" fill="#f0d6a5">甲衣压印纹</text>
+  </g>
+  <g transform="translate(879 402)">
+    <rect width="174" height="180" rx="12" fill="#513a33" stroke="#ead2a5" stroke-width="5"/>
+    <path d="M28 28q70 25 118 0M23 61q72 31 128 0M27 97q64 28 119 1M35 129q52 20 100 1" fill="none" stroke="#d49360" stroke-width="10" stroke-linecap="round"/>
+    <text x="87" y="168" text-anchor="middle" font-family="sans-serif" font-size="16" fill="#f0d6a5">衣褶刻划纹</text>
+  </g>
+  <g transform="translate(675 626)">
+    <rect width="378" height="126" rx="12" fill="#ead2a5" stroke="#5c4035" stroke-width="5"/>
+    <circle cx="50" cy="49" r="22" fill="#8d3f36"/><circle cx="116" cy="49" r="22" fill="#315b5a"/><circle cx="182" cy="49" r="22" fill="#cf9f49"/><circle cx="248" cy="49" r="22" fill="#2c2b2b"/>
+    <path d="M288 34q35-19 65 6-26 25-63 35z" fill="#8d3f36" opacity=".48"/>
+    <text x="20" y="105" font-family="sans-serif" font-size="16" fill="#4b3b32">残留色层仅作观察提示，不作复原依据</text>
+  </g>
+  <g fill="none" stroke="#315b5a" stroke-width="4" marker-end="url(#arrow)">
+    <path d="M435 264Q566 205 661 255"/><path d="M496 445q104 6 164 35"/><path d="M371 584q120 121 290 102"/>
+  </g>
+  <g font-family="sans-serif" font-size="17" font-weight="700" fill="#315b5a">
+    <text x="515" y="224">观察颗粒与烧成层</text><text x="523" y="432">辨认成形工具痕</text><text x="443" y="657">记录色层位置</text>
+  </g>
+  <g font-family="sans-serif" font-size="15" fill="#efe0bd"><text x="86" y="854">观察顺序：整体形状 → 表面纹理 → 断面层次 → 颜色残留 → 编号记录</text></g>
+  <path d="M43 804h1114" stroke="#5d3d32" stroke-width="3" opacity=".5"/>
+</svg>

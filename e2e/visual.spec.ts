@@ -1,13 +1,15 @@
 import { test, expect } from '@playwright/test'
+import { chooseDefaultLocation } from './helpers'
 
 test('desktop and mobile visual checks', async ({ page }, testInfo) => {
   const errors: string[] = []
   page.on('pageerror', error => errors.push(error.message))
   await page.setViewportSize({ width: 1440, height: 1000 })
   await page.goto('/')
+  await chooseDefaultLocation(page)
   await expect(page.getByRole('button', { name: '开始', exact: true })).toBeEnabled()
   await page.screenshot({ path: testInfo.outputPath('home-desktop.png'), fullPage: true })
-  await expect(page.getByRole('button')).toHaveCount(2)
+  await expect(page.locator('.journey-panel > .start-button')).toHaveCount(2)
   await page.getByRole('button', { name: '选关', exact: true }).click()
   await expect(page).toHaveURL(/\/levels$/)
   await expect(page.locator('.chapter-card')).toHaveCount(3)

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { gameAuthors, gameLevels } from '@/data/game'
+import { gameAuthors, gameLevels, gameLocations } from '@/data/game'
 import type { Attempt, author, Difficulty, level, problem, Round } from '@/types/game'
 
 export const GAME_STORAGE_KEY = 'dunhuang-mystery:game:v1'
@@ -9,6 +9,7 @@ type GameRound = Round & { completedDifficulty?: Difficulty }
 
 interface GameState {
   mode: GameMode
+  locationId: string
   levels: level[]
   authors: author[]
   difficulty: Difficulty
@@ -24,7 +25,13 @@ interface GameState {
   hasStarted: boolean
 }
 
-type Snapshot = Omit<GameState, 'persistenceError' | 'mode'> & { version: 1; mode?: GameMode; questionFingerprint?: string }
+type Snapshot = Omit<GameState, 'persistenceError' | 'mode' | 'locationId'> & {
+  version: 1
+  mode?: GameMode
+  locationId?: string
+  questionFingerprint?: string
+  completionRule?: 'first-attempt'
+}
 
 function questionFingerprint(levels: level[]): string {
   // Presentation and explanation edits do not invalidate answers or shuffled indexes.
@@ -33,11 +40,25 @@ function questionFingerprint(levels: level[]): string {
   )))
 }
 
-function copyConfig(): Pick<GameState, 'levels' | 'authors'> {
+function defaultLocationId(): string {
+  return gameLocations[0]?.id ?? ''
+}
+
+function locationLevels(locationId: string): level[] | undefined {
+  if (gameLocations.length === 0 && locationId === '') return gameLevels
+  return gameLocations.find((entry) => entry.id === locationId)?.levels
+}
+
+function copyConfig(locationId = defaultLocationId()): Pick<GameState, 'levels' | 'authors'> {
   return {
-    levels: gameLevels.map((entry) => ({
+    levels: (locationLevels(locationId) ?? []).map((entry) => ({
       ...entry,
-      clues: entry.clues.map((item) => ({ ...item })),
+      hotspots: entry.hotspots?.map((item) => ({ ...item })),
+      comparison: entry.comparison ? { ...entry.comparison } : undefined,
+      clues: entry.clues.map((item) => ({
+        ...item,
+        problem_indexes: item.problem_indexes ? [...item.problem_indexes] : undefined,
+      })),
       problems: entry.problems.map((item) => ({ ...item, select: [...item.select] })),
     })),
     authors: gameAuthors.map((entry) => ({ ...entry })),
@@ -72,6 +93,15 @@ function solvedIndexes(state: Pick<GameState, 'levels' | 'rounds' | 'difficulty'
   return state.levels.flatMap((_, levelIndex) => {
     const selected = selectedIndexes(state, levelIndex)
     return state.rounds.some((round) => round.levelIndex === levelIndex) && selected.every((problemIndex) =>
+      state.attempts.some((attempt) => attempt.levelIndex === levelIndex && attempt.problemIndex === problemIndex),
+    ) ? [levelIndex] : []
+  })
+}
+
+function correctlySolvedIndexes(state: Pick<GameState, 'levels' | 'rounds' | 'difficulty' | 'attempts'>): number[] {
+  return state.levels.flatMap((_, levelIndex) => {
+    const selected = selectedIndexes(state, levelIndex)
+    return state.rounds.some((round) => round.levelIndex === levelIndex) && selected.every((problemIndex) =>
       state.attempts.some((attempt) => attempt.levelIndex === levelIndex && attempt.problemIndex === problemIndex && attempt.correct),
     ) ? [levelIndex] : []
   })
@@ -100,17 +130,44 @@ function isProblem(value: unknown): value is problem {
     && isInteger(value.true_answer, 0, 3)
 }
 
+function isOptionalString(value: unknown): boolean {
+  return value === undefined || typeof value === 'string'
+}
+
+function isOptionalNumber(value: unknown): boolean {
+  return value === undefined || (typeof value === 'number' && Number.isFinite(value))
+}
+
 function isLevel(value: unknown): value is level {
-  return isRecord(value) && typeof value.name === 'string' && typeof value.panorama_url === 'string'
-    && Array.isArray(value.clues) && value.clues.every((entry: unknown) =>
-      isRecord(entry) && ['image', 'audio', 'text', 'video'].includes(String(entry.type))
-      && typeof entry.name === 'string' && typeof entry.data === 'string',
-    ) && Array.isArray(value.problems) && value.problems.every(isProblem)
+  if (!isRecord(value) || typeof value.name !== 'string' || typeof value.panorama_url !== 'string'
+    || !isOptionalString(value.thumbnail_url) || !isOptionalString(value.subtitle) || !isOptionalString(value.description)
+    || !Array.isArray(value.problems) || !value.problems.every(isProblem) || !Array.isArray(value.clues)) return false
+
+  const problemCount = value.problems.length
+  if (!value.clues.every((entry: unknown) =>
+    isRecord(entry) && ['image', 'audio', 'text', 'video'].includes(String(entry.type))
+    && typeof entry.name === 'string' && typeof entry.data === 'string' && isOptionalString(entry.hint)
+    && (entry.problem_indexes === undefined || (Array.isArray(entry.problem_indexes)
+      && entry.problem_indexes.every((index: unknown) => isInteger(index, 0, problemCount - 1)))),
+  )) return false
+
+  const clueCount = value.clues.length
+  return (value.hotspots === undefined || (Array.isArray(value.hotspots) && value.hotspots.every((entry: unknown) =>
+    isRecord(entry) && isInteger(entry.clue_index, 0, clueCount - 1)
+    && ((typeof entry.yaw === 'number' && Number.isFinite(entry.yaw) && entry.yaw >= -180 && entry.yaw <= 180
+      && typeof entry.pitch === 'number' && Number.isFinite(entry.pitch) && entry.pitch >= -90 && entry.pitch <= 90)
+      || (typeof entry.x === 'number' && Number.isFinite(entry.x) && entry.x >= 0 && entry.x <= 100
+      && typeof entry.y === 'number' && Number.isFinite(entry.y) && entry.y >= 0 && entry.y <= 100)),
+  ))) && (value.comparison === undefined || (isRecord(value.comparison)
+    && typeof value.comparison.reference_url === 'string' && typeof value.comparison.title === 'string'
+    && isOptionalString(value.comparison.description) && isOptionalNumber(value.comparison.pass_score)))
 }
 
 function isSnapshot(value: unknown): value is Snapshot {
   if (!isRecord(value) || value.version !== 1
     || !(value.mode === undefined || value.mode === 'single' || value.mode === 'campaign')
+    || !(value.locationId === undefined || typeof value.locationId === 'string')
+    || !(value.completionRule === undefined || value.completionRule === 'first-attempt')
     || !Array.isArray(value.levels) || !value.levels.every(isLevel)
     || !Array.isArray(value.authors) || !value.authors.every((entry: unknown) =>
       isRecord(entry) && typeof entry.name === 'string' && typeof entry.job === 'string')
@@ -140,18 +197,40 @@ function isSnapshot(value: unknown): value is Snapshot {
   }
 
   const attempts: Attempt[] = []
+  const answeredQuestions = new Set<string>()
+  const legacyQuestions = new Set<string>()
   const correctQuestions = new Set<string>()
+  const firstAttemptRules = value.completionRule === 'first-attempt'
+    || (value.attempts as unknown[]).some((entry) => isRecord(entry) && entry.skipped !== undefined)
   for (const entry of value.attempts as unknown[]) {
     if (!isRecord(entry) || !isInteger(entry.levelIndex, 0, savedLevels.length - 1)
-      || !visited.has(entry.levelIndex) || !isInteger(entry.selectedAnswer, 0, 3)
-      || typeof entry.correct !== 'boolean' || !isTime(entry.at)) return false
+      || !visited.has(entry.levelIndex) || typeof entry.correct !== 'boolean' || !isTime(entry.at)
+      || !(entry.skipped === undefined || typeof entry.skipped === 'boolean')
+      || !(entry.legacy === undefined || entry.legacy === true)) return false
     const questions = savedLevels[entry.levelIndex]?.problems
     if (!questions || !isInteger(entry.problemIndex, 0, questions.length - 1)) return false
     const question = questions[entry.problemIndex]
     const key = `${entry.levelIndex}:${entry.problemIndex}`
-    if (!question || entry.correct !== (entry.selectedAnswer === question.true_answer) || correctQuestions.has(key)) return false
-    if (entry.correct) correctQuestions.add(key)
-    attempts.push({ levelIndex: entry.levelIndex, problemIndex: entry.problemIndex, selectedAnswer: entry.selectedAnswer, correct: entry.correct, at: entry.at })
+    const persistedLegacy = entry.legacy === true
+    const legacyAttempt = !firstAttemptRules || persistedLegacy
+    if ((!firstAttemptRules && (entry.skipped !== undefined || entry.legacy !== undefined))
+      || (firstAttemptRules && entry.skipped === undefined && !persistedLegacy)
+      || (answeredQuestions.has(key) && !(legacyAttempt && legacyQuestions.has(key)))) return false
+    if (entry.skipped === true) {
+      if (legacyAttempt || entry.selectedAnswer !== null || entry.correct) return false
+      attempts.push({ levelIndex: entry.levelIndex, problemIndex: entry.problemIndex,
+        selectedAnswer: null, correct: false, skipped: true, at: entry.at })
+    } else {
+      if (!isInteger(entry.selectedAnswer, 0, 3) || !question
+        || entry.correct !== (entry.selectedAnswer === question.true_answer) || correctQuestions.has(key)) return false
+      if (entry.correct) correctQuestions.add(key)
+      attempts.push({ levelIndex: entry.levelIndex, problemIndex: entry.problemIndex,
+        selectedAnswer: entry.selectedAnswer, correct: entry.correct,
+        ...(entry.skipped === false ? { skipped: false as const } : {}),
+        ...(legacyAttempt ? { legacy: true as const } : {}), at: entry.at })
+    }
+    answeredQuestions.add(key)
+    if (legacyAttempt) legacyQuestions.add(key)
   }
 
   const completedIndexes: number[] = []
@@ -159,7 +238,9 @@ function isSnapshot(value: unknown): value is Snapshot {
     if (!isInteger(index, 0, savedLevels.length - 1) || completedIndexes.includes(index)) return false
     completedIndexes.push(index)
   }
-  const solved = solvedIndexes({ levels: savedLevels, rounds, attempts, difficulty: value.difficulty })
+  const solved = (firstAttemptRules ? solvedIndexes : correctlySolvedIndexes)(
+    { levels: savedLevels, rounds, attempts, difficulty: value.difficulty },
+  )
   if (completedIndexes.length !== solved.length || !completedIndexes.every((index) => solved.includes(index))) return false
   if (!value.hasStarted && (rounds.length > 0 || attempts.length > 0 || value.elapsedMs !== 0 || value.startedAt !== null || value.completed)) return false
   if (value.hasStarted && !visited.has(value.currentLevelIndex)) return false
@@ -185,6 +266,7 @@ export const useGameStore = defineStore('game', {
   state: (): GameState => ({
     ...copyConfig(),
     mode: 'single',
+    locationId: defaultLocationId(),
     difficulty: 1,
     currentLevelIndex: 0,
     selectedLevelIndex: 0,
@@ -202,7 +284,7 @@ export const useGameStore = defineStore('game', {
     selectedQuestionIndexes: (state): number[] => selectedIndexes(state, state.currentLevelIndex),
     currentProblemIndex(): number | null {
       return this.selectedQuestionIndexes.find((index) => !this.attempts.some((attempt) =>
-        attempt.levelIndex === this.currentLevelIndex && attempt.problemIndex === index && attempt.correct,
+        attempt.levelIndex === this.currentLevelIndex && attempt.problemIndex === index,
       )) ?? null
     },
     currentProblem(): problem | null {
@@ -210,7 +292,8 @@ export const useGameStore = defineStore('game', {
     },
     correctCount: (state): number => new Set(state.attempts.filter((entry) => entry.correct)
       .map((entry) => `${entry.levelIndex}:${entry.problemIndex}`)).size,
-    wrongCount: (state): number => state.attempts.filter((entry) => !entry.correct).length,
+    wrongCount: (state): number => state.attempts.filter((entry) => !entry.correct && !entry.skipped).length,
+    skippedCount: (state): number => state.attempts.filter((entry) => entry.skipped === true).length,
     levelSolved(): boolean {
       return this.hasStarted && this.rounds.some((round) => round.levelIndex === this.currentLevelIndex)
         && this.currentProblemIndex === null
@@ -223,10 +306,13 @@ export const useGameStore = defineStore('game', {
   },
   actions: {
     refreshConfig(): void {
-      const config = copyConfig()
+      const config = copyConfig(this.locationId)
       if (questionFingerprint(this.levels) !== questionFingerprint(config.levels)) {
         const hadProgress = this.hasStarted
+        const locationId = this.locationId
         this.$reset()
+        this.locationId = locationId
+        this.$patch(config)
         if (hadProgress) this.persistenceError = '题目配置已更新，旧进度不兼容，已重置。请重新开始。'
         return
       }
@@ -238,6 +324,17 @@ export const useGameStore = defineStore('game', {
       this.completedLevelIndexes = solvedIndexes(this)
       if (this.completed && !this.levelSolved) this.completed = false
       this.persist()
+    },
+    selectLocation(id: string): boolean {
+      if (id === this.locationId || locationLevels(id) === undefined) return false
+      const difficulty = this.difficulty
+      this.pauseTimer()
+      this.$reset()
+      this.locationId = id
+      this.difficulty = difficulty
+      this.$patch(copyConfig(id))
+      this.persist()
+      return true
     },
     selectLevel(index: number): void {
       if (isInteger(index, 0, this.levels.length - 1)) this.selectedLevelIndex = index
@@ -272,10 +369,20 @@ export const useGameStore = defineStore('game', {
       const problemIndex = this.currentProblemIndex
       if (!this.hasStarted || this.completed || !question || problemIndex === null || !isInteger(answer, 0, 3)) return null
       const correct = answer === question.true_answer
-      this.attempts.push({ levelIndex: this.currentLevelIndex, problemIndex, selectedAnswer: answer, correct, at: Date.now() })
+      this.attempts.push({ levelIndex: this.currentLevelIndex, problemIndex, selectedAnswer: answer,
+        correct, skipped: false, at: Date.now() })
       this.completedLevelIndexes = solvedIndexes(this)
       this.persist()
       return correct
+    },
+    skipCurrentProblem(): boolean {
+      const problemIndex = this.currentProblemIndex
+      if (!this.hasStarted || this.completed || problemIndex === null || !this.currentProblem) return false
+      this.attempts.push({ levelIndex: this.currentLevelIndex, problemIndex, selectedAnswer: null,
+        correct: false, skipped: true, at: Date.now() })
+      this.completedLevelIndexes = solvedIndexes(this)
+      this.persist()
+      return true
     },
     advanceLevel(): boolean {
       if (this.completed) return true
@@ -326,6 +433,8 @@ export const useGameStore = defineStore('game', {
         const snapshot: Snapshot = {
           version: 1,
           mode: this.mode,
+          locationId: this.locationId,
+          completionRule: 'first-attempt',
           questionFingerprint: questionFingerprint(this.levels),
           levels: this.levels,
           authors: this.authors,
@@ -361,9 +470,16 @@ export const useGameStore = defineStore('game', {
           this.persistenceError = '存档数据无效，未载入。请重新开始以覆盖损坏的存档。'
           return
         }
-        const config = copyConfig()
+        const locationId = snapshot.locationId ?? defaultLocationId()
+        if (locationLevels(locationId) === undefined) {
+          this.persistenceError = '存档地点无效，未载入。请重新选择探索地点。'
+          return
+        }
+        const config = copyConfig(locationId)
         if ((snapshot.questionFingerprint ?? questionFingerprint(snapshot.levels)) !== questionFingerprint(config.levels)) {
           this.$reset()
+          this.locationId = locationId
+          this.$patch(config)
           this.persistenceError = '题目配置已更新，旧进度不兼容，已重置。请重新开始。'
           return
         }
@@ -371,18 +487,30 @@ export const useGameStore = defineStore('game', {
         // Aggregate active time is retained in both cases. Restore paused.
         const currentLevelIndex = snapshot.currentLevelIndex
         const campaign = snapshot.mode === 'campaign'
+        const firstAttemptRules = snapshot.completionRule === 'first-attempt'
+          || snapshot.attempts.some((entry) => entry.skipped !== undefined)
+        const attempts = snapshot.attempts
+          .filter((entry) => campaign || entry.levelIndex === currentLevelIndex)
+          .map((entry): Attempt => {
+            if (firstAttemptRules || entry.selectedAnswer === null) return entry
+            return { ...entry, legacy: true }
+          })
+        const rounds = snapshot.rounds.filter((entry) => campaign || entry.levelIndex === currentLevelIndex)
+        const completedLevelIndexes = solvedIndexes({ levels: config.levels, rounds,
+          attempts, difficulty: snapshot.difficulty })
         this.$patch({
           ...config,
           mode: snapshot.mode ?? 'single',
+          locationId,
           difficulty: snapshot.difficulty,
           currentLevelIndex,
           selectedLevelIndex: snapshot.hasStarted ? currentLevelIndex : snapshot.selectedLevelIndex,
           startedAt: null,
           elapsedMs: snapshot.elapsedMs,
           completed: snapshot.completed,
-          attempts: snapshot.attempts.filter((entry) => campaign || entry.levelIndex === currentLevelIndex),
-          completedLevelIndexes: snapshot.completedLevelIndexes.filter((index) => campaign || index === currentLevelIndex),
-          rounds: snapshot.rounds.filter((entry) => campaign || entry.levelIndex === currentLevelIndex),
+          attempts,
+          completedLevelIndexes,
+          rounds,
           hasStarted: snapshot.hasStarted,
           persistenceError: '',
         })

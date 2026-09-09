@@ -2,10 +2,14 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import AppIcon from './AppIcon.vue'
-const props = defineProps<{ url: string }>()
+import type { hotspot } from '@/types/game'
+import { projectHotspot } from '@/utils/hotspots'
+const props = withDefaults(defineProps<{ url: string; hotspots?: hotspot[] }>(), { hotspots: () => [] })
+const emit = defineEmits<{ clue: [index: number] }>()
 const host = ref<HTMLDivElement | null>(null)
 const status = ref<'loading' | 'ready' | 'error'>('loading')
 const fov = ref(70)
+const projected = ref<ReturnType<typeof projectHotspot>[]>([])
 let renderer: THREE.WebGLRenderer | undefined
 let camera: THREE.PerspectiveCamera | undefined
 let scene: THREE.Scene | undefined
@@ -26,6 +30,7 @@ function render() {
   camera.fov = fov.value
   camera.updateProjectionMatrix()
   renderer.render(scene, camera)
+  projected.value = props.hotspots.map(point => projectHotspot(point, camera!))
 }
 function schedule() { cancelAnimationFrame(requestId); requestId = requestAnimationFrame(render) }
 function resize() {
@@ -103,11 +108,15 @@ function key(event: KeyboardEvent) {
 }
 onMounted(load)
 watch(() => props.url, load)
+watch(() => props.hotspots, schedule, { deep: true })
 onBeforeUnmount(() => { ++loadId; clearTimeout(timeout); cancelAnimationFrame(requestId); dispose() })
 </script>
 <template>
   <div class="panorama-wrap">
     <div ref="host" class="panorama" tabindex="0" role="application" aria-label="全景视图：拖动旋转，滚轮或双指缩放，也可使用方向键和加减键" :data-fov="Math.round(fov)" @pointerdown="down" @pointermove="move" @pointerup="up" @pointercancel="up" @lostpointercapture="up" @wheel.prevent="zoom($event.deltaY * 0.035)" @keydown="key" />
+    <div v-if="status === 'ready'" class="panorama-hotspots" aria-label="全景线索点">
+      <button v-for="(point, index) in hotspots" v-show="projected[index]?.visible" :key="`${point.clue_index}-${index}`" class="panorama-hotspot" :style="{ left: `${projected[index]?.x ?? 50}%`, top: `${projected[index]?.y ?? 50}%` }" :aria-label="`查看线索 ${point.clue_index + 1}`" @pointerdown.stop @wheel.stop @click="emit('clue', point.clue_index)"><span>{{ String(point.clue_index + 1).padStart(2, '0') }}</span></button>
+    </div>
     <div v-if="status !== 'ready'" class="panorama-status surface" role="status">
       <AppIcon name="compass" :class="{ spinning: status === 'loading' }" />
       <h2>{{ status === 'loading' ? '正在走入洞窟…' : '全景暂时无法加载' }}</h2>

@@ -9,6 +9,20 @@ export interface clue {
   type: 'image' | 'audio' | 'text' | 'video'
   name: string
   data: string
+  problem_indexes?: number[]
+  hint?: string
+}
+
+export type hotspot = { clue_index: number } & (
+  | { yaw: number; pitch: number; x?: never; y?: never }
+  | { x: number; y: number; yaw?: never; pitch?: never }
+)
+
+export interface comparison {
+  reference_url: string
+  title: string
+  description?: string
+  pass_score?: number
 }
 
 export interface level {
@@ -17,11 +31,26 @@ export interface level {
   thumbnail_url?: string
   subtitle?: string
   description?: string
+  hotspots?: hotspot[]
+  comparison?: comparison
   clues: clue[]
   problems: problem[]
 }
 
 export type levels = level[]
+
+export interface location {
+  id: string
+  name: string
+  subtitle: string
+  coordinates: string
+  background_url: string
+  levels: level[]
+  title?: string
+  introduction?: string
+  art_caption?: string
+  art_caption_english?: string
+}
 
 export interface author {
   name: string
@@ -31,13 +60,16 @@ export interface author {
 export type authors = author[]
 export type Difficulty = 1 | 2 | 3
 
-export interface Attempt {
+interface AttemptBase {
   levelIndex: number
   problemIndex: number
-  selectedAnswer: number
-  correct: boolean
   at: number
 }
+
+export type Attempt = AttemptBase & (
+  | { selectedAnswer: number; correct: boolean; skipped?: false; legacy?: true }
+  | { selectedAnswer: null; correct: false; skipped: true; legacy?: never }
+)
 
 export interface Round {
   levelIndex: number
