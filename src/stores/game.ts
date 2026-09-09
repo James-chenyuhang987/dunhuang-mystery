@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
+import { Vector3 } from 'three'
 import { gameAuthors, gameLevels, gameLocations } from '@/data/game'
-import type { Attempt, author, Difficulty, level, problem, Round } from '@/types/game'
+import type { Attempt, author, Difficulty, ImagePanorama, level, problem, Round } from '@/types/game'
 
 export const GAME_STORAGE_KEY = 'dunhuang-mystery:game:v1'
 
@@ -15,6 +16,8 @@ interface GameState {
   difficulty: Difficulty
   currentLevelIndex: number
   selectedLevelIndex: number
+  currentPanoramaIndex: number
+  discoveredClickPoints: string[]
   startedAt: number | null
   elapsedMs: number
   completed: boolean
@@ -25,7 +28,9 @@ interface GameState {
   hasStarted: boolean
 }
 
-type Snapshot = Omit<GameState, 'persistenceError' | 'mode' | 'locationId'> & {
+type Snapshot = Omit<GameState, 'persistenceError' | 'mode' | 'locationId' | 'currentPanoramaIndex' | 'discoveredClickPoints'> & {
+  currentPanoramaIndex?: number
+  discoveredClickPoints?: string[]
   version: 1
   mode?: GameMode
   locationId?: string
@@ -53,6 +58,13 @@ function copyConfig(locationId = defaultLocationId()): Pick<GameState, 'levels' 
   return {
     levels: (locationLevels(locationId) ?? []).map((entry) => ({
       ...entry,
+      panorama: entry.panorama.map((panorama) => ({
+        ...panorama,
+        click_points: panorama.click_points.map((point) => ({
+          ...point,
+          vec: new Vector3(point.vec.x, point.vec.y, point.vec.z),
+        })),
+      })),
       hotspots: entry.hotspots?.map((item) => ({ ...item })),
       comparison: entry.comparison ? { ...entry.comparison } : undefined,
       clues: entry.clues.map((item) => ({
@@ -81,6 +93,16 @@ function shuffle(total: number): number[] {
     }
   }
   return indexes
+}
+
+function clickPointKey(levelIndex: number, panoramaIndex: number, pointIndex: number): string {
+  return `${levelIndex}:${panoramaIndex}:${pointIndex}`
+}
+
+function validClickPointKey(levels: level[], key: string): boolean {
+  if (!/^\d+:\d+:\d+$/.test(key)) return false
+  const [levelIndex, panoramaIndex, pointIndex] = key.split(':').map(Number)
+  return levels[levelIndex ?? -1]?.panorama[panoramaIndex ?? -1]?.click_points[pointIndex ?? -1] !== undefined
 }
 
 function selectedIndexes(state: Pick<GameState, 'levels' | 'rounds' | 'difficulty'>, index: number): number[] {
@@ -138,8 +160,25 @@ function isOptionalNumber(value: unknown): boolean {
   return value === undefined || (typeof value === 'number' && Number.isFinite(value))
 }
 
+function isVector(value: unknown): value is { x: number; y: number; z: number } {
+  return isRecord(value) && typeof value.x === 'number' && Number.isFinite(value.x)
+    && typeof value.y === 'number' && Number.isFinite(value.y)
+    && typeof value.z === 'number' && Number.isFinite(value.z)
+}
+
+function isPanorama(value: unknown): value is ImagePanorama {
+  return isRecord(value) && typeof value.name === 'string' && typeof value.url === 'string'
+    && isOptionalString(value.ultraviolet_url) && Array.isArray(value.click_points)
+    && value.click_points.every((point: unknown) => isRecord(point) && isVector(point.vec)
+      && typeof point.accept_click_range === 'number' && Number.isFinite(point.accept_click_range)
+      && point.accept_click_range >= 0 && typeof point.name === 'string'
+      && typeof point.description === 'string' && isOptionalString(point.image)
+      && typeof point.in_uv === 'boolean')
+}
+
 function isLevel(value: unknown): value is level {
-  if (!isRecord(value) || typeof value.name !== 'string' || typeof value.panorama_url !== 'string'
+  if (!isRecord(value) || typeof value.name !== 'string'
+    || !Array.isArray(value.panorama) || !value.panorama.every(isPanorama)
     || !isOptionalString(value.thumbnail_url) || !isOptionalString(value.subtitle) || !isOptionalString(value.description)
     || !Array.isArray(value.problems) || !value.problems.every(isProblem) || !Array.isArray(value.clues)) return false
 
@@ -163,6 +202,20 @@ function isLevel(value: unknown): value is level {
     && isOptionalString(value.comparison.description) && isOptionalNumber(value.comparison.pass_score)))
 }
 
+function migrateSnapshot(value: unknown): unknown {
+  if (!isRecord(value) || !Array.isArray(value.levels)) return value
+  let migrated = false
+  const levels = value.levels.map((entry: unknown) => {
+    if (!isRecord(entry) || Array.isArray(entry.panorama) || typeof entry.panorama_url !== 'string') return entry
+    migrated = true
+    const replacement: Record<string, unknown> = { ...entry }
+    delete replacement.panorama_url
+    replacement.panorama = [{ name: entry.name, url: entry.panorama_url, click_points: [] }]
+    return replacement
+  })
+  return migrated ? { ...value, levels, currentPanoramaIndex: 0, discoveredClickPoints: [] } : value
+}
+
 function isSnapshot(value: unknown): value is Snapshot {
   if (!isRecord(value) || value.version !== 1
     || !(value.mode === undefined || value.mode === 'single' || value.mode === 'campaign')
@@ -174,12 +227,18 @@ function isSnapshot(value: unknown): value is Snapshot {
     || !isDifficulty(value.difficulty)
     || !isInteger(value.currentLevelIndex, 0, Math.max(0, value.levels.length - 1))
     || !isInteger(value.selectedLevelIndex, 0, Math.max(0, value.levels.length - 1))
+    || !(value.currentPanoramaIndex === undefined || isInteger(value.currentPanoramaIndex, 0,
+      Math.max(0, ((value.levels[value.currentLevelIndex] as level | undefined)?.panorama.length ?? 1) - 1)))
+    || !(value.discoveredClickPoints === undefined || Array.isArray(value.discoveredClickPoints))
     || !(value.startedAt === null || isTime(value.startedAt)) || !isTime(value.elapsedMs)
     || typeof value.completed !== 'boolean' || typeof value.hasStarted !== 'boolean'
     || !Array.isArray(value.attempts) || !Array.isArray(value.rounds)
     || !Array.isArray(value.completedLevelIndexes)) return false
 
   const savedLevels: level[] = value.levels
+  const discovered = value.discoveredClickPoints ?? []
+  if (new Set(discovered).size !== discovered.length
+    || !discovered.every((key: unknown) => typeof key === 'string' && validClickPointKey(savedLevels, key))) return false
   const rounds: GameRound[] = []
   const visited = new Set<number>()
   for (const entry of value.rounds as unknown[]) {
@@ -270,6 +329,8 @@ export const useGameStore = defineStore('game', {
     difficulty: 1,
     currentLevelIndex: 0,
     selectedLevelIndex: 0,
+    currentPanoramaIndex: 0,
+    discoveredClickPoints: [],
     startedAt: null,
     elapsedMs: 0,
     completed: false,
@@ -281,6 +342,15 @@ export const useGameStore = defineStore('game', {
   }),
   getters: {
     currentLevel: (state): level | undefined => state.levels[state.currentLevelIndex],
+    currentPanorama(): ImagePanorama | undefined {
+      return this.currentLevel?.panorama[this.currentPanoramaIndex]
+    },
+    discoveredCount: (state): number => state.discoveredClickPoints.filter((key) =>
+      key.startsWith(`${state.currentLevelIndex}:`),
+    ).length,
+    totalClickPointCount: (state): number => state.levels[state.currentLevelIndex]?.panorama.reduce(
+      (total, panorama) => total + panorama.click_points.length, 0,
+    ) ?? 0,
     selectedQuestionIndexes: (state): number[] => selectedIndexes(state, state.currentLevelIndex),
     currentProblemIndex(): number | null {
       return this.selectedQuestionIndexes.find((index) => !this.attempts.some((attempt) =>
@@ -317,6 +387,9 @@ export const useGameStore = defineStore('game', {
         return
       }
       this.$patch(config)
+      this.currentPanoramaIndex = Math.min(this.currentPanoramaIndex,
+        Math.max(0, (this.currentLevel?.panorama.length ?? 1) - 1))
+      this.discoveredClickPoints = this.discoveredClickPoints.filter((key) => validClickPointKey(this.levels, key))
     },
     setDifficulty(value: Difficulty): void {
       if (!isInteger(value, 1, 3) || value === this.difficulty) return
@@ -339,6 +412,21 @@ export const useGameStore = defineStore('game', {
     selectLevel(index: number): void {
       if (isInteger(index, 0, this.levels.length - 1)) this.selectedLevelIndex = index
     },
+    setPanorama(index: number): boolean {
+      if (!isInteger(index, 0, (this.currentLevel?.panorama.length ?? 0) - 1)) return false
+      this.currentPanoramaIndex = index
+      this.persist()
+      return true
+    },
+    discoverClickPoint(panoramaIndex: number, pointIndex: number): boolean {
+      if (!this.hasStarted || !isInteger(panoramaIndex, 0, (this.currentLevel?.panorama.length ?? 0) - 1)
+        || !isInteger(pointIndex, 0, (this.currentLevel?.panorama[panoramaIndex]?.click_points.length ?? 0) - 1)) return false
+      const key = clickPointKey(this.currentLevelIndex, panoramaIndex, pointIndex)
+      if (this.discoveredClickPoints.includes(key)) return false
+      this.discoveredClickPoints.push(key)
+      this.persist()
+      return true
+    },
     startGame(requestedIndex?: number): void {
       const index = requestedIndex ?? this.selectedLevelIndex
       if (!isInteger(index, 0, this.levels.length - 1)) return
@@ -346,6 +434,8 @@ export const useGameStore = defineStore('game', {
       this.mode = 'single'
       this.currentLevelIndex = index
       this.selectedLevelIndex = index
+      this.currentPanoramaIndex = 0
+      this.discoveredClickPoints = []
       this.attempts = []
       this.completedLevelIndexes = []
       this.rounds = [{ levelIndex: index, questionOrder: shuffle(this.levels[index]?.problems.length ?? 0) }]
@@ -394,6 +484,7 @@ export const useGameStore = defineStore('game', {
         round.completedDifficulty = this.difficulty
         this.currentLevelIndex += 1
         this.selectedLevelIndex = this.currentLevelIndex
+        this.currentPanoramaIndex = 0
         this.rounds.push({ levelIndex: this.currentLevelIndex,
           questionOrder: shuffle(this.currentLevel?.problems.length ?? 0),
         })
@@ -441,6 +532,8 @@ export const useGameStore = defineStore('game', {
           difficulty: this.difficulty,
           currentLevelIndex: this.currentLevelIndex,
           selectedLevelIndex: this.selectedLevelIndex,
+          currentPanoramaIndex: this.currentPanoramaIndex,
+          discoveredClickPoints: this.discoveredClickPoints,
           startedAt: this.startedAt,
           elapsedMs: this.elapsedMs,
           completed: this.completed,
@@ -465,7 +558,7 @@ export const useGameStore = defineStore('game', {
           this.persistenceError = ''
           return
         }
-        const snapshot: unknown = JSON.parse(raw)
+        const snapshot: unknown = migrateSnapshot(JSON.parse(raw))
         if (!isSnapshot(snapshot)) {
           this.persistenceError = '存档数据无效，未载入。请重新开始以覆盖损坏的存档。'
           return
@@ -498,6 +591,10 @@ export const useGameStore = defineStore('game', {
         const rounds = snapshot.rounds.filter((entry) => campaign || entry.levelIndex === currentLevelIndex)
         const completedLevelIndexes = solvedIndexes({ levels: config.levels, rounds,
           attempts, difficulty: snapshot.difficulty })
+        const currentPanoramaIndex = Math.min(snapshot.currentPanoramaIndex ?? 0,
+          Math.max(0, (config.levels[currentLevelIndex]?.panorama.length ?? 1) - 1))
+        const discoveredClickPoints = (snapshot.discoveredClickPoints ?? [])
+          .filter((key) => validClickPointKey(config.levels, key))
         this.$patch({
           ...config,
           mode: snapshot.mode ?? 'single',
@@ -505,6 +602,8 @@ export const useGameStore = defineStore('game', {
           difficulty: snapshot.difficulty,
           currentLevelIndex,
           selectedLevelIndex: snapshot.hasStarted ? currentLevelIndex : snapshot.selectedLevelIndex,
+          currentPanoramaIndex,
+          discoveredClickPoints,
           startedAt: null,
           elapsedMs: snapshot.elapsedMs,
           completed: snapshot.completed,

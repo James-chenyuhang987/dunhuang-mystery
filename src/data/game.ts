@@ -1,3 +1,4 @@
+import { Vector3 } from 'three'
 import type { authors, level, location } from '@/types/game'
 
 // All case events and evidence below are fictional educational material, not historical claims.
@@ -6,7 +7,24 @@ const dunhuangLevels: level[] = [
     name: '沙海遗简',
     subtitle: '入境',
     description: '一卷遗落沙海的行记，一段被风藏起的往事。循着驼铃，寻找故事的起点。',
-    panorama_url: '/art/cave-01.svg',
+    panorama: [
+      {
+        name: '现状勘查',
+        url: '/art/cave-01.svg',
+        ultraviolet_url: '/art/dunhuang-uv.svg',
+        click_points: [
+          { vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '蓝签残片', description: '球面中央的蓝签残片与交接簿记载相互呼应。', image: '/art/clue.svg', in_uv: false },
+          { vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '紫外墨迹', description: '紫外纹理中显出的补记，说明这里曾进行过一次复查。', in_uv: true },
+        ],
+      },
+      {
+        name: '旧档复原',
+        url: '/art/cave-01.svg',
+        click_points: [
+          { vec: new Vector3(9.6, -2, 2), accept_click_range: 1.1, name: '匣位刻痕', description: '旧档复原画面里的细小刻痕，为摹本流转提供旁证。', in_uv: false },
+        ],
+      },
+    ],
     hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: 0, pitch: -3 }, { clue_index: 2, yaw: 12, pitch: 7 }],
     comparison: { reference_url: '/art/clue.svg', title: '复原蓝签纹样', description: '比较你拍摄的纹样，贡献同一场景的不同角度照片，帮助积累数字复原素材。', pass_score: 62 },
     clues: [
@@ -24,7 +42,14 @@ const dunhuangLevels: level[] = [
     name: '九色秘语',
     subtitle: '寻迹',
     description: '循九色而入，辨壁画中的隐语。在斑驳的色彩之间，找回被遗忘的承诺。',
-    panorama_url: '/art/cave-02.svg',
+    panorama: [{
+      name: '壁面现状',
+      url: '/art/cave-02.svg',
+      ultraviolet_url: '/art/dunhuang-uv.svg',
+      click_points: [
+        { vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '九色轮廓', description: '颜料层下方仍能辨认出早期轮廓。', in_uv: true },
+      ],
+    }],
     hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: -4, pitch: -5 }, { clue_index: 2, yaw: 5, pitch: 8 }, { clue_index: 3, yaw: 12, pitch: -2 }],
     clues: [
       { type: 'text', name: '展签顺序记录', problem_indexes: [0], data: '教学展签依次写着“救助”“承诺”“背弃”。柜门要求取第二张展签上的两个字。' },
@@ -43,7 +68,10 @@ const dunhuangLevels: level[] = [
     name: '藏经余音',
     subtitle: '回响',
     description: '叩开藏经洞的记忆，在残卷与回声里拼合线索，让沉睡的故事重见天光。',
-    panorama_url: '/art/cave-03.svg',
+    panorama: [
+      { name: '整理前', url: '/art/cave-03.svg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '待核编号', description: '残卷边缘的编号仍处于待核验状态。', in_uv: false }] },
+      { name: '数字复原后', url: '/art/cave-03.svg', ultraviolet_url: '/art/dunhuang-uv.svg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '重合纤维', description: '紫外观察显示两段纸纤维的走向能够衔接。', in_uv: true }] },
+    ],
     hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: 0, pitch: -3 }, { clue_index: 2, yaw: 12, pitch: 7 }],
     clues: [
       { type: 'text', name: '虚构整理室日志', problem_indexes: [0], data: '教学整理室有三份数字摹本记录：A为入库，B为临时借阅，C为归还。时间先后是A、B、C；C备注“已归还原位，编号待核”。' },
@@ -63,7 +91,7 @@ const terracottaLevels: level[] = [
   {
     name: '军阵失序', subtitle: '列阵',
     description: '步入陶俑军阵，从姿态、方位与编号记录中找出一尊错列的教学复原俑。',
-    panorama_url: '/art/terracotta-01.svg',
+    panorama: [{ name: '军阵现状', url: '/art/terracotta-01.svg', ultraviolet_url: '/art/terracotta-uv.svg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '错列编号', description: '编号位置与虚构军阵记录不符。', in_uv: false }] }],
     hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: 0, pitch: -3 }, { clue_index: 2, yaw: 12, pitch: 7 }],
     comparison: { reference_url: '/art/terracotta-clue.svg', title: '比对铠甲纹样', description: '拍摄同一军阵或纹样的不同角度，比较后贡献照片，积累场景复原素材。', pass_score: 58 },
     clues: [
@@ -80,7 +108,7 @@ const terracottaLevels: level[] = [
   {
     name: '陶片密码', subtitle: '合纹',
     description: '在修复室里寻找相邻陶片，让断开的纹样和编号重新衔接。',
-    panorama_url: '/art/terracotta-02.svg',
+    panorama: [{ name: '修复记录', url: '/art/terracotta-02.svg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '双斜线断面', description: '相邻陶片边缘出现连续双斜线。', in_uv: false }] }],
     hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: 0, pitch: -3 }, { clue_index: 2, yaw: 12, pitch: 7 }],
     clues: [
       { type: 'text', name: '修复台编号表', problem_indexes: [0], data: '虚构编号表：T12左缘为双斜线，T13右缘为双斜线；两片登记在同一层位，但仍需核对断面。' },
@@ -96,7 +124,7 @@ const terracottaLevels: level[] = [
   {
     name: '甬道回声', subtitle: '寻源',
     description: '沿虚构甬道追踪三份巡查记录，判断异常声响来自哪里。',
-    panorama_url: '/art/terracotta-03.svg',
+    panorama: [{ name: '巡查时刻', url: '/art/terracotta-03.svg', ultraviolet_url: '/art/terracotta-uv.svg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '外罩松动处', description: '设备外罩边缘留有需要专业人员复核的松动痕迹。', in_uv: true }] }],
     hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: 0, pitch: -3 }, { clue_index: 2, yaw: 12, pitch: 7 }],
     clues: [
       { type: 'text', name: '巡查日志对照', problem_indexes: [0], data: '甲：20:10东段无异常，20:18中段听到两次金属轻响。乙：20:19中段通风设备启动，外罩有一处松动，随后停止运行。对照两份日志的位置。' },

@@ -13,7 +13,7 @@ function save() {
 }
 
 function resume() {
-  if (route.path === '/game' && !document.hidden && game.hasProgress && !game.completed) game.resumeTimer()
+  if (route.meta.section === 'game' && !document.hidden && game.hasProgress && !game.completed) game.resumeTimer()
 }
 
 function visibility() {
@@ -21,7 +21,7 @@ function visibility() {
 }
 
 function syncTimer() {
-  if (route.path !== '/game') save(); else resume()
+  if (route.meta.section !== 'game') save(); else resume()
 }
 
 function restoreProgress() {
@@ -35,7 +35,7 @@ window.addEventListener('pageshow', resume)
 document.addEventListener('visibilitychange', visibility)
 const timer = setInterval(() => game.tick(), 1000)
 const backup = setInterval(() => game.persist(), 15000)
-watch(() => route.path, syncTimer)
+watch(() => route.meta.section, syncTimer)
 onBeforeUnmount(() => {
   save();
   clearInterval(timer);

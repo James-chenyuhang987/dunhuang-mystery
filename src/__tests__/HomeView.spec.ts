@@ -4,18 +4,23 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 import { useGameStore } from '@/stores/game'
-import { siteConfig } from '@/data/game'
+import { mediaConfig, siteConfig } from '@/data/game'
 import type { level } from '@/types/game'
 
 const wrappers: ReturnType<typeof mount>[] = []
 afterEach(() => { wrappers.splice(0).forEach(wrapper => wrapper.unmount()); vi.restoreAllMocks(); localStorage.clear(); sessionStorage.clear() })
-async function setup(levels: level[], path = '/') {
+async function setup(levels: level[], path = '/dunhuang/home') {
   sessionStorage.setItem('dunhuang-mystery:location-selected', '1')
+  mediaConfig.introVideoUrl = ''
   const pinia = createPinia()
   setActivePinia(pinia)
   const game = useGameStore()
   game.levels = levels
-  const router = createRouter({ history: createMemoryHistory(), routes: ['/', '/levels', '/game', '/ending'].map(path => ({ path, component: HomeView })) })
+  const router = createRouter({ history: createMemoryHistory(), routes: [
+    { path: '/dunhuang/home', component: HomeView },
+    { path: '/dunhuang/game', component: HomeView },
+    { path: '/dunhuang/thank', component: HomeView },
+  ] })
   await router.push(path)
   const wrapper = mount(HomeView, { global: { plugins: [pinia, router] } })
   wrappers.push(wrapper)
@@ -24,7 +29,7 @@ async function setup(levels: level[], path = '/') {
 }
 const entries: level[] = Array.from({ length: 12 }, (_, index) => ({
   name: index < 2 ? '重复关卡名' : `配置名称 ${index + 1}`,
-  panorama_url: `/custom/panorama-${index}.png`,
+  panorama: [{ name: `配置时相 ${index + 1}`, url: `/custom/panorama-${index}.png`, click_points: [] }],
   clues: [], problems: [],
   ...(index === 11 ? { thumbnail_url: '/custom/preview.png', subtitle: '配置副标题', description: '配置介绍' } : {}),
 }))
@@ -37,7 +42,7 @@ describe('configuration-driven menus', () => {
     expect(wrapper.find('h1').text()).toBe(siteConfig.title)
     await wrapper.findAll('.journey-panel > .start-button')[1]!.trigger('click')
     await flushPromises()
-    expect(router.currentRoute.value.path).toBe('/levels')
+    expect(router.currentRoute.value.fullPath).toBe('/dunhuang/home?panel=levels')
     expect(wrapper.findAll('.chapter-card')).toHaveLength(12)
     const last = wrapper.findAll('.chapter-card')[11]!
     expect(last.text()).toContain('第 12 章')
@@ -56,7 +61,7 @@ describe('configuration-driven menus', () => {
     const { wrapper, router } = await setup([])
     expect(wrapper.text()).toContain('暂无关卡')
     expect(wrapper.find('.journey-panel > .start-button').attributes('disabled')).toBeDefined()
-    await router.push('/levels')
+    await router.push('/dunhuang/home?panel=levels')
     await flushPromises()
     expect(wrapper.find('.start-button').attributes('disabled')).toBeDefined()
     expect(wrapper.findAll('.chapter-card')).toHaveLength(0)
@@ -69,7 +74,7 @@ describe('configuration-driven menus', () => {
     expect(game.currentLevelIndex).toBe(0)
   })
   it('reloads a failed configured preview', async () => {
-    const { wrapper } = await setup(entries.slice(0, 1), '/levels')
+    const { wrapper } = await setup(entries.slice(0, 1), '/dunhuang/home?panel=levels')
     await wrapper.find('.chapter-preview img').trigger('error')
     expect(wrapper.text()).toContain('预览加载失败')
     await wrapper.find('.thumbnail-error button').trigger('click')

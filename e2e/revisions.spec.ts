@@ -27,7 +27,7 @@ for (const difficulty of [1, 2, 3]) {
       await page.getByRole('button', { name: index === count - 1 ? '查看本卷结果' : '下一道谜题', exact: true }).click()
     }
     await page.getByRole('button', { name: '落款 · 查看探索回响' }).click()
-    await expect(page).toHaveURL(/\/ending$/)
+    await expect(page).toHaveURL(/\/dunhuang\/thank$/)
     await expect(page.locator('.ending-stats strong').first()).toHaveText(String(count))
     for (const author of gameAuthors) {
       await expect(page.locator('.credits')).toContainText(author.name)

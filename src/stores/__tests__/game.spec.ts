@@ -1,4 +1,5 @@
 import { createPinia, setActivePinia } from 'pinia'
+import { Vector3 } from 'three'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { gameAuthors, gameLevels, gameLocations } from '@/data/game'
 import { GAME_STORAGE_KEY, useGameStore } from '@/stores/game'
@@ -18,7 +19,7 @@ vi.mock('@/data/game', async (importOriginal) => {
 function createLevels(questionCounts: number[], prefix = '', duplicateNames = false): level[] {
   return questionCounts.map((count, index): level => ({
     name: duplicateNames ? '同名关卡' : `${prefix}关卡 ${index}`,
-    panorama_url: `/${prefix}level-${index}.svg`,
+    panorama: [{ name: `${prefix}时相 ${index}`, url: `/${prefix}level-${index}.svg`, click_points: [] }],
     clues: [],
     problems: Array.from({ length: count }, (_, questionIndex) => ({
       title: `${prefix}题目 ${index}-${questionIndex}`,
@@ -181,7 +182,7 @@ describe('game selections and answers', () => {
     store.authors = [{ name: '旧作者', job: '旧身份' }]
     const level = store.levels[1]
     if (!level) throw new Error('Missing level')
-    level.panorama_url = '/old.jpg'
+    if (level.panorama[0]) level.panorama[0].url = '/old.jpg'
     store.refreshConfig()
     expect(store.authors).toEqual(gameAuthors)
     expect(store.levels).toEqual(gameLevels)
@@ -211,6 +212,106 @@ describe('game selections and answers', () => {
     const original = gameLevels[0]?.name
     if (store.levels[0]) store.levels[0].name = '测试'
     expect(gameLevels[0]?.name).toBe(original)
+  })
+})
+
+describe('panorama timeline and discoveries', () => {
+  function configurePanoramas(): void {
+    const level = gameLevels[0]
+    if (!level) throw new Error('Missing level')
+    level.panorama = [
+      { name: '现状', url: '/current.svg', ultraviolet_url: '/uv.svg', click_points: [
+        { vec: new Vector3(10, 0, 0), accept_click_range: 1, name: '普通点', description: '普通发现', in_uv: false },
+        { vec: new Vector3(10, 0, 0), accept_click_range: 1, name: '紫外点', description: '紫外发现', in_uv: true },
+      ] },
+      { name: '旧档', url: '/archive.svg', click_points: [
+        { vec: new Vector3(9, 1, 0), accept_click_range: 1, name: '旧档点', description: '旧档发现', in_uv: false },
+      ] },
+    ]
+  }
+
+  it('switches configured panoramas, rejects invalid indexes and deduplicates discoveries', () => {
+    configurePanoramas()
+    const store = useGameStore()
+    store.startGame(0)
+    expect(store.currentPanorama?.name).toBe('现状')
+    expect(store.totalClickPointCount).toBe(3)
+    expect(store.setPanorama(1)).toBe(true)
+    expect(store.currentPanorama?.name).toBe('旧档')
+    expect(store.setPanorama(-1)).toBe(false)
+    expect(store.setPanorama(2)).toBe(false)
+    expect(store.currentPanoramaIndex).toBe(1)
+    expect(store.discoverClickPoint(1, 0)).toBe(true)
+    expect(store.discoverClickPoint(1, 0)).toBe(false)
+    expect(store.discoverClickPoint(1, 1)).toBe(false)
+    expect(store.discoveredCount).toBe(1)
+  })
+
+  it('persists its time point and findings and restores Vector3 methods', () => {
+    configurePanoramas()
+    const store = useGameStore()
+    store.startGame(0)
+    expect(store.discoverClickPoint(0, 0)).toBe(true)
+    expect(store.setPanorama(1)).toBe(true)
+    expect(store.discoverClickPoint(1, 0)).toBe(true)
+    setActivePinia(createPinia())
+    const restored = useGameStore()
+    restored.restore()
+    expect(restored.persistenceError).toBe('')
+    expect(restored.currentPanoramaIndex).toBe(1)
+    expect(restored.discoveredCount).toBe(2)
+    expect(restored.currentPanorama?.click_points[0]?.vec).toBeInstanceOf(Vector3)
+    expect(restored.currentPanorama?.click_points[0]?.vec.distanceTo(new Vector3(9, 1, 0))).toBe(0)
+  })
+
+  it('clips saved panorama state to a compatible live presentation configuration', () => {
+    configurePanoramas()
+    const store = useGameStore()
+    store.startGame(0)
+    store.discoverClickPoint(1, 0)
+    store.setPanorama(1)
+    const configured = gameLevels[0]
+    if (!configured) throw new Error('Missing level')
+    configured.panorama = [{ name: '新版现状', url: '/new.svg', click_points: [] }]
+    setActivePinia(createPinia())
+    const restored = useGameStore()
+    restored.restore()
+    expect(restored.persistenceError).toBe('')
+    expect(restored.currentPanoramaIndex).toBe(0)
+    expect(restored.discoveredClickPoints).toEqual([])
+  })
+
+  it('migrates raw v1 panorama_url saves into the current shape', () => {
+    const store = useGameStore()
+    store.startGame(0)
+    const snapshot = JSON.parse(localStorage.getItem(GAME_STORAGE_KEY) ?? 'null') as Record<string, unknown>
+    const savedLevels = snapshot.levels as Array<Record<string, unknown>>
+    for (const level of savedLevels) {
+      const panorama = level.panorama as Array<{ url: string }>
+      level.panorama_url = panorama[0]?.url ?? ''
+      delete level.panorama
+    }
+    delete snapshot.currentPanoramaIndex
+    delete snapshot.discoveredClickPoints
+    localStorage.setItem(GAME_STORAGE_KEY, JSON.stringify(snapshot))
+    setActivePinia(createPinia())
+    const restored = useGameStore()
+    restored.restore()
+    expect(restored.persistenceError).toBe('')
+    expect(restored.currentPanorama?.url).toBe(gameLevels[0]?.panorama[0]?.url)
+    expect(restored.currentPanoramaIndex).toBe(0)
+  })
+
+  it('rejects a save containing a nonexistent discovery key', () => {
+    configurePanoramas()
+    const store = useGameStore()
+    store.startGame(0)
+    saveWith(store, { discoveredClickPoints: ['0:0:99'] })
+    setActivePinia(createPinia())
+    const restored = useGameStore()
+    restored.restore()
+    expect(restored.persistenceError).toContain('存档数据无效')
+    expect(restored.hasProgress).toBe(false)
   })
 })
 
@@ -688,7 +789,7 @@ describe('persistence', () => {
     const oldLevel = store.levels[1]
     if (!oldLevel) throw new Error('Missing level')
     oldLevel.name = '旧关卡名称'
-    oldLevel.panorama_url = '/old-panorama.jpg'
+    if (oldLevel.panorama[0]) oldLevel.panorama[0].url = '/old-panorama.jpg'
     oldLevel.clues = [{ name: '旧线索', type: 'text', data: '旧内容' }]
     const oldQuestion = oldLevel.problems[0]
     if (!oldQuestion) throw new Error('Missing question')

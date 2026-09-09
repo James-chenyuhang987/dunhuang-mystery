@@ -7,6 +7,7 @@ afterEach(() => { mediaConfig.introVideoUrl = ''; vi.restoreAllMocks(); vi.useRe
 
 describe('opening sequence', () => {
   it('enters demo immediately when a video URL is not configured', () => {
+    mediaConfig.introVideoUrl = ''
     const wrapper = mount(IntroSequence)
     expect(wrapper.emitted('ready')).toHaveLength(1)
     expect(wrapper.find('video').exists()).toBe(false)

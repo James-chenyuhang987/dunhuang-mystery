@@ -1,3 +1,5 @@
+import type { Vector3 } from 'three'
+
 export interface problem {
   title: string
   select: [string, string, string, string]
@@ -25,9 +27,25 @@ export interface comparison {
   pass_score?: number
 }
 
+export interface ClickPoint {
+  vec: Vector3
+  accept_click_range: number
+  name: string
+  description: string
+  image?: string
+  in_uv: boolean
+}
+
+export interface ImagePanorama {
+  name: string
+  url: string
+  ultraviolet_url?: string
+  click_points: ClickPoint[]
+}
+
 export interface level {
   name: string
-  panorama_url: string
+  panorama: ImagePanorama[]
   thumbnail_url?: string
   subtitle?: string
   description?: string

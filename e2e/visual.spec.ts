@@ -11,7 +11,7 @@ test('desktop and mobile visual checks', async ({ page }, testInfo) => {
   await page.screenshot({ path: testInfo.outputPath('home-desktop.png'), fullPage: true })
   await expect(page.locator('.journey-panel > .start-button')).toHaveCount(2)
   await page.getByRole('button', { name: '选关', exact: true }).click()
-  await expect(page).toHaveURL(/\/levels$/)
+  await expect(page).toHaveURL(/\/dunhuang\/home\?panel=levels$/)
   await expect(page.locator('.chapter-card')).toHaveCount(3)
   await page.screenshot({ path: testInfo.outputPath('selection-desktop.png'), fullPage: true })
   await page.setViewportSize({ width: 390, height: 844 })

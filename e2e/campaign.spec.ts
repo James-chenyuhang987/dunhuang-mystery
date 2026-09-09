@@ -13,7 +13,7 @@ test('main menu starts a linear campaign, survives reload and ends only after la
   await page.getByRole('link', { name: '返回主菜单' }).click()
   await page.getByRole('button', { name: '开始', exact: true }).click()
   for (const [index, level] of gameLevels.entries()) {
-    await expect(page).toHaveURL(/\/game$/)
+    await expect(page).toHaveURL(/\/dunhuang\/game$/)
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(level.name)
     if (index > 0) {
       await page.reload()
@@ -29,7 +29,7 @@ test('main menu starts a linear campaign, survives reload and ends only after la
     }
     await page.getByRole('button', { name: index < gameLevels.length - 1 ? '完成本关 · 前往下一关' : '落款 · 查看探索回响', exact: true }).click()
   }
-  await expect(page).toHaveURL(/\/ending$/)
+  await expect(page).toHaveURL(/\/dunhuang\/thank$/)
   await expect(page.locator('.ending-stats strong').first()).toHaveText(String(gameLevels.filter(level => level.problems.length).length))
   await page.reload()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(siteConfig.endingHeading)
