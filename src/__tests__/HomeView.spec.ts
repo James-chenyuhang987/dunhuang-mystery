@@ -38,12 +38,16 @@ describe('configuration-driven menus', () => {
   it('only exposes start and selection on the first menu, then renders every configured chapter', async () => {
     const { wrapper, router, game } = await setup(entries)
     expect(wrapper.findAll('.journey-panel > .start-button').map(button => button.text())).toEqual(['开始', '选关'])
+    expect(wrapper.find('.level-select-button [data-icon="map"]').exists()).toBe(true)
+    expect(wrapper.get('header nav a').text()).toContain('关于作者')
+    expect(wrapper.get('header nav a').attributes('href')).toBe('/dunhuang/thank')
     expect(wrapper.findAll('.chapter-card')).toHaveLength(0)
     expect(wrapper.find('h1').text()).toBe(siteConfig.title)
     await wrapper.findAll('.journey-panel > .start-button')[1]!.trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.fullPath).toBe('/dunhuang/home?panel=levels')
     expect(wrapper.findAll('.chapter-card')).toHaveLength(12)
+    expect(wrapper.find('.journey-panel').text()).not.toContain('关于作者')
     const last = wrapper.findAll('.chapter-card')[11]!
     expect(last.text()).toContain('第 12 章')
     expect(last.text()).toContain('配置名称 12')

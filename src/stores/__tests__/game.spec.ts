@@ -735,12 +735,11 @@ describe('persistence', () => {
     expect(reopened.correctCount).toBe(2)
   })
 
-  it('accepts and preserves optional clue, hotspot and comparison config', () => {
+  it('accepts and preserves optional clue and hotspot config', () => {
     const configured = gameLevels[0]
     if (!configured) throw new Error('Missing level')
     configured.clues = [{ type: 'text', name: '关联线索', data: '线索内容', problem_indexes: [0, 2] }]
     configured.hotspots = [{ clue_index: 0, x: 25, y: 75 }]
-    configured.comparison = { reference_url: '/reference.svg', title: '图像比对' }
     const store = useGameStore()
     store.startGame()
     store.persist()
@@ -750,7 +749,6 @@ describe('persistence', () => {
     expect(restored.persistenceError).toBe('')
     expect(restored.levels[0]?.clues[0]?.problem_indexes).toEqual([0, 2])
     expect(restored.levels[0]?.hotspots).toEqual([{ clue_index: 0, x: 25, y: 75 }])
-    expect(restored.levels[0]?.comparison).toEqual({ reference_url: '/reference.svg', title: '图像比对' })
   })
 
   it('restores validated config, random order, attempts and duration, but remains paused', () => {

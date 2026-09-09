@@ -7,7 +7,6 @@ import type { ClickPoint, clue, problem } from '@/types/game'
 import PanoramaViewer from '@/components/PanoramaViewer.vue'
 import CluePanel from '@/components/CluePanel.vue'
 import DifficultyControl from '@/components/DifficultyControl.vue'
-import ImageComparison from '@/components/ImageComparison.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import MediaViewer from '@/components/MediaViewer.vue'
 const game = useGameStore()
@@ -19,15 +18,13 @@ const cluePanels = ref<InstanceType<typeof CluePanel>[]>([])
 const highlightedClue = ref<number | null>(null)
 const cluesOpen = ref(false)
 const settingsOpen = ref(false)
+const archiveOpen = ref(false)
 const ultraviolet = ref(false)
 const discovery = ref<ClickPoint | null>(null)
 const discoveryMedia = ref<InstanceType<typeof MediaViewer> | null>(null)
 const placeId = computed(() => typeof route.params.place === 'string' ? route.params.place : 'dunhuang')
 const homePath = computed(() => `/${placeId.value}/home`)
 const thankPath = computed(() => `/${placeId.value}/thank`)
-const panoramaUrl = computed(() => ultraviolet.value
-  ? game.currentPanorama?.ultraviolet_url ?? game.currentPanorama?.url ?? ''
-  : game.currentPanorama?.url ?? '')
 const discoveryClue = computed<clue | null>(() => discovery.value?.image
   ? { type: 'image', name: discovery.value.name, data: discovery.value.image }
   : null)
@@ -63,6 +60,7 @@ function showDiscovery(pointIndex: number): void {
 function switchPanorama(index: number): void {
   if (game.setPanorama(index)) {
     ultraviolet.value = false
+    archiveOpen.value = false
     discovery.value = null
   }
 }
@@ -77,7 +75,7 @@ async function openDiscoveryImage(): Promise<void> {
 }
 function nextLevel() { feedback.value = null; questionDialog.value?.close(); if (game.advanceLevel()) void router.push(thankPath.value) }
 watch(() => game.difficulty, () => { feedback.value = null })
-watch(() => game.currentLevelIndex, () => { cluesOpen.value = false; ultraviolet.value = false; discovery.value = null })
+watch(() => game.currentLevelIndex, () => { cluesOpen.value = false; archiveOpen.value = false; ultraviolet.value = false; discovery.value = null })
 onMounted(async () => {
   if (game.locationId !== placeId.value) game.selectLocation(placeId.value)
   if (!game.hasProgress) { await router.replace(homePath.value); return }
@@ -89,7 +87,7 @@ onBeforeUnmount(() => { game.pauseTimer(); game.persist() })
 </script>
 <template>
   <main v-if="game.currentLevel" class="game-page">
-    <PanoramaViewer :url="panoramaUrl" :hotspots="game.currentLevel.hotspots" :click-points="game.currentPanorama?.click_points" :ultraviolet="ultraviolet" @clue="revealClue" @discover="showDiscovery" />
+    <PanoramaViewer :url="game.currentPanorama?.url ?? ''" :ultraviolet-url="game.currentPanorama?.ultraviolet_url" :hotspots="game.currentLevel.hotspots" :click-points="game.currentPanorama?.click_points" :ultraviolet="ultraviolet" @clue="revealClue" @discover="showDiscovery" />
     <div class="game-vignette" />
     <header class="game-header">
       <RouterLink :to="homePath" class="game-back"><AppIcon name="home"/><span>返回画境</span></RouterLink>
@@ -97,21 +95,27 @@ onBeforeUnmount(() => { game.pauseTimer(); game.persist() })
       <button class="outline-button" :aria-expanded="settingsOpen" @click="settingsOpen = !settingsOpen">难度 · {{ ['初探', '寻踪', '解谜'][game.difficulty - 1] }}</button>
     </header>
     <aside v-if="settingsOpen" class="game-settings surface" @pointerdown.stop @wheel.stop><DifficultyControl :level-index="game.currentLevelIndex"/><p class="muted">切换难度会调整本关题数，保留答题记录。</p></aside>
-    <nav v-if="game.currentLevel.panorama.length" class="panorama-timeline surface" aria-label="全景时间轴" @pointerdown.stop @wheel.stop>
-      <p class="eyebrow">TIME ARCHIVE · 时间轴</p>
-      <div><button v-for="(item, index) in game.currentLevel.panorama" :key="index" :class="{ active: game.currentPanoramaIndex === index }" :aria-current="game.currentPanoramaIndex === index ? 'step' : undefined" @click="switchPanorama(index)"><span>{{ String(index + 1).padStart(2, '0') }}</span>{{ item.name }}</button></div>
-    </nav>
-    <div class="panorama-mode-controls" @pointerdown.stop @wheel.stop>
-      <button v-if="game.currentPanorama?.ultraviolet_url" class="outline-button ultraviolet-button" :class="{ active: ultraviolet }" :aria-pressed="ultraviolet" @click="toggleUltraviolet">{{ ultraviolet ? '退出紫外线' : '开启紫外线' }}</button>
-      <span class="discovery-count">已发现 <strong>{{ game.discoveredCount }}</strong> / 共 {{ game.totalClickPointCount }}</span>
-    </div>
     <aside class="clue-drawer" :class="{ collapsed: !cluesOpen }" @pointerdown.stop @wheel.stop>
       <button class="clue-drawer-heading" :aria-expanded="cluesOpen" @click="cluesOpen = !cluesOpen"><span><AppIcon name="book"/>探秘手札</span><small>{{ game.currentLevel.clues.length }} 条线索 &nbsp; {{ cluesOpen ? '−' : '＋' }}</small></button>
-      <div v-if="cluesOpen" class="clues-scroll"><p class="eyebrow">拾起线索，让历史开口。点选全景中的编号也可直达线索。</p><CluePanel v-for="(clue, index) in game.currentLevel.clues" ref="cluePanels" :key="`${game.currentLevelIndex}-${index}`" :item="clue" :index="index" :highlighted="highlightedClue === index"/><ImageComparison v-if="game.currentLevel.comparison" :reference-url="game.currentLevel.comparison.reference_url" :title="game.currentLevel.comparison.title" :description="game.currentLevel.comparison.description" :pass-score="game.currentLevel.comparison.pass_score"/></div>
+      <div v-if="cluesOpen" class="clues-scroll"><p class="eyebrow">拾起线索，让历史开口。点选全景中的编号也可直达线索。</p><CluePanel v-for="(clue, index) in game.currentLevel.clues" ref="cluePanels" :key="`${game.currentLevelIndex}-${index}`" :item="clue" :index="index" :highlighted="highlightedClue === index"/></div>
     </aside>
     <Transition name="fade"><aside v-if="discovery" class="discovery-card surface" role="status" @pointerdown.stop @wheel.stop><button class="icon-button" aria-label="关闭发现详情" @click="discovery = null"><AppIcon name="close"/></button><p class="eyebrow">HIDDEN DISCOVERY · 新发现</p><h2>{{ discovery.name }}</h2><p>{{ discovery.description }}</p><button v-if="discovery.image" class="outline-button" @click="openDiscoveryImage">查看发现图像</button></aside></Transition>
     <div class="panorama-guide"><AppIcon name="compass"/><span>拖动环顾 · 点击寻迹 · 双指 / 滚轮缩放</span><small>360° IMMERSIVE EXPLORATION</small></div>
-    <footer class="game-toolbar"><div class="game-stats"><span>已解谜题<strong>{{ solvedCount }} <small>/ {{ game.selectedQuestionIndexes.length }}</small></strong></span><span>探索用时<strong>{{ elapsed }}</strong></span><span class="attempt-stats">答对 / 答错<strong>{{ game.correctCount }} <small>/ {{ game.wrongCount }}</small></strong></span></div><button class="primary" @click="openQuestions"><AppIcon name="eye"/>{{ game.levelSolved ? (game.currentLevel.problems.length ? '本卷已解 · 继续探索' : '完成本关') : '开启谜题' }}<AppIcon name="arrow"/></button></footer>
+    <footer class="game-toolbar">
+      <button class="archive-toggle outline-button" aria-label="时间与观察" :aria-expanded="archiveOpen" aria-controls="archive-controls" @click="archiveOpen = !archiveOpen"><AppIcon name="archive"/>时间与观察<span>{{ archiveOpen ? '−' : '＋' }}</span></button>
+      <section id="archive-controls" class="archive-controls" :class="{ open: archiveOpen }">
+        <nav v-if="game.currentLevel.panorama.length" class="panorama-timeline" aria-label="全景时间轴">
+          <p class="eyebrow">TIME ARCHIVE · 时间轴</p>
+          <div><button v-for="(item, index) in game.currentLevel.panorama" :key="index" :class="{ active: game.currentPanoramaIndex === index }" :aria-current="game.currentPanoramaIndex === index ? 'step' : undefined" @click="switchPanorama(index)"><span>{{ String(index + 1).padStart(2, '0') }}</span>{{ item.name }}</button></div>
+        </nav>
+        <div class="panorama-mode-controls">
+          <button v-if="game.currentPanorama?.ultraviolet_url" class="outline-button ultraviolet-button" :class="{ active: ultraviolet }" :aria-pressed="ultraviolet" @click="toggleUltraviolet">{{ ultraviolet ? '退出紫外线' : '开启紫外线' }}</button>
+          <span class="discovery-count">已发现 <strong>{{ game.discoveredCount }}</strong> / 共 {{ game.totalClickPointCount }}</span>
+        </div>
+      </section>
+      <div class="game-stats"><span>已解谜题<strong>{{ solvedCount }} <small>/ {{ game.selectedQuestionIndexes.length }}</small></strong></span><span>探索用时<strong>{{ elapsed }}</strong></span><span class="attempt-stats">答对 / 答错<strong>{{ game.correctCount }} <small>/ {{ game.wrongCount }}</small></strong></span></div>
+      <button class="primary question-trigger" @click="openQuestions"><AppIcon name="eye"/>{{ game.levelSolved ? (game.currentLevel.problems.length ? '本卷已解 · 继续探索' : '完成本关') : '开启谜题' }}<AppIcon name="arrow"/></button>
+    </footer>
     <dialog ref="questionDialog" class="question-dialog surface" aria-labelledby="question-title" @close="feedback = null">
       <button class="icon-button dialog-close" aria-label="关闭题目" @click="questionDialog?.close()"><AppIcon name="close"/></button>
       <p class="eyebrow">THE MISSING PIECE · {{ game.currentLevel.name }}</p>

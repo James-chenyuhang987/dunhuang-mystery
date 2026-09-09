@@ -20,13 +20,6 @@ export type hotspot = { clue_index: number } & (
   | { x: number; y: number; yaw?: never; pitch?: never }
 )
 
-export interface comparison {
-  reference_url: string
-  title: string
-  description?: string
-  pass_score?: number
-}
-
 export interface ClickPoint {
   vec: Vector3
   accept_click_range: number
@@ -50,7 +43,6 @@ export interface level {
   subtitle?: string
   description?: string
   hotspots?: hotspot[]
-  comparison?: comparison
   clues: clue[]
   problems: problem[]
 }

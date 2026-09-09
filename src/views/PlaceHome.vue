@@ -49,7 +49,7 @@ onMounted(() => {
     <div class="grain-overlay" />
     <header class="site-header">
       <div class="brand"><span class="brand-mark">✧</span><span>{{ siteConfig.brand }}<small>{{ siteConfig.brandEnglish }}</small></span></div>
-      <span class="header-note">{{ activeLocation?.name }}</span>
+      <nav aria-label="首页导航"><span>{{ activeLocation?.name }}</span><RouterLink :to="gamePath('thank')"><AppIcon name="users"/>关于作者</RouterLink></nav>
     </header>
     <main class="home-main">
       <section class="hero-copy">
@@ -69,7 +69,7 @@ onMounted(() => {
         <template v-if="!selecting">
           <p class="panel-subtitle">从第一关依次探索，或进入选关菜单独立游玩。</p>
           <button class="primary start-button" :disabled="!introReady || !game.levels.length" @click="start(true)"><AppIcon name="compass"/><span>开始</span><AppIcon name="arrow"/></button>
-          <button class="outline-button start-button level-select-button" :disabled="!introReady || !game.levels.length" @click="router.push({ path: homePath, query: { panel: 'levels' } })"><AppIcon name="compass"/><span>选关</span><AppIcon name="arrow"/></button>
+          <button class="outline-button start-button level-select-button" :disabled="!introReady || !game.levels.length" @click="router.push({ path: homePath, query: { panel: 'levels' } })"><AppIcon name="map"/><span>选关</span><AppIcon name="arrow"/></button>
         </template>
         <template v-else>
           <RouterLink :to="homePath" class="text-button">← 返回主菜单</RouterLink>
@@ -87,7 +87,6 @@ onMounted(() => {
           <DifficultyControl v-if="selected" :level-index="game.selectedLevelIndex" />
           <button class="primary start-button" :disabled="!introReady || !selected" @click="start(false)"><AppIcon name="compass"/><span>开始所选关卡</span><AppIcon name="arrow"/></button>
           <button v-if="game.hasProgress" class="resume-button" @click="resume">{{ game.completed ? '查看上次探索回响' : '继续上次的探索' }} →</button>
-          <RouterLink :to="gamePath('thank')" class="text-button">关于创作</RouterLink>
           <p class="panel-footnote">所选关卡独立结算；进入游戏后仍可切换难度。</p>
         </template>
       </section>

@@ -3,7 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import IntroSequence from '@/components/IntroSequence.vue'
 import { mediaConfig } from '@/data/game'
 
-afterEach(() => { mediaConfig.introVideoUrl = ''; vi.restoreAllMocks(); vi.useRealTimers() })
+afterEach(() => { mediaConfig.introVideoUrl = ''; localStorage.clear(); vi.restoreAllMocks(); vi.useRealTimers() })
 
 describe('opening sequence', () => {
   it('enters demo immediately when a video URL is not configured', () => {
@@ -26,6 +26,27 @@ describe('opening sequence', () => {
     await flushPromises()
     expect(play).toHaveBeenCalledTimes(2)
     await wrapper.find('video').trigger('ended')
+    expect(wrapper.emitted('ready')).toHaveLength(1)
+    expect(localStorage.getItem('dunhuang-mystery:intro-completed:v1')).toBe('true')
+    wrapper.unmount()
+  })
+  it('skips an intro that has already completed', () => {
+    mediaConfig.introVideoUrl = '/opening.mp4'
+    localStorage.setItem('dunhuang-mystery:intro-completed:v1', 'true')
+    const wrapper = mount(IntroSequence)
+    expect(wrapper.find('video').exists()).toBe(false)
+    expect(wrapper.emitted('ready')).toHaveLength(1)
+    wrapper.unmount()
+  })
+  it('remembers when the viewer skips the intro', async () => {
+    mediaConfig.introVideoUrl = '/opening.mp4'
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined)
+    vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => undefined)
+    const wrapper = mount(IntroSequence)
+    await wrapper.find('video').trigger('canplaythrough')
+    await flushPromises()
+    await wrapper.find('.skip-intro').trigger('click')
+    expect(localStorage.getItem('dunhuang-mystery:intro-completed:v1')).toBe('true')
     expect(wrapper.emitted('ready')).toHaveLength(1)
     wrapper.unmount()
   })

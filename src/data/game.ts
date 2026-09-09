@@ -26,7 +26,6 @@ const dunhuangLevels: level[] = [
       },
     ],
     hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: 0, pitch: -3 }, { clue_index: 2, yaw: 12, pitch: 7 }],
-    comparison: { reference_url: '/art/clue.svg', title: '复原蓝签纹样', description: '比较你拍摄的纹样，贡献同一场景的不同角度照片，帮助积累数字复原素材。', pass_score: 62 },
     clues: [
       { type: 'image', name: '抄录员的交接簿', problem_indexes: [0], data: '/art/clue.svg', hint: '虚构交接簿记载：甲匣原存蓝签摹本，乙匣原存红签摹本。交接时蓝签摹本暂移至乙匣，归还记录尚未填写。图像为教学示意。' },
       { type: 'text', name: '保管员便笺', problem_indexes: [1], data: '纸签颜色只能提示分类，不能说明移动经过。请核对交接记录，并向当值保管员了解情况。' },
@@ -93,7 +92,6 @@ const terracottaLevels: level[] = [
     description: '步入陶俑军阵，从姿态、方位与编号记录中找出一尊错列的教学复原俑。',
     panorama: [{ name: '军阵现状', url: '/art/terracotta-01.svg', ultraviolet_url: '/art/terracotta-uv.svg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '错列编号', description: '编号位置与虚构军阵记录不符。', in_uv: false }] }],
     hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: 0, pitch: -3 }, { clue_index: 2, yaw: 12, pitch: 7 }],
-    comparison: { reference_url: '/art/terracotta-clue.svg', title: '比对铠甲纹样', description: '拍摄同一军阵或纹样的不同角度，比较后贡献照片，积累场景复原素材。', pass_score: 58 },
     clues: [
       { type: 'text', name: '虚构军阵记录', problem_indexes: [0], data: '教学记录按朝向编号：一列与二列面向东，三列面向南。编号B-07原记于二列，不应出现在三列。' },
       { type: 'image', name: '陶片纹样 · 原创教学示意', problem_indexes: [1], data: '/art/terracotta-clue.svg' },

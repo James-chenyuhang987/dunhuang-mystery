@@ -3,8 +3,19 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { mediaConfig } from '@/data/game'
 const props = withDefaults(defineProps<{ chooseLocation?: boolean }>(), { chooseLocation: false })
 const emit = defineEmits<{ ready: [] }>()
+const INTRO_COMPLETED_KEY = 'dunhuang-mystery:intro-completed:v1'
+
+function introWasCompleted() {
+  try { return localStorage.getItem(INTRO_COMPLETED_KEY) === 'true' } catch { return false }
+}
+
+function rememberCompletion() {
+  try { localStorage.setItem(INTRO_COMPLETED_KEY, 'true') } catch { /* Storage restrictions must not block entry. */ }
+}
+
 const video = ref<HTMLVideoElement | null>(null)
-const phase = ref<'loading' | 'playing' | 'blocked' | 'error' | 'choosing' | 'done'>(mediaConfig.introVideoUrl ? 'loading' : props.chooseLocation ? 'choosing' : 'done')
+const shouldPlayIntro = Boolean(mediaConfig.introVideoUrl) && !introWasCompleted()
+const phase = ref<'loading' | 'playing' | 'blocked' | 'error' | 'choosing' | 'done'>(shouldPlayIntro ? 'loading' : props.chooseLocation ? 'choosing' : 'done')
 const progress = ref(0)
 let timeout: ReturnType<typeof setTimeout> | undefined
 function deadline() { if (phase.value === 'choosing' || phase.value === 'done') return; clearTimeout(timeout); timeout = setTimeout(() => { phase.value = 'error' }, 45000) }
@@ -18,7 +29,7 @@ async function play() {
   try { await video.value?.play() } catch { if (phase.value === 'playing') phase.value = 'blocked' }
 }
 function ready() { if (phase.value === 'loading') { progress.value = 100; void play() } }
-function finish() { clearTimeout(timeout); video.value?.pause(); phase.value = 'done'; emit('ready') }
+function finish() { clearTimeout(timeout); video.value?.pause(); rememberCompletion(); phase.value = 'done'; emit('ready') }
 function chooseOrFinish() {
   if (!props.chooseLocation) { finish(); return }
   clearTimeout(timeout)
@@ -34,7 +45,7 @@ function checkPausePoint() {
 function retry() { phase.value = 'loading'; progress.value = 0; video.value?.load(); deadline() }
 function playing() { clearTimeout(timeout) }
 function failed() { if (phase.value === 'choosing' || phase.value === 'done') return; clearTimeout(timeout); phase.value = 'error' }
-onMounted(() => { if (mediaConfig.introVideoUrl) deadline(); else if (!props.chooseLocation) emit('ready') })
+onMounted(() => { if (phase.value === 'loading') deadline(); else if (phase.value === 'done') emit('ready') })
 onBeforeUnmount(() => clearTimeout(timeout))
 </script>
 <template>

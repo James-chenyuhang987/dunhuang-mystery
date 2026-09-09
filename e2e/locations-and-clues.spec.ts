@@ -10,10 +10,21 @@ test('root and disabled destination routes resolve to the Dunhuang home', async 
   await expect(page).toHaveURL(/\/dunhuang\/home$/)
   await expect(page.locator('.location-selector')).toHaveCount(0)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(dunhuang.title ?? '')
+  await expect(page.getByRole('link', { name: '关于作者' })).toHaveAttribute('href', '/dunhuang/thank')
   await page.goto('/terracotta/home')
   await expect(page).toHaveURL(/\/dunhuang\/home$/)
   await page.goto('/unknown/game')
   await expect(page).toHaveURL(/\/dunhuang\/home$/)
+})
+
+test('the opening is remembered after it is skipped', async ({ page }) => {
+  await page.goto('/dunhuang/home')
+  await expect(page.locator('.intro-screen')).toBeVisible()
+  await chooseDefaultLocation(page)
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('dunhuang-mystery:intro-completed:v1'))).toBe('true')
+  await page.reload()
+  await expect(page.locator('.intro-screen')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: '开始', exact: true })).toBeEnabled()
 })
 
 test('timeline, ultraviolet texture and sphere discoveries are persisted', async ({ page }) => {
@@ -27,6 +38,13 @@ test('timeline, ultraviolet texture and sphere discoveries are persisted', async
   await expect(page.getByRole('button', { name: '现状勘查' })).toHaveAttribute('aria-current', 'step')
   await expect(page.locator('.discovery-count')).toContainText('已发现 0 / 共 3')
 
+  const vectorLogs: string[] = []
+  const shaderErrors: string[] = []
+  page.on('console', (message) => {
+    const text = message.text()
+    if (message.type() === 'info' && text.startsWith('[Panorama click]')) vectorLogs.push(text)
+    if (message.type() === 'error' && /THREE\.WebGLProgram|Shader Error|VALIDATE_STATUS|function already has a body/i.test(text)) shaderErrors.push(text)
+  })
   const panorama = page.locator('.panorama')
   const bounds = await panorama.boundingBox()
   if (!bounds) throw new Error('Panorama bounds unavailable')
@@ -35,6 +53,7 @@ test('timeline, ultraviolet texture and sphere discoveries are persisted', async
   await panorama.dispatchEvent('pointerup', { pointerId: 1, pointerType: 'mouse', button: 0, ...center })
   await expect(page.locator('.discovery-card')).toContainText('蓝签残片')
   await expect(page.locator('.discovery-count')).toContainText('已发现 1 / 共 3')
+  await expect.poll(() => vectorLogs.at(-1)).toMatch(/^\[Panorama click\].*new Vector3\(10, 0, 0\)$/)
   await panorama.dispatchEvent('pointerdown', { pointerId: 2, pointerType: 'mouse', button: 0, ...center })
   await panorama.dispatchEvent('pointermove', { pointerId: 2, pointerType: 'mouse', ...center, clientX: center.clientX + 20 })
   await panorama.dispatchEvent('pointerup', { pointerId: 2, pointerType: 'mouse', button: 0, ...center, clientX: center.clientX + 20 })
@@ -42,14 +61,17 @@ test('timeline, ultraviolet texture and sphere discoveries are persisted', async
   await page.getByRole('button', { name: '开启紫外线' }).click()
   await expect(page.getByRole('button', { name: '退出紫外线' })).toBeVisible()
   await expect(page.locator('.panorama-transition')).toHaveCount(0)
+  await expect(panorama).toHaveAttribute('data-ultraviolet-pass', 'active')
   await panorama.dispatchEvent('pointerdown', { pointerId: 3, pointerType: 'mouse', button: 0, ...center })
   await panorama.dispatchEvent('pointerup', { pointerId: 3, pointerType: 'mouse', button: 0, ...center })
   await expect(page.locator('.discovery-card')).toContainText('紫外墨迹')
   await expect(page.locator('.discovery-count')).toContainText('已发现 2 / 共 3')
+  expect(shaderErrors).toEqual([])
 
   await page.getByRole('button', { name: '旧档复原' }).click()
   await expect(page.getByRole('button', { name: '旧档复原' })).toHaveAttribute('aria-current', 'step')
   await expect(page.getByRole('button', { name: '开启紫外线' })).toHaveCount(0)
+  await expect(panorama).toHaveAttribute('data-ultraviolet-pass', 'inactive')
   await page.reload()
   await expect(page.getByRole('button', { name: '旧档复原' })).toHaveAttribute('aria-current', 'step')
   await expect(page.locator('.discovery-count')).toContainText('已发现 2 / 共 3')

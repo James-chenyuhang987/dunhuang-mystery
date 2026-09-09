@@ -66,7 +66,6 @@ function copyConfig(locationId = defaultLocationId()): Pick<GameState, 'levels' 
         })),
       })),
       hotspots: entry.hotspots?.map((item) => ({ ...item })),
-      comparison: entry.comparison ? { ...entry.comparison } : undefined,
       clues: entry.clues.map((item) => ({
         ...item,
         problem_indexes: item.problem_indexes ? [...item.problem_indexes] : undefined,
@@ -156,10 +155,6 @@ function isOptionalString(value: unknown): boolean {
   return value === undefined || typeof value === 'string'
 }
 
-function isOptionalNumber(value: unknown): boolean {
-  return value === undefined || (typeof value === 'number' && Number.isFinite(value))
-}
-
 function isVector(value: unknown): value is { x: number; y: number; z: number } {
   return isRecord(value) && typeof value.x === 'number' && Number.isFinite(value.x)
     && typeof value.y === 'number' && Number.isFinite(value.y)
@@ -197,9 +192,7 @@ function isLevel(value: unknown): value is level {
       && typeof entry.pitch === 'number' && Number.isFinite(entry.pitch) && entry.pitch >= -90 && entry.pitch <= 90)
       || (typeof entry.x === 'number' && Number.isFinite(entry.x) && entry.x >= 0 && entry.x <= 100
       && typeof entry.y === 'number' && Number.isFinite(entry.y) && entry.y >= 0 && entry.y <= 100)),
-  ))) && (value.comparison === undefined || (isRecord(value.comparison)
-    && typeof value.comparison.reference_url === 'string' && typeof value.comparison.title === 'string'
-    && isOptionalString(value.comparison.description) && isOptionalNumber(value.comparison.pass_score)))
+  )))
 }
 
 function migrateSnapshot(value: unknown): unknown {
