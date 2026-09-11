@@ -16,9 +16,8 @@ npm run dev -- --host 127.0.0.1
 
 编辑 `src/data/game.ts`：
 
-- `mediaConfig.introVideoUrl`：填写约 14 MB 的 MP4 地址。空值表示演示模式，直接进入首页。已配置时显示纯 SVG 动画，缓冲就绪后淡出并播放；自动播放受阻提供手动播放，加载失败或 45 秒无响应提供重试及跳过。完整播放或跳过后会写入 localStorage，后续访问不再重复播放；清除该站点存储可再次观看。
-- `mediaConfig.introPosterUrl`：填写开场尾帧的莫高窟卫星图地址。不会自动截图；为空使用原创 SVG 插画。
-- `gameLocations`：配置地点以及各自的关卡数组。默认保留敦煌莫高窟和秦始皇帝陵博物院两套配置；目前仅开放 `dunhuang`，兵马俑路由暂时重定向至敦煌首页。`gameLevels` 继续导出首个地点关卡以兼容旧调用。
+- `gameLocations`：配置地点、地点首页素材以及各自的关卡数组。每个地点用可选的 `intro_video_url` 配置 Google Earth 开场 MP4，用 `background_url` 配置首页背景；首次打开网站时播放一次开场动画并通过 localStorage 记忆完成状态；随后点击“开始”、选关、刷新或进行站内路由切换均不会重播。空的 `intro_video_url` 表示直接进入该地点页面。敦煌默认使用已有的 `/entrance.mp4` 与其尾帧 `/background.jpeg`。
+- 默认保留敦煌莫高窟和秦始皇帝陵博物院两套地点配置；目前仅开放 `dunhuang`，兵马俑路由暂时重定向至敦煌首页。`gameLevels` 继续导出首个地点关卡以兼容旧调用。
 - 每个关卡通过 `panorama: ImagePanorama[]` 按配置顺序定义多个时相；每项填写 `name`、普通纹理 `url`、可选 `ultraviolet_url` 和 `click_points`。纹理应使用 **2:1 等距柱状投影**，远程图片必须允许 CORS；建议单张不超过 8192×4096。问题 `true_answer` 从 **0** 开始。
 - `siteConfig`：配置网站标题、浏览器标题后缀、品牌、首页介绍、菜单及结算标题和默认背景。页面不再另存一份固定标题。
 - 关卡可选字段 `subtitle`、`description`、`thumbnail_url` 用于二级菜单；未填写时隐藏附加文字，预览图回退到 `panorama[0]?.url`。章节和时间点编号均按数组下标动态生成，不维护“一二三”映射，也不拼接素材路径。重复名称可用，身份依据数组下标；全部配置正常渲染，无虚拟滚动。

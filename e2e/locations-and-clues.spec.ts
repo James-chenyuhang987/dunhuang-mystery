@@ -17,14 +17,19 @@ test('root and disabled destination routes resolve to the Dunhuang home', async 
   await expect(page).toHaveURL(/\/dunhuang\/home$/)
 })
 
-test('the opening is remembered after it is skipped', async ({ page }) => {
+test('the opening plays only at initial website entry, not after clicking start', async ({ page }) => {
   await page.goto('/dunhuang/home')
-  await expect(page.locator('.intro-screen')).toBeVisible()
+  await page.evaluate(() => localStorage.removeItem('dunhuang-mystery:intro-completed:v1:dunhuang'))
+  await page.reload()
+  await expect(page.locator('.landscape')).toHaveAttribute('src', '/background.jpeg')
+  await expect(page.locator('.intro-screen video')).toHaveAttribute('src', '/entrance.mp4')
   await chooseDefaultLocation(page)
-  await expect.poll(() => page.evaluate(() => localStorage.getItem('dunhuang-mystery:intro-completed:v1'))).toBe('true')
+  await expect(page.locator('.intro-screen')).toHaveCount(0)
+  await page.getByRole('button', { name: '开始', exact: true }).click()
+  await expect(page).toHaveURL(/\/dunhuang\/game$/)
+  await expect(page.locator('.intro-screen')).toHaveCount(0)
   await page.reload()
   await expect(page.locator('.intro-screen')).toHaveCount(0)
-  await expect(page.getByRole('button', { name: '开始', exact: true })).toBeEnabled()
 })
 
 test('timeline, ultraviolet texture and sphere discoveries are persisted', async ({ page }) => {

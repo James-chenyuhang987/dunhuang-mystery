@@ -138,7 +138,7 @@ const terracottaLevels: level[] = [
 ]
 
 export const gameLocations: location[] = [
-  { id: 'dunhuang', name: '敦煌莫高窟', title: '敦煌壁画探索', subtitle: '壁画与残卷的千年回响', introduction: '风沙掩埋了足迹，却未曾带走故事。化身壁画探秘者，在方寸洞窟之间，拾起散落的线索，解开沉睡千年的谜题。', coordinates: '40°02′ N · 94°48′ E', background_url: '/art/landscape.svg', art_caption: '莫高窟 · 九层楼', art_caption_english: 'MOGAO CAVES, DUNHUANG', levels: dunhuangLevels },
+  { id: 'dunhuang', name: '敦煌莫高窟', title: '敦煌壁画探索', subtitle: '壁画与残卷的千年回响', introduction: '风沙掩埋了足迹，却未曾带走故事。化身壁画探秘者，在方寸洞窟之间，拾起散落的线索，解开沉睡千年的谜题。', coordinates: '40°02′ N · 94°48′ E', intro_video_url: '/entrance.mp4', background_url: '/background.jpeg', art_caption: '莫高窟 · 九层楼', art_caption_english: 'MOGAO CAVES, DUNHUANG', levels: dunhuangLevels },
   { id: 'terracotta', name: '秦始皇帝陵博物院', title: '兵马俑秘境探索', subtitle: '陶俑军阵中的失落线索', introduction: '暂别大漠壁画，步入沉静的陶俑军阵。循编号、纹样与巡查记录，让深埋地下的线索重新排列。', coordinates: '34°23′ N · 109°16′ E', background_url: '/art/terracotta-landscape.svg', art_caption: '秦俑军阵 · 原创画境', art_caption_english: 'TERRACOTTA ARMY, XI’AN', levels: terracottaLevels },
 ]
 
@@ -148,8 +148,6 @@ export const gameAuthors: authors = [
   { name: 'OpenAI GPT6-Astra', job: 'Coding' },
   { name: '陈禹行 杲子挺 阮泓凯 鲍致成', job: 'Developers' },
 ]
-export const mediaConfig = { introVideoUrl: '/entrance.mp4', introPosterUrl: '/background.jpeg', locationPauseRatio: 0.5 }
-
 export const siteConfig = {
   title: '敦煌壁画探索',
   subtitle: '一眼千年',

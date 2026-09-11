@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/game'
 import { siteConfig } from '@/data/game'
@@ -10,6 +10,7 @@ import DifficultyControl from '@/components/DifficultyControl.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import MediaViewer from '@/components/MediaViewer.vue'
 const game = useGameStore()
+const routeIntroActive = inject<Ref<boolean>>('routeIntroActive', ref(false))
 const router = useRouter()
 const route = useRoute()
 const questionDialog = ref<HTMLDialogElement | null>(null)
@@ -80,8 +81,12 @@ onMounted(async () => {
   if (game.locationId !== placeId.value) game.selectLocation(placeId.value)
   if (!game.hasProgress) { await router.replace(homePath.value); return }
   if (game.completed) { await router.replace(thankPath.value); return }
-  game.resumeTimer()
+  if (!routeIntroActive.value) game.resumeTimer()
   await nextTick()
+})
+watch(routeIntroActive, (active) => {
+  if (active) game.pauseTimer()
+  else if (route.meta.section === 'game' && !document.hidden && game.hasProgress && !game.completed) game.resumeTimer()
 })
 onBeforeUnmount(() => { game.pauseTimer(); game.persist() })
 </script>
@@ -94,7 +99,7 @@ onBeforeUnmount(() => { game.pauseTimer(); game.persist() })
       <div class="game-title"><span class="eyebrow">CHAPTER {{ String(game.currentLevelIndex + 1).padStart(2, '0') }}</span><h1>{{ game.currentLevel.name }}</h1></div>
       <button class="outline-button" :aria-expanded="settingsOpen" @click="settingsOpen = !settingsOpen">难度 · {{ ['初探', '寻踪', '解谜'][game.difficulty - 1] }}</button>
     </header>
-    <aside v-if="settingsOpen" class="game-settings surface" @pointerdown.stop @wheel.stop><DifficultyControl :level-index="game.currentLevelIndex"/><p class="muted">切换难度会调整本关题数，保留答题记录。</p></aside>
+    <aside v-if="settingsOpen" class="game-settings surface" @pointerdown.stop @wheel.stop><DifficultyControl :level-index="game.currentLevelIndex" :editable="false"/><p class="muted">当前难度在开始游戏时确定，游戏中仅供查看。</p></aside>
     <aside class="clue-drawer" :class="{ collapsed: !cluesOpen }" @pointerdown.stop @wheel.stop>
       <button class="clue-drawer-heading" :aria-expanded="cluesOpen" @click="cluesOpen = !cluesOpen"><span><AppIcon name="book"/>探秘手札</span><small>{{ game.currentLevel.clues.length }} 条线索 &nbsp; {{ cluesOpen ? '−' : '＋' }}</small></button>
       <div v-if="cluesOpen" class="clues-scroll"><p class="eyebrow">拾起线索，让历史开口。点选全景中的编号也可直达线索。</p><CluePanel v-for="(clue, index) in game.currentLevel.clues" ref="cluePanels" :key="`${game.currentLevelIndex}-${index}`" :item="clue" :index="index" :highlighted="highlightedClue === index"/></div>
@@ -119,7 +124,7 @@ onBeforeUnmount(() => { game.pauseTimer(); game.persist() })
     <dialog ref="questionDialog" class="question-dialog surface" aria-labelledby="question-title" @close="feedback = null">
       <button class="icon-button dialog-close" aria-label="关闭题目" @click="questionDialog?.close()"><AppIcon name="close"/></button>
       <p class="eyebrow">THE MISSING PIECE · {{ game.currentLevel.name }}</p>
-      <DifficultyControl :level-index="game.currentLevelIndex"/>
+      <DifficultyControl :level-index="game.currentLevelIndex" :editable="false"/>
       <template v-if="question">
         <div class="question-progress">解谜进度 {{ solvedCount }} / {{ game.selectedQuestionIndexes.length }}</div>
         <h2 id="question-title">{{ question.title }}</h2><p class="muted">结合手札中的线索，选择你的推断。</p>
