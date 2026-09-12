@@ -68,7 +68,7 @@ onMounted(() => {
         <p v-if="!game.levels.length" class="panel-subtitle" role="status">暂无关卡，请先在配置中添加关卡。</p>
         <template v-if="!selecting">
           <p class="panel-subtitle">从第一关依次探索，或进入选关菜单独立游玩。</p>
-          <DifficultyControl v-if="game.levels.length" :level-index="0" :editable="!game.hasProgress || game.completed" />
+          <DifficultyControl v-if="game.levels.length" :level-index="0" :editable="true" />
           <button class="primary start-button" :disabled="!introReady || !game.levels.length" @click="start(true)"><AppIcon name="compass"/><span>开始</span><AppIcon name="arrow"/></button>
           <button class="outline-button start-button level-select-button" :disabled="!introReady || !game.levels.length" @click="router.push({ path: homePath, query: { panel: 'levels' } })"><AppIcon name="map"/><span>选关</span><AppIcon name="arrow"/></button>
         </template>
@@ -85,7 +85,7 @@ onMounted(() => {
             </div>
           </div>
           <p v-if="selected?.description" class="chapter-description">{{ selected.description }}</p>
-          <DifficultyControl v-if="selected" :level-index="game.selectedLevelIndex" :editable="!game.hasProgress || game.completed" />
+          <DifficultyControl v-if="selected" :level-index="game.selectedLevelIndex" :editable="true" />
           <button class="primary start-button" :disabled="!introReady || !selected" @click="start(false)"><AppIcon name="compass"/><span>开始所选关卡</span><AppIcon name="arrow"/></button>
           <button v-if="game.hasProgress" class="resume-button" @click="resume">{{ game.completed ? '查看上次探索回响' : '继续上次的探索' }} →</button>
           <p class="panel-footnote">所选关卡独立结算；进入游戏后难度仅供查看。</p>

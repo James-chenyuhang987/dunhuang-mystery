@@ -60,6 +60,7 @@ test('difficulty can be selected before starting and is read-only during gamepla
   await page.getByRole('button', { name: '选关', exact: true }).click()
   const selectionSlider = page.getByRole('slider', { name: '探索难度' })
   await expect(selectionSlider).toBeEnabled()
+  await expect(page.locator('.difficulty-lock')).toHaveCount(0)
   await selectionSlider.fill('2')
   await page.getByRole('button', { name: '开始所选关卡' }).click()
   await page.getByRole('button', { name: '难度 · 寻踪' }).click()

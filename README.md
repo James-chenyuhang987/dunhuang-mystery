@@ -19,6 +19,7 @@ npm run dev -- --host 127.0.0.1
 - `gameLocations`：配置地点、地点首页素材以及各自的关卡数组。每个地点用可选的 `intro_video_url` 配置 Google Earth 开场 MP4，用 `background_url` 配置首页背景；首次打开网站时播放一次开场动画并通过 localStorage 记忆完成状态；随后点击“开始”、选关、刷新或进行站内路由切换均不会重播。空的 `intro_video_url` 表示直接进入该地点页面。敦煌默认使用已有的 `/entrance.mp4` 与其尾帧 `/background.jpeg`。
 - 默认保留敦煌莫高窟和秦始皇帝陵博物院两套地点配置；目前仅开放 `dunhuang`，兵马俑路由暂时重定向至敦煌首页。`gameLevels` 继续导出首个地点关卡以兼容旧调用。
 - 每个关卡通过 `panorama: ImagePanorama[]` 按配置顺序定义多个时相；每项填写 `name`、普通纹理 `url`、可选 `ultraviolet_url` 和 `click_points`。纹理应使用 **2:1 等距柱状投影**，远程图片必须允许 CORS；建议单张不超过 8192×4096。问题 `true_answer` 从 **0** 开始。
+- 全景渲染默认走单次直接渲染（紫外线着色器启用时才使用后处理），并将设备像素比限制为 1.5，避免移动设备为全景画布分配过多像素。大型栅格全景可运行 `npm run optimize:panoramas`：`tools/slice-panoramas.py` 使用 ffmpeg + Pillow 生成 GitHub Pages 可直接发布的多分辨率 WebP 瓦片与 manifest；小型或 SVG 演示素材会保留单请求，不会因切片增加请求数。
 - `siteConfig`：配置网站标题、浏览器标题后缀、品牌、首页介绍、菜单及结算标题和默认背景。页面不再另存一份固定标题。
 - 关卡可选字段 `subtitle`、`description`、`thumbnail_url` 用于二级菜单；未填写时隐藏附加文字，预览图回退到 `panorama[0]?.url`。章节和时间点编号均按数组下标动态生成，不维护“一二三”映射，也不拼接素材路径。重复名称可用，身份依据数组下标；全部配置正常渲染，无虚拟滚动。
 - 空关卡数组：显示“暂无关卡”并禁用开始；空题目数组：仍可查看全景和线索，手动点“完成本关”后继续或结算；空线索、空团队数组同样可用。问题仍须有四个字符串选项，正确答案是 0–3 的整数。媒体加载失败仍提供重试。
@@ -44,6 +45,7 @@ Pinia 管理全部关卡及问答状态。`pagehide`、`beforeunload`、隐藏�
 ## 验证与部署
 
 ```sh
+npm run optimize:panoramas -- --dry-run
 npm run build
 npm run test:unit -- --run
 npm run test:e2e -- --project=chromium
