@@ -19,6 +19,14 @@ describe('clue panels', () => {
     }
     wrapper.unmount()
   })
+  it('keeps locked clues unavailable until the parent unlocks them', async () => {
+    const wrapper = mount(CluePanel, { props: { item: { type: 'text', name: '未解线索', data: '隐藏内容' }, index: 0, locked: true } })
+    expect(wrapper.find('.clue-toggle').attributes('aria-disabled')).toBe('true')
+    expect(wrapper.text()).toContain('未解锁')
+    await wrapper.find('.clue-toggle').trigger('click')
+    expect(wrapper.find('.clue-body').exists()).toBe(false)
+  })
+
   it.each(['image', 'audio', 'video'] as const)('reloads failed %s assets', async type => {
     const wrapper = mount(CluePanel, { props: { item: { type, name: '线索', data: '/missing' }, index: 1 } })
     await wrapper.find('button').trigger('click')

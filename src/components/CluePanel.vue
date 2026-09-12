@@ -7,9 +7,9 @@ import MediaViewer from './MediaViewer.vue'
 const viewer = ref<InstanceType<typeof MediaViewer> | null>(null)
 const inlineVideo = ref<HTMLVideoElement | null>(null)
 function expand() { inlineVideo.value?.pause(); viewer.value?.open() }
-const props = defineProps<{ item: clue; index: number; highlighted?: boolean }>()
+const props = defineProps<{ item: clue; index: number; highlighted?: boolean; locked?: boolean }>()
 const open = ref(false)
-function reveal() { open.value = true }
+function reveal() { if (!props.locked) open.value = true }
 defineExpose({ reveal })
 const failed = ref(false)
 const revision = ref(0)
@@ -22,9 +22,9 @@ watch(open, value => { if (value) { failed.value = false; deadline() } else load
 onBeforeUnmount(loaded)
 </script>
 <template>
-  <div class="clue-panel" :class="{ highlighted }" @pointerdown.stop @pointermove.stop @pointerup.stop @touchstart.stop @touchmove.stop @wheel.stop>
-    <button class="clue-toggle" :aria-expanded="open" :aria-controls="`clue-${index}`" @click="open = !open"><span class="clue-number">{{ String(index + 1).padStart(2, '0') }}</span><AppIcon :name="item.type === 'audio' ? 'sound' : item.type === 'text' ? 'book' : 'eye'"/><span>{{ item.name }}</span><span class="clue-sign">{{ open ? '−' : '＋' }}</span></button>
-    <div v-if="open" :id="`clue-${index}`" class="clue-body">
+  <div class="clue-panel" :class="{ highlighted, locked }" @pointerdown.stop @pointermove.stop @pointerup.stop @touchstart.stop @touchmove.stop @wheel.stop>
+    <button class="clue-toggle" :aria-label="locked ? `${item.name} · 未解锁` : item.name" :aria-expanded="open" :aria-controls="`clue-${index}`" :aria-disabled="locked" :disabled="locked" @click="open = !open"><span class="clue-number">{{ String(index + 1).padStart(2, '0') }}</span><AppIcon :name="locked ? 'lock' : item.type === 'audio' ? 'sound' : item.type === 'text' ? 'book' : 'eye'"/><span>{{ item.name }}</span><span class="clue-sign">{{ locked ? '未解锁' : open ? '−' : '＋' }}</span></button>
+    <div v-if="open && !locked" :id="`clue-${index}`" class="clue-body">
       <p v-if="item.hint">{{ item.hint }}</p>
       <p v-if="item.type === 'text'">{{ item.data }}</p>
       <div v-else-if="failed" role="alert"><p>这条线索加载失败。</p><button class="outline-button" @click="retry">重新加载线索</button></div>

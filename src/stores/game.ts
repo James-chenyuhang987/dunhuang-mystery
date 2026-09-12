@@ -18,6 +18,7 @@ interface GameState {
   selectedLevelIndex: number
   currentPanoramaIndex: number
   discoveredClickPoints: string[]
+  unlockedClues: string[]
   startedAt: number | null
   elapsedMs: number
   completed: boolean
@@ -28,9 +29,10 @@ interface GameState {
   hasStarted: boolean
 }
 
-type Snapshot = Omit<GameState, 'persistenceError' | 'mode' | 'locationId' | 'currentPanoramaIndex' | 'discoveredClickPoints'> & {
+type Snapshot = Omit<GameState, 'persistenceError' | 'mode' | 'locationId' | 'currentPanoramaIndex' | 'discoveredClickPoints' | 'unlockedClues'> & {
   currentPanoramaIndex?: number
   discoveredClickPoints?: string[]
+  unlockedClues?: string[]
   version: 1
   mode?: GameMode
   locationId?: string
@@ -102,6 +104,16 @@ function validClickPointKey(levels: level[], key: string): boolean {
   if (!/^\d+:\d+:\d+$/.test(key)) return false
   const [levelIndex, panoramaIndex, pointIndex] = key.split(':').map(Number)
   return levels[levelIndex ?? -1]?.panorama[panoramaIndex ?? -1]?.click_points[pointIndex ?? -1] !== undefined
+}
+
+function validClueKey(levels: level[], key: string): boolean {
+  if (!/^\d+:\d+$/.test(key)) return false
+  const [levelIndex, clueIndex] = key.split(':').map(Number)
+  return levels[levelIndex ?? -1]?.clues[clueIndex ?? -1] !== undefined
+}
+
+function clueKey(levelIndex: number, clueIndex: number): string {
+  return `${levelIndex}:${clueIndex}`
 }
 
 function selectedIndexes(state: Pick<GameState, 'levels' | 'rounds' | 'difficulty'>, index: number): number[] {
@@ -223,6 +235,7 @@ function isSnapshot(value: unknown): value is Snapshot {
     || !(value.currentPanoramaIndex === undefined || isInteger(value.currentPanoramaIndex, 0,
       Math.max(0, ((value.levels[value.currentLevelIndex] as level | undefined)?.panorama.length ?? 1) - 1)))
     || !(value.discoveredClickPoints === undefined || Array.isArray(value.discoveredClickPoints))
+    || !(value.unlockedClues === undefined || Array.isArray(value.unlockedClues))
     || !(value.startedAt === null || isTime(value.startedAt)) || !isTime(value.elapsedMs)
     || typeof value.completed !== 'boolean' || typeof value.hasStarted !== 'boolean'
     || !Array.isArray(value.attempts) || !Array.isArray(value.rounds)
@@ -232,6 +245,9 @@ function isSnapshot(value: unknown): value is Snapshot {
   const discovered = value.discoveredClickPoints ?? []
   if (new Set(discovered).size !== discovered.length
     || !discovered.every((key: unknown) => typeof key === 'string' && validClickPointKey(savedLevels, key))) return false
+  const unlocked = value.unlockedClues ?? []
+  if (new Set(unlocked).size !== unlocked.length
+    || !unlocked.every((key: unknown) => typeof key === 'string' && validClueKey(savedLevels, key))) return false
   const rounds: GameRound[] = []
   const visited = new Set<number>()
   for (const entry of value.rounds as unknown[]) {
@@ -324,6 +340,7 @@ export const useGameStore = defineStore('game', {
     selectedLevelIndex: 0,
     currentPanoramaIndex: 0,
     discoveredClickPoints: [],
+    unlockedClues: [],
     startedAt: null,
     elapsedMs: 0,
     completed: false,
@@ -383,6 +400,7 @@ export const useGameStore = defineStore('game', {
       this.currentPanoramaIndex = Math.min(this.currentPanoramaIndex,
         Math.max(0, (this.currentLevel?.panorama.length ?? 1) - 1))
       this.discoveredClickPoints = this.discoveredClickPoints.filter((key) => validClickPointKey(this.levels, key))
+      this.unlockedClues = this.unlockedClues.filter((key) => validClueKey(this.levels, key))
     },
     setDifficulty(value: Difficulty): void {
       if (!isInteger(value, 1, 3) || value === this.difficulty) return
@@ -411,6 +429,17 @@ export const useGameStore = defineStore('game', {
       this.persist()
       return true
     },
+    isClueUnlocked(index: number): boolean {
+      return isInteger(index, 0, (this.currentLevel?.clues.length ?? 0) - 1)
+        && this.unlockedClues.includes(clueKey(this.currentLevelIndex, index))
+    },
+    unlockClue(index: number): boolean {
+      if (!this.hasStarted || !isInteger(index, 0, (this.currentLevel?.clues.length ?? 0) - 1)
+        || this.isClueUnlocked(index)) return false
+      this.unlockedClues.push(clueKey(this.currentLevelIndex, index))
+      this.persist()
+      return true
+    },
     discoverClickPoint(panoramaIndex: number, pointIndex: number): boolean {
       if (!this.hasStarted || !isInteger(panoramaIndex, 0, (this.currentLevel?.panorama.length ?? 0) - 1)
         || !isInteger(pointIndex, 0, (this.currentLevel?.panorama[panoramaIndex]?.click_points.length ?? 0) - 1)) return false
@@ -429,6 +458,7 @@ export const useGameStore = defineStore('game', {
       this.selectedLevelIndex = index
       this.currentPanoramaIndex = 0
       this.discoveredClickPoints = []
+      this.unlockedClues = []
       this.attempts = []
       this.completedLevelIndexes = []
       this.rounds = [{ levelIndex: index, questionOrder: shuffle(this.levels[index]?.problems.length ?? 0) }]
@@ -527,6 +557,7 @@ export const useGameStore = defineStore('game', {
           selectedLevelIndex: this.selectedLevelIndex,
           currentPanoramaIndex: this.currentPanoramaIndex,
           discoveredClickPoints: this.discoveredClickPoints,
+          unlockedClues: this.unlockedClues,
           startedAt: this.startedAt,
           elapsedMs: this.elapsedMs,
           completed: this.completed,
@@ -588,6 +619,8 @@ export const useGameStore = defineStore('game', {
           Math.max(0, (config.levels[currentLevelIndex]?.panorama.length ?? 1) - 1))
         const discoveredClickPoints = (snapshot.discoveredClickPoints ?? [])
           .filter((key) => validClickPointKey(config.levels, key))
+        const unlockedClues = (snapshot.unlockedClues ?? [])
+          .filter((key) => validClueKey(config.levels, key))
         this.$patch({
           ...config,
           mode: snapshot.mode ?? 'single',
@@ -597,6 +630,7 @@ export const useGameStore = defineStore('game', {
           selectedLevelIndex: snapshot.hasStarted ? currentLevelIndex : snapshot.selectedLevelIndex,
           currentPanoramaIndex,
           discoveredClickPoints,
+          unlockedClues,
           startedAt: null,
           elapsedMs: snapshot.elapsedMs,
           completed: snapshot.completed,

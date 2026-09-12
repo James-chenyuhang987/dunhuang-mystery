@@ -85,7 +85,8 @@ test('fullscreen image supports zoom, pinch, reset and close without moving pano
   await page.getByRole('button', { name: '开始所选关卡' }).click()
   const imageIndex = gameLevels[0]?.clues.findIndex(item => item.type === 'image') ?? -1
   await page.getByRole('button', { name: '探秘手礼', exact: true }).click()
-  await page.locator('.clue-toggle').nth(imageIndex).click()
+  await expect(page.locator('.clue-toggle').nth(imageIndex)).toHaveAttribute('aria-disabled', 'true')
+  await page.locator('.panorama-hotspot').nth(imageIndex).click()
   await page.getByRole('button', { name: '全屏查看与缩放' }).click()
   const dialog = page.getByRole('dialog')
   await expect(dialog).toBeVisible()
