@@ -91,7 +91,7 @@ onBeforeUnmount(() => { clearTimeout(timeout); clearTimeout(earthTimeout) })
         <div class="earth-globe"><div class="earth-land" /><div class="earth-highlight" /></div>
         <div class="earth-copy"><span class="eyebrow">A JOURNEY ACROSS TIME</span><strong>从星河，抵达敦煌</strong><small>THE EARTH · DUNHUANG</small></div>
       </div>
-      <video v-if="videoUrl" ref="video" :src="assetUrl(videoUrl)" preload="auto" muted playsinline @canplaythrough="ready" @progress="updateProgress" @timeupdate="checkPausePoint" @ended="chooseOrFinish" @error="failed" @waiting="deadline" @playing="playing" />
+      <video v-if="videoUrl" ref="video" :class="{ 'intro-video-hidden': phase === 'earth' }" :src="assetUrl(videoUrl)" preload="auto" muted playsinline @canplaythrough="ready" @progress="updateProgress" @timeupdate="checkPausePoint" @ended="chooseOrFinish" @error="failed" @waiting="deadline" @playing="playing" />
       <slot v-if="phase === 'choosing'" name="locations" :complete="finish" />
       <Transition name="fade">
         <div v-if="phase === 'loading'" class="intro-loading" role="status">

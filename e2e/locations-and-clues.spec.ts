@@ -23,6 +23,7 @@ test('the opening plays only at initial website entry, not after clicking start'
   await page.reload()
   await expect(page.locator('.landscape')).toHaveAttribute('src', '/background.jpeg')
   await expect(page.locator('.intro-screen video')).toHaveAttribute('src', '/entrance.mp4')
+  await expect(page.locator('.intro-screen video')).toBeHidden()
   await chooseDefaultLocation(page)
   await expect(page.locator('.intro-screen')).toHaveCount(0)
   await page.getByRole('button', { name: '开始', exact: true }).click()
