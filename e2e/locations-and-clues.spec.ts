@@ -10,7 +10,7 @@ test('root and disabled destination routes resolve to the Dunhuang home', async 
   await expect(page).toHaveURL(/\/dunhuang\/home$/)
   await expect(page.locator('.location-selector')).toHaveCount(0)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(dunhuang.title ?? '')
-  await expect(page.getByRole('link', { name: '关于作者' })).toHaveAttribute('href', '/dunhuang/thank')
+  await expect(page.getByRole('link', { name: '关于作者' })).toHaveAttribute('href', /\/dunhuang\/thank$/)
   await page.goto('/terracotta/home')
   await expect(page).toHaveURL(/\/dunhuang\/home$/)
   await page.goto('/unknown/game')

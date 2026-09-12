@@ -53,7 +53,7 @@ test('mobile: responsive layout, live difficulty and isolated clue gestures', as
   await expect(page.getByRole('slider')).toHaveValue('3')
   await page.getByRole('button', { name: '难度 · 解谜' }).click()
   const previous = await page.locator('.panorama').getAttribute('data-fov')
-  await page.locator('.clue-drawer-heading').click()
+  await page.getByRole('button', { name: '探秘手礼', exact: true }).click()
   await page.locator('.clue-toggle').first().click()
   await page.locator('.clue-body').dispatchEvent('wheel', { deltaY: 200 })
   await expect(page.locator('.panorama')).toHaveAttribute('data-fov', previous ?? '')

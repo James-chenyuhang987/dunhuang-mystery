@@ -100,14 +100,15 @@ onBeforeUnmount(() => { game.pauseTimer(); game.persist() })
       <button class="outline-button" :aria-expanded="settingsOpen" @click="settingsOpen = !settingsOpen">难度 · {{ ['初探', '寻踪', '解谜'][game.difficulty - 1] }}</button>
     </header>
     <aside v-if="settingsOpen" class="game-settings surface" @pointerdown.stop @wheel.stop><DifficultyControl :level-index="game.currentLevelIndex" :editable="false"/><p class="muted">当前难度在开始游戏时确定，游戏中仅供查看。</p></aside>
-    <aside class="clue-drawer" :class="{ collapsed: !cluesOpen }" @pointerdown.stop @wheel.stop>
-      <button class="clue-drawer-heading" :aria-expanded="cluesOpen" @click="cluesOpen = !cluesOpen"><span><AppIcon name="book"/>探秘手札</span><small>{{ game.currentLevel.clues.length }} 条线索 &nbsp; {{ cluesOpen ? '−' : '＋' }}</small></button>
+    <aside id="clue-drawer" class="clue-drawer" :class="{ collapsed: !cluesOpen }" @pointerdown.stop @wheel.stop>
+      <button class="clue-drawer-heading clue-drawer-desktop-toggle" aria-label="探秘手札" :aria-expanded="cluesOpen" @click="cluesOpen = !cluesOpen"><span><AppIcon name="book"/>探秘手札</span><small>{{ game.currentLevel.clues.length }} 条线索 &nbsp; {{ cluesOpen ? '−' : '＋' }}</small></button>
       <div v-if="cluesOpen" class="clues-scroll"><p class="eyebrow">拾起线索，让历史开口。点选全景中的编号也可直达线索。</p><CluePanel v-for="(clue, index) in game.currentLevel.clues" ref="cluePanels" :key="`${game.currentLevelIndex}-${index}`" :item="clue" :index="index" :highlighted="highlightedClue === index"/></div>
     </aside>
     <Transition name="fade"><aside v-if="discovery" class="discovery-card surface" role="status" @pointerdown.stop @wheel.stop><button class="icon-button" aria-label="关闭发现详情" @click="discovery = null"><AppIcon name="close"/></button><p class="eyebrow">HIDDEN DISCOVERY · 新发现</p><h2>{{ discovery.name }}</h2><p>{{ discovery.description }}</p><button v-if="discovery.image" class="outline-button" @click="openDiscoveryImage">查看发现图像</button></aside></Transition>
     <div class="panorama-guide"><AppIcon name="compass"/><span>拖动环顾 · 点击寻迹 · 双指 / 滚轮缩放</span><small>360° IMMERSIVE EXPLORATION</small></div>
     <footer class="game-toolbar">
       <button class="archive-toggle outline-button" aria-label="时间与观察" :aria-expanded="archiveOpen" aria-controls="archive-controls" @click="archiveOpen = !archiveOpen"><AppIcon name="archive"/>时间与观察<span>{{ archiveOpen ? '−' : '＋' }}</span></button>
+      <button class="mobile-clue-toggle outline-button" aria-label="探秘手礼" :aria-expanded="cluesOpen" aria-controls="clue-drawer" @click="cluesOpen = !cluesOpen"><AppIcon name="book"/>探秘手礼</button>
       <section id="archive-controls" class="archive-controls" :class="{ open: archiveOpen }">
         <nav v-if="game.currentLevel.panorama.length" class="panorama-timeline" aria-label="全景时间轴">
           <p class="eyebrow">TIME ARCHIVE · 时间轴</p>
