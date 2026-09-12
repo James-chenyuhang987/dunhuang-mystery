@@ -2,11 +2,11 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/game'
-import { gameLocations, mediaConfig, siteConfig } from '@/data/game'
+import { gameLocations, siteConfig } from '@/data/game'
 import AppIcon from '@/components/AppIcon.vue'
 import ChapterThumbnail from '@/components/ChapterThumbnail.vue'
 import DifficultyControl from '@/components/DifficultyControl.vue'
-import IntroSequence from '@/components/IntroSequence.vue'
+import { assetUrl } from '@/utils/assets'
 
 const props = defineProps<{ placeId: string }>()
 const game = useGameStore()
@@ -15,7 +15,7 @@ const route = useRoute()
 const selecting = computed(() => route.query.panel === 'levels')
 const posterFailed = ref(false)
 const posterRevision = ref(0)
-const introReady = ref(false)
+const introReady = ref(true)
 const activeLocation = computed(() => gameLocations.find((location) => location.id === props.placeId))
 const selected = computed(() => game.levels[game.selectedLevelIndex])
 const homePath = computed(() => `/${props.placeId}/home`)
@@ -44,7 +44,7 @@ onMounted(() => {
 
 <template>
   <div class="home-page">
-    <img :key="`${placeId}-${posterRevision}`" class="landscape" :src="activeLocation?.background_url || mediaConfig.introPosterUrl || siteConfig.backgroundUrl" :alt="activeLocation ? `${activeLocation.name}风格探索插画` : siteConfig.backgroundAlt" @error="posterFailed = true">
+    <img :key="`${placeId}-${posterRevision}`" class="landscape" :src="assetUrl(activeLocation?.background_url || siteConfig.backgroundUrl)" :alt="activeLocation ? `${activeLocation.name}风格探索插画` : siteConfig.backgroundAlt" @error="posterFailed = true">
     <div class="landscape-shade" />
     <div class="grain-overlay" />
     <header class="site-header">
@@ -68,6 +68,7 @@ onMounted(() => {
         <p v-if="!game.levels.length" class="panel-subtitle" role="status">暂无关卡，请先在配置中添加关卡。</p>
         <template v-if="!selecting">
           <p class="panel-subtitle">从第一关依次探索，或进入选关菜单独立游玩。</p>
+          <DifficultyControl v-if="game.levels.length" :level-index="0" :editable="true" />
           <button class="primary start-button" :disabled="!introReady || !game.levels.length" @click="start(true)"><AppIcon name="compass"/><span>开始</span><AppIcon name="arrow"/></button>
           <button class="outline-button start-button level-select-button" :disabled="!introReady || !game.levels.length" @click="router.push({ path: homePath, query: { panel: 'levels' } })"><AppIcon name="map"/><span>选关</span><AppIcon name="arrow"/></button>
         </template>
@@ -84,16 +85,15 @@ onMounted(() => {
             </div>
           </div>
           <p v-if="selected?.description" class="chapter-description">{{ selected.description }}</p>
-          <DifficultyControl v-if="selected" :level-index="game.selectedLevelIndex" />
+          <DifficultyControl v-if="selected" :level-index="game.selectedLevelIndex" :editable="true" />
           <button class="primary start-button" :disabled="!introReady || !selected" @click="start(false)"><AppIcon name="compass"/><span>开始所选关卡</span><AppIcon name="arrow"/></button>
           <button v-if="game.hasProgress" class="resume-button" @click="resume">{{ game.completed ? '查看上次探索回响' : '继续上次的探索' }} →</button>
-          <p class="panel-footnote">所选关卡独立结算；进入游戏后仍可切换难度。</p>
+          <p class="panel-footnote">所选关卡独立结算；进入游戏后难度仅供查看。</p>
         </template>
       </section>
       <div class="art-caption"><span>{{ activeLocation?.art_caption ?? siteConfig.artCaption }}</span><small>{{ activeLocation?.art_caption_english ?? siteConfig.artCaptionEnglish }}</small><span class="caption-line"/></div>
     </main>
     <footer class="site-footer"><span>{{ siteConfig.footerText }}</span><span class="footer-center">✧ &nbsp; {{ siteConfig.footerMotto }} &nbsp; ✧</span><span>{{ siteConfig.artworkNotice }}</span></footer>
     <div v-if="posterFailed" class="asset-error" role="alert">背景图片加载失败<button @click="posterFailed = false; posterRevision++">重新加载</button></div>
-    <IntroSequence @ready="introReady = true" />
   </div>
 </template>

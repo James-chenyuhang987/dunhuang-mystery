@@ -4,14 +4,14 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 import { useGameStore } from '@/stores/game'
-import { mediaConfig, siteConfig } from '@/data/game'
+import { siteConfig } from '@/data/game'
 import type { level } from '@/types/game'
 
 const wrappers: ReturnType<typeof mount>[] = []
 afterEach(() => { wrappers.splice(0).forEach(wrapper => wrapper.unmount()); vi.restoreAllMocks(); localStorage.clear(); sessionStorage.clear() })
 async function setup(levels: level[], path = '/dunhuang/home') {
   sessionStorage.setItem('dunhuang-mystery:location-selected', '1')
-  mediaConfig.introVideoUrl = ''
+  localStorage.setItem('dunhuang-mystery:intro-completed:v2:dunhuang', 'true')
   const pinia = createPinia()
   setActivePinia(pinia)
   const game = useGameStore()
@@ -37,12 +37,18 @@ const entries: level[] = Array.from({ length: 12 }, (_, index) => ({
 describe('configuration-driven menus', () => {
   it('only exposes start and selection on the first menu, then renders every configured chapter', async () => {
     const { wrapper, router, game } = await setup(entries)
+    expect(wrapper.get('.landscape').attributes('src')).toBe('/background.jpeg')
+    expect(wrapper.find('.intro-screen').exists()).toBe(false)
     expect(wrapper.findAll('.journey-panel > .start-button').map(button => button.text())).toEqual(['开始', '选关'])
     expect(wrapper.find('.level-select-button [data-icon="map"]').exists()).toBe(true)
     expect(wrapper.get('header nav a').text()).toContain('关于作者')
     expect(wrapper.get('header nav a').attributes('href')).toBe('/dunhuang/thank')
     expect(wrapper.findAll('.chapter-card')).toHaveLength(0)
     expect(wrapper.find('h1').text()).toBe(siteConfig.title)
+    expect(wrapper.get('.difficulty-control input').attributes('disabled')).toBeUndefined()
+    expect(wrapper.find('.difficulty-lock').exists()).toBe(false)
+    await wrapper.get('.difficulty-control input').setValue('3')
+    expect(game.difficulty).toBe(3)
     await wrapper.findAll('.journey-panel > .start-button')[1]!.trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.fullPath).toBe('/dunhuang/home?panel=levels')

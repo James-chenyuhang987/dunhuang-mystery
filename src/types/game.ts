@@ -54,6 +54,7 @@ export interface location {
   name: string
   subtitle: string
   coordinates: string
+  intro_video_url?: string
   background_url: string
   levels: level[]
   title?: string

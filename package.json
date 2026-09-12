@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test:unit": "vitest",
     "test:e2e": "playwright test",
+    "optimize:panoramas": "python3 tools/slice-panoramas.py",
     "build-only": "vite build",
     "type-check": "vue-tsc --build"
   },

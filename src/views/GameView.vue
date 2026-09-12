@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/game'
 import { siteConfig } from '@/data/game'
@@ -10,6 +10,7 @@ import DifficultyControl from '@/components/DifficultyControl.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import MediaViewer from '@/components/MediaViewer.vue'
 const game = useGameStore()
+const routeIntroActive = inject<Ref<boolean>>('routeIntroActive', ref(false))
 const router = useRouter()
 const route = useRoute()
 const questionDialog = ref<HTMLDialogElement | null>(null)
@@ -80,8 +81,12 @@ onMounted(async () => {
   if (game.locationId !== placeId.value) game.selectLocation(placeId.value)
   if (!game.hasProgress) { await router.replace(homePath.value); return }
   if (game.completed) { await router.replace(thankPath.value); return }
-  game.resumeTimer()
+  if (!routeIntroActive.value) game.resumeTimer()
   await nextTick()
+})
+watch(routeIntroActive, (active) => {
+  if (active) game.pauseTimer()
+  else if (route.meta.section === 'game' && !document.hidden && game.hasProgress && !game.completed) game.resumeTimer()
 })
 onBeforeUnmount(() => { game.pauseTimer(); game.persist() })
 </script>
@@ -94,15 +99,16 @@ onBeforeUnmount(() => { game.pauseTimer(); game.persist() })
       <div class="game-title"><span class="eyebrow">CHAPTER {{ String(game.currentLevelIndex + 1).padStart(2, '0') }}</span><h1>{{ game.currentLevel.name }}</h1></div>
       <button class="outline-button" :aria-expanded="settingsOpen" @click="settingsOpen = !settingsOpen">难度 · {{ ['初探', '寻踪', '解谜'][game.difficulty - 1] }}</button>
     </header>
-    <aside v-if="settingsOpen" class="game-settings surface" @pointerdown.stop @wheel.stop><DifficultyControl :level-index="game.currentLevelIndex"/><p class="muted">切换难度会调整本关题数，保留答题记录。</p></aside>
-    <aside class="clue-drawer" :class="{ collapsed: !cluesOpen }" @pointerdown.stop @wheel.stop>
-      <button class="clue-drawer-heading" :aria-expanded="cluesOpen" @click="cluesOpen = !cluesOpen"><span><AppIcon name="book"/>探秘手札</span><small>{{ game.currentLevel.clues.length }} 条线索 &nbsp; {{ cluesOpen ? '−' : '＋' }}</small></button>
+    <aside v-if="settingsOpen" class="game-settings surface" @pointerdown.stop @wheel.stop><DifficultyControl :level-index="game.currentLevelIndex" :editable="false"/><p class="muted">当前难度在开始游戏时确定，游戏中仅供查看。</p></aside>
+    <aside id="clue-drawer" class="clue-drawer" :class="{ collapsed: !cluesOpen }" @pointerdown.stop @wheel.stop>
+      <button class="clue-drawer-heading clue-drawer-desktop-toggle" aria-label="探秘手札" :aria-expanded="cluesOpen" @click="cluesOpen = !cluesOpen"><span><AppIcon name="book"/>探秘手札</span><small>{{ game.currentLevel.clues.length }} 条线索 &nbsp; {{ cluesOpen ? '−' : '＋' }}</small></button>
       <div v-if="cluesOpen" class="clues-scroll"><p class="eyebrow">拾起线索，让历史开口。点选全景中的编号也可直达线索。</p><CluePanel v-for="(clue, index) in game.currentLevel.clues" ref="cluePanels" :key="`${game.currentLevelIndex}-${index}`" :item="clue" :index="index" :highlighted="highlightedClue === index"/></div>
     </aside>
     <Transition name="fade"><aside v-if="discovery" class="discovery-card surface" role="status" @pointerdown.stop @wheel.stop><button class="icon-button" aria-label="关闭发现详情" @click="discovery = null"><AppIcon name="close"/></button><p class="eyebrow">HIDDEN DISCOVERY · 新发现</p><h2>{{ discovery.name }}</h2><p>{{ discovery.description }}</p><button v-if="discovery.image" class="outline-button" @click="openDiscoveryImage">查看发现图像</button></aside></Transition>
     <div class="panorama-guide"><AppIcon name="compass"/><span>拖动环顾 · 点击寻迹 · 双指 / 滚轮缩放</span><small>360° IMMERSIVE EXPLORATION</small></div>
     <footer class="game-toolbar">
       <button class="archive-toggle outline-button" aria-label="时间与观察" :aria-expanded="archiveOpen" aria-controls="archive-controls" @click="archiveOpen = !archiveOpen"><AppIcon name="archive"/>时间与观察<span>{{ archiveOpen ? '−' : '＋' }}</span></button>
+      <button class="mobile-clue-toggle outline-button" aria-label="探秘手礼" :aria-expanded="cluesOpen" aria-controls="clue-drawer" @click="cluesOpen = !cluesOpen"><AppIcon name="book"/>探秘手礼</button>
       <section id="archive-controls" class="archive-controls" :class="{ open: archiveOpen }">
         <nav v-if="game.currentLevel.panorama.length" class="panorama-timeline" aria-label="全景时间轴">
           <p class="eyebrow">TIME ARCHIVE · 时间轴</p>
@@ -119,13 +125,13 @@ onBeforeUnmount(() => { game.pauseTimer(); game.persist() })
     <dialog ref="questionDialog" class="question-dialog surface" aria-labelledby="question-title" @close="feedback = null">
       <button class="icon-button dialog-close" aria-label="关闭题目" @click="questionDialog?.close()"><AppIcon name="close"/></button>
       <p class="eyebrow">THE MISSING PIECE · {{ game.currentLevel.name }}</p>
-      <DifficultyControl :level-index="game.currentLevelIndex"/>
+      <DifficultyControl :level-index="game.currentLevelIndex" :editable="false"/>
       <template v-if="question">
         <div class="question-progress">解谜进度 {{ solvedCount }} / {{ game.selectedQuestionIndexes.length }}</div>
         <h2 id="question-title">{{ question.title }}</h2><p class="muted">结合手札中的线索，选择你的推断。</p>
-        <div class="answer-list"><button v-for="(option, index) in question.select" :key="index" class="answer-option" :class="{ correct: feedback?.correct && index === question.true_answer, incorrect: feedback && !feedback.correct && feedback.selected === index }" :disabled="!!feedback" @click="answer(index)"><span>{{ index + 1 }}</span>{{ option }}<AppIcon v-if="feedback?.correct && index === question.true_answer" name="check"/></button></div>
+        <div class="answer-list"><button v-for="(option, index) in question.select" :key="index" class="answer-option" :class="{ correct: feedback && index === question.true_answer, incorrect: feedback && !feedback.correct && feedback.selected === index }" :disabled="!!feedback" @click="answer(index)"><span>{{ index + 1 }}</span>{{ option }}<AppIcon v-if="feedback && index === question.true_answer" name="check"/></button></div>
         <button v-if="!feedback" class="text-button skip-question" @click="skipQuestion">跳过此题 →</button>
-        <div v-if="feedback" class="answer-feedback" :class="{ wrong: !feedback.correct }" role="status"><strong>{{ feedback.correct ? '推断正确 · 线索已连接' : '推断有误 · 查看对应线索' }}</strong><p v-if="feedback.correct">{{ feedback.question.reason }}</p><p v-else>本题已经记录为错误。可查看下方关联线索理解关键证据，再继续下一题。</p><div v-if="suggestedClues.length" class="feedback-clues"><button v-for="index in suggestedClues" :key="index" class="outline-button" @click="revealClue(index); questionDialog?.close()">线索 {{ String(index + 1).padStart(2, '0') }} · {{ game.currentLevel.clues[index]?.name }}</button></div><button class="primary" @click="continueAnswer">{{ game.levelSolved ? '查看本卷结果' : '下一道谜题' }}<AppIcon name="arrow"/></button></div>
+        <div v-if="feedback" class="answer-feedback" :class="{ wrong: !feedback.correct }" role="status"><strong>{{ feedback.correct ? '推断正确 · 线索已连接' : '推断有误 · 查看对应线索' }}</strong><p v-if="feedback.correct">{{ feedback.question.reason }}</p><p v-else>本题已经记录为错误。正确答案已用绿色标记，请查看对应解析与线索后继续下一题。</p><div v-if="suggestedClues.length" class="feedback-clues"><button v-for="index in suggestedClues" :key="index" class="outline-button" @click="revealClue(index); questionDialog?.close()">线索 {{ String(index + 1).padStart(2, '0') }} · {{ game.currentLevel.clues[index]?.name }}</button></div><button class="primary" @click="continueAnswer">{{ game.levelSolved ? '查看本卷结果' : '下一道谜题' }}<AppIcon name="arrow"/></button></div>
       </template>
       <template v-else-if="game.levelSolved"><div class="completion-symbol">✧</div><h2 id="question-title">{{ game.currentLevel.problems.length ? siteConfig.chapterCompleteHeading : '本关没有题目，可自由探索。' }}</h2><p>散落的线索在你的手中，重新连成了故事。</p><p class="muted">已完成「{{ game.currentLevel.name }}」本档全部 {{ game.selectedQuestionIndexes.length }} 道谜题。</p><button class="primary" @click="nextLevel">{{ game.mode === 'campaign' && game.currentLevelIndex < game.levels.length - 1 ? '完成本关 · 前往下一关' : '落款 · 查看探索回响' }}<AppIcon name="arrow"/></button></template>
     </dialog>

@@ -9,6 +9,7 @@ import AppIcon from './AppIcon.vue'
 import type { ClickPoint, hotspot } from '@/types/game'
 import { findMatchingClickPoint } from '@/utils/clickPoints'
 import { projectHotspot } from '@/utils/hotspots'
+import { assetUrl } from '@/utils/assets'
 
 const props = withDefaults(defineProps<{
   url: string
@@ -44,6 +45,7 @@ let contextLost = false
 const renderedUltraviolet = ref(false)
 const pointers = new Map<number, { x: number; y: number }>()
 const panoramaRadius = 10
+const renderPixelRatio = () => Math.min(window.devicePixelRatio || 1, 1.5)
 const raycaster = new THREE.Raycaster()
 const pointer = new THREE.Vector2()
 const ultravioletShader = {
@@ -98,7 +100,9 @@ function render(): void {
   camera.fov = fov.value
   camera.updateProjectionMatrix()
   camera.updateMatrixWorld()
-  if (composer) composer.render(); else renderer.render(scene, camera)
+  // Keep the normal panorama path to one render pass; the composer is only
+  // needed while the UV shader is active.
+  if (composer && ultravioletPass?.enabled) composer.render(); else renderer.render(scene, camera)
   projected.value = props.hotspots.map((point) => projectHotspot(point, camera!))
 }
 
@@ -113,7 +117,7 @@ function resize(): void {
   if (!width || !height) return
   renderer.setSize(width, height)
   composer?.setSize(width, height)
-  ultravioletPass?.uniforms.resolution?.value.set(width * Math.min(window.devicePixelRatio, 2), height * Math.min(window.devicePixelRatio, 2))
+  ultravioletPass?.uniforms.resolution?.value.set(width * renderPixelRatio(), height * renderPixelRatio())
   camera.aspect = width / height
   schedule()
 }
@@ -126,14 +130,14 @@ function onLost(event: Event): void {
 
 function initialize(): void {
   try {
-    renderer = new THREE.WebGLRenderer({ antialias: true })
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' })
+    renderer.setPixelRatio(renderPixelRatio())
     renderer.domElement.addEventListener('webglcontextlost', onLost)
     host.value?.append(renderer.domElement)
     scene = new THREE.Scene()
     camera = new THREE.PerspectiveCamera(70, 1, 0.1, 100)
     composer = new EffectComposer(renderer)
-    composer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    composer.setPixelRatio(renderPixelRatio())
     composer.addPass(new RenderPass(scene, camera))
     ultravioletPass = new ShaderPass(ultravioletShader)
     ultravioletPass.enabled = false
@@ -156,7 +160,7 @@ function initialize(): void {
 
 function loadTexture(): void {
   const id = ++loadId
-  const source = props.ultraviolet ? props.ultravioletUrl : props.url
+  const source = assetUrl(props.ultraviolet ? props.ultravioletUrl : props.url)
   const useUltravioletPass = props.ultraviolet && Boolean(props.ultravioletUrl)
   clearTimeout(timeout)
   status.value = 'loading'

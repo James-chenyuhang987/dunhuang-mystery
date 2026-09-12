@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { createServer, type ViteDevServer } from 'vite'
-import { mediaConfig, siteConfig } from '../src/data/game'
+import { siteConfig } from '../src/data/game'
 import type { level } from '../src/types/game'
 import { chooseDefaultLocation } from './helpers'
 
@@ -29,7 +29,7 @@ for (const empty of [false, true]) {
   test(`custom configuration renders and plays without sample assumptions (empty=${empty})`, async ({ page }) => {
     const errors: string[] = []
     page.on('pageerror', error => errors.push(error.message))
-    await page.route('**/src/data/game.ts*', route => route.fulfill({ contentType: 'application/javascript', body: `export const gameLevels = ${JSON.stringify(empty ? [] : levels)}; export const gameLocations = [{ id: 'dunhuang', name: '自定义地点', title: '自定义探索标题', subtitle: '测试', coordinates: '0°', background_url: '/art/landscape.svg', levels: gameLevels }]; export const gameAuthors = []; export const mediaConfig = ${JSON.stringify(mediaConfig)}; export const siteConfig = ${JSON.stringify({ ...siteConfig, title: '自定义探索标题', backgroundUrl: '/art/landscape.svg' })};` }))
+    await page.route('**/src/data/game.ts*', route => route.fulfill({ contentType: 'application/javascript', body: `export const gameLevels = ${JSON.stringify(empty ? [] : levels)}; export const gameLocations = [{ id: 'dunhuang', name: '自定义地点', title: '自定义探索标题', subtitle: '测试', coordinates: '0°', background_url: '/art/landscape.svg', levels: gameLevels }]; export const gameAuthors = []; export const siteConfig = ${JSON.stringify({ ...siteConfig, title: '自定义探索标题', backgroundUrl: '/art/landscape.svg' })};` }))
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto(fixtureUrl)
     await chooseDefaultLocation(page)
