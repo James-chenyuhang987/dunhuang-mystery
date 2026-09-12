@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from 'vue'
 import type { clue } from '@/types/game'
+import { assetUrl } from '@/utils/assets'
 import AppIcon from './AppIcon.vue'
 import MediaViewer from './MediaViewer.vue'
 const viewer = ref<InstanceType<typeof MediaViewer> | null>(null)
@@ -27,9 +28,9 @@ onBeforeUnmount(loaded)
       <p v-if="item.hint">{{ item.hint }}</p>
       <p v-if="item.type === 'text'">{{ item.data }}</p>
       <div v-else-if="failed" role="alert"><p>这条线索加载失败。</p><button class="outline-button" @click="retry">重新加载线索</button></div>
-      <img v-else-if="item.type === 'image'" :key="`image-${revision}`" :src="item.data" :alt="item.name" @load="loaded" @error="fail" @click="expand">
-      <audio v-else-if="item.type === 'audio'" :key="`audio-${revision}`" :src="item.data" controls preload="metadata" @loadedmetadata="loaded" @playing="loaded" @waiting="deadline" @error="fail" />
-      <video v-else ref="inlineVideo" :key="`video-${revision}`" :src="item.data" controls playsinline preload="metadata" @loadedmetadata="loaded" @playing="loaded" @waiting="deadline" @error="fail" />
+      <img v-else-if="item.type === 'image'" :key="`image-${revision}`" :src="assetUrl(item.data)" :alt="item.name" @load="loaded" @error="fail" @click="expand">
+      <audio v-else-if="item.type === 'audio'" :key="`audio-${revision}`" :src="assetUrl(item.data)" controls preload="metadata" @loadedmetadata="loaded" @playing="loaded" @waiting="deadline" @error="fail" />
+      <video v-else ref="inlineVideo" :key="`video-${revision}`" :src="assetUrl(item.data)" controls playsinline preload="metadata" @loadedmetadata="loaded" @playing="loaded" @waiting="deadline" @error="fail" />
       <button v-if="!failed && (item.type === 'image' || item.type === 'video')" class="outline-button expand-clue" @click="expand"><AppIcon name="expand"/>全屏查看与缩放</button>
     </div>
     <MediaViewer v-if="item.type === 'image' || item.type === 'video'" ref="viewer" :item="item"/>

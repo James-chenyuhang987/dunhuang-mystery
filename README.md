@@ -27,7 +27,7 @@ npm run dev -- --host 127.0.0.1
 
 ## 玩法和数据
 
-路由结构为 `/{PLACE}/{home|game|thank}`。`/` 与 `/dunhuang` 重定向到 `/dunhuang/home`；暂时禁用的兵马俑及未知地点也会回到该页。一级菜单仅提供“开始”和 outline 样式的“选关”：开始按 `levels` 顺序线性游玩；选关进入 `/dunhuang/home?panel=levels` 二级菜单，所选关完成后直接前往 `/dunhuang/thank`。游戏状态由 Pinia 管理，全部关卡共享 `/dunhuang/game`。
+路由结构为 `/{PLACE}/{home|game|thank}`（GitHub Pages 地址中位于 `#` 后）。`/` 与 `/dunhuang` 重定向到 `/dunhuang/home`；暂时禁用的兵马俑及未知地点也会回到该页。一级菜单仅提供“开始”和 outline 样式的“选关”：开始按 `levels` 顺序线性游玩；选关进入 `/dunhuang/home?panel=levels` 二级菜单，所选关完成后直接前往 `/dunhuang/thank`。游戏状态由 Pinia 管理，全部关卡共享 `/dunhuang/game`。
 
 初探抽取 1 题，寻踪抽取题量一半（向上取整），解谜抽取全部。二级选关菜单、游戏设置及题目弹窗均可修改难度，显示“本关需答 X / Y 题”；难度标签可直接点击，滑块也支持触摸、鼠标与键盘。每关生成稳定随机顺序，途中改变难度调整当前关的题目集合但保留答题历史；线性模式中已离开的关卡按通过时的难度保留完成状态，不受后续难度切换影响。答对数为首次正确的题数，答错数为错误尝试次数；每次记录原始题目下标、关卡下标、选择和时间。
 
@@ -49,7 +49,11 @@ npm run test:unit -- --run
 npm run test:e2e -- --project=chromium
 ```
 
-首次缺少浏览器时执行 `npx playwright install chromium`。部署 `dist/` 到静态服务，配置 history 回退（例如 Nginx `try_files $uri $uri/ /index.html;`），保证刷新 `/dunhuang/game`、`/dunhuang/thank` 等路由不出现 404。媒体地址需 HTTPS 且可公开访问，音视频服务建议支持 Range 请求。
+首次缺少浏览器时执行 `npx playwright install chromium`。项目已适配 GitHub Pages：使用 Hash 路由避免刷新 404，生产构建会在 GitHub Actions 中自动根据仓库名设置子路径，并通过 `.github/workflows/deploy-pages.yml` 发布 `dist/`。
+
+使用方式：将代码推送到 GitHub 仓库的 `main` 分支，在仓库 **Settings → Pages → Build and deployment** 中选择 **GitHub Actions**。工作流完成后即可打开 Actions 输出的 Pages 地址。若仓库名为 `username.github.io`，同样可以直接使用根路径部署。
+
+本地构建默认使用 `/`，因此无需为开发环境修改配置。媒体地址需 HTTPS 且可公开访问，音视频服务建议支持 Range 请求。
 
 ---
 

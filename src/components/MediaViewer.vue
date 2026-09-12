@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue'
 import type { clue } from '@/types/game'
+import { assetUrl } from '@/utils/assets'
 import AppIcon from './AppIcon.vue'
 const props = defineProps<{ item: clue }>()
 const dialog = ref<HTMLDialogElement | null>(null)
@@ -62,8 +63,8 @@ defineExpose({ open })
         <header class="media-viewer-header"><h2>{{ item.name }}</h2><button class="outline-button" @click="fullscreen">切换设备全屏</button><button class="icon-button" aria-label="关闭全屏查看" @click="close"><AppIcon name="close"/></button></header>
         <div ref="stage" class="media-stage" :data-scale="scale.toFixed(2)" @pointerdown="down" @pointermove="move" @pointerup="up" @pointercancel="up" @lostpointercapture="up" @wheel.prevent="zoom(scale * Math.exp(-$event.deltaY * 0.002))" @dblclick="reset">
           <div v-if="failed" class="media-load-error" role="alert"><p>素材加载失败或超时。</p><button class="primary" @pointerdown.stop @click="retry">重新加载大图 / 视频</button></div>
-          <img v-else-if="item.type === 'image'" :key="revision" class="media-content" :style="transform" :src="item.data" :alt="item.name" draggable="false" @load="loaded" @error="fail">
-          <video v-else-if="item.type === 'video'" ref="video" :key="`video-${revision}`" class="media-content" :style="transform" :src="item.data" controls playsinline preload="metadata" @loadedmetadata="loaded" @playing="loaded" @waiting="deadline" @error="fail" />
+          <img v-else-if="item.type === 'image'" :key="revision" class="media-content" :style="transform" :src="assetUrl(item.data)" :alt="item.name" draggable="false" @load="loaded" @error="fail">
+          <video v-else-if="item.type === 'video'" ref="video" :key="`video-${revision}`" class="media-content" :style="transform" :src="assetUrl(item.data)" controls playsinline preload="metadata" @loadedmetadata="loaded" @playing="loaded" @waiting="deadline" @error="fail" />
         </div>
         <footer class="media-viewer-tools"><button class="outline-button" aria-label="缩小线索" :disabled="scale <= 1" @click="zoom(scale - 0.25)">−</button><output aria-live="polite">{{ Math.round(scale * 100) }}%</output><button class="outline-button" aria-label="放大线索" :disabled="scale >= 5" @click="zoom(scale + 0.25)">＋</button><button class="outline-button" @click="reset">重置视图</button><span>滚轮 / 双指缩放 · 放大后拖动</span></footer>
       </template>

@@ -11,7 +11,7 @@ const wrappers: ReturnType<typeof mount>[] = []
 afterEach(() => { wrappers.splice(0).forEach(wrapper => wrapper.unmount()); vi.restoreAllMocks(); localStorage.clear(); sessionStorage.clear() })
 async function setup(levels: level[], path = '/dunhuang/home') {
   sessionStorage.setItem('dunhuang-mystery:location-selected', '1')
-  localStorage.setItem('dunhuang-mystery:intro-completed:v1:dunhuang', 'true')
+  localStorage.setItem('dunhuang-mystery:intro-completed:v2:dunhuang', 'true')
   const pinia = createPinia()
   setActivePinia(pinia)
   const game = useGameStore()

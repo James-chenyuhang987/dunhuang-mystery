@@ -6,6 +6,7 @@ import { gameLocations, siteConfig } from '@/data/game'
 import AppIcon from '@/components/AppIcon.vue'
 import ChapterThumbnail from '@/components/ChapterThumbnail.vue'
 import DifficultyControl from '@/components/DifficultyControl.vue'
+import { assetUrl } from '@/utils/assets'
 
 const props = defineProps<{ placeId: string }>()
 const game = useGameStore()
@@ -43,7 +44,7 @@ onMounted(() => {
 
 <template>
   <div class="home-page">
-    <img :key="`${placeId}-${posterRevision}`" class="landscape" :src="activeLocation?.background_url || siteConfig.backgroundUrl" :alt="activeLocation ? `${activeLocation.name}风格探索插画` : siteConfig.backgroundAlt" @error="posterFailed = true">
+    <img :key="`${placeId}-${posterRevision}`" class="landscape" :src="assetUrl(activeLocation?.background_url || siteConfig.backgroundUrl)" :alt="activeLocation ? `${activeLocation.name}风格探索插画` : siteConfig.backgroundAlt" @error="posterFailed = true">
     <div class="landscape-shade" />
     <div class="grain-overlay" />
     <header class="site-header">

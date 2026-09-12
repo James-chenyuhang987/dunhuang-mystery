@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import IntroSequence from '@/components/IntroSequence.vue'
 
-const completionKey = (locationId: string) => `dunhuang-mystery:intro-completed:v1:${locationId}`
+const completionKey = (locationId: string) => `dunhuang-mystery:intro-completed:v2:${locationId}`
 const mountIntro = (locationId = 'dunhuang', videoUrl = '/opening.mp4') => mount(IntroSequence, {
   props: { locationId, locationName: locationId === 'dunhuang' ? '敦煌莫高窟' : '秦始皇帝陵博物院', videoUrl },
 })
@@ -21,6 +21,8 @@ describe('opening sequence', () => {
     vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => undefined)
     const wrapper = mountIntro('dunhuang', '/entrance.mp4')
     expect(wrapper.get('video').attributes('src')).toBe('/entrance.mp4')
+    expect(wrapper.find('.earth-intro').exists()).toBe(true)
+    await wrapper.find('.skip-intro').trigger('click')
     expect(wrapper.get('.loader-art').attributes('aria-label')).toBe('正在载入敦煌莫高窟画卷')
     await wrapper.find('video').trigger('canplaythrough')
     await flushPromises()
@@ -50,6 +52,9 @@ describe('opening sequence', () => {
     await wrapper.find('video').trigger('canplaythrough')
     await flushPromises()
     await wrapper.find('.skip-intro').trigger('click')
+    await wrapper.find('video').trigger('canplaythrough')
+    await flushPromises()
+    await wrapper.find('.skip-intro').trigger('click')
     expect(localStorage.getItem(completionKey('dunhuang'))).toBe('true')
     expect(wrapper.emitted('ready')).toHaveLength(1)
     wrapper.unmount()
@@ -58,6 +63,7 @@ describe('opening sequence', () => {
     localStorage.setItem(completionKey('dunhuang'), 'true')
     const wrapper = mount(IntroSequence, { props: { locationId: 'dunhuang', locationName: '敦煌莫高窟', videoUrl: '/opening.mp4', rememberCompletion: false } })
     expect(wrapper.get('video').attributes('src')).toBe('/opening.mp4')
+    expect(wrapper.find('.earth-intro').exists()).toBe(true)
     expect(wrapper.emitted('ready')).toBeUndefined()
     wrapper.unmount()
   })

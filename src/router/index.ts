@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import { siteConfig } from '@/data/game'
 import HomeView from '@/views/HomeView.vue'
 import GameView from '@/views/GameView.vue'
@@ -7,7 +7,7 @@ import EndingView from '@/views/EndingView.vue'
 const HOME_PATH = '/dunhuang/home'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', redirect: HOME_PATH },
     { path: '/dunhuang', redirect: HOME_PATH },

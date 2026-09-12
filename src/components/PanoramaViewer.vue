@@ -9,6 +9,7 @@ import AppIcon from './AppIcon.vue'
 import type { ClickPoint, hotspot } from '@/types/game'
 import { findMatchingClickPoint } from '@/utils/clickPoints'
 import { projectHotspot } from '@/utils/hotspots'
+import { assetUrl } from '@/utils/assets'
 
 const props = withDefaults(defineProps<{
   url: string
@@ -156,7 +157,7 @@ function initialize(): void {
 
 function loadTexture(): void {
   const id = ++loadId
-  const source = props.ultraviolet ? props.ultravioletUrl : props.url
+  const source = assetUrl(props.ultraviolet ? props.ultravioletUrl : props.url)
   const useUltravioletPass = props.ultraviolet && Boolean(props.ultravioletUrl)
   clearTimeout(timeout)
   status.value = 'loading'
