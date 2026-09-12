@@ -11,7 +11,7 @@ const dunhuangLevels: level[] = [
       {
         name: '现状勘查',
         url: '/art/cave-01.svg',
-        ultraviolet_url: '/art/dunhuang-uv.svg',
+        ultraviolet_url: '/art/yungang_cave5_pano.jpg',
         click_points: [
           { vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '蓝签残片', description: '球面中央的蓝签残片与交接簿记载相互呼应。', image: '/art/clue.svg', in_uv: false },
           { vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '紫外墨迹', description: '紫外纹理中显出的补记，说明这里曾进行过一次复查。', in_uv: true },
