@@ -86,7 +86,7 @@ onBeforeUnmount(clearTimers)
 </script>
 <template>
   <section class="entry-sequence intro-screen" :class="`entry-phase-${phase}`" aria-label="选择探索地点" :style="{ backgroundImage: `url(${background})` }">
-    <video v-if="phase === 'opening' || phase === 'destination'" ref="video" :src="phase === 'opening' ? openingVideoUrl : assetUrl(selected?.destination_video_url ?? '')" :poster="earthFrameUrl" :preload="phase === 'opening' ? 'auto' : 'metadata'" muted playsinline autoplay disablepictureinpicture controlslist="nodownload nofullscreen noplaybackrate" type="video/mp4" @ended="phase === 'opening' ? openingEnded() : destinationEnded()" @error="videoError" />
+    <video v-if="phase === 'opening' || phase === 'destination'" :key="phase" ref="video" :src="phase === 'opening' ? openingVideoUrl : assetUrl(selected?.destination_video_url ?? '')" :poster="earthFrameUrl" :preload="phase === 'opening' ? 'auto' : 'metadata'" muted playsinline autoplay disablepictureinpicture controlslist="nodownload nofullscreen noplaybackrate" type="video/mp4" @ended="phase === 'opening' ? openingEnded() : destinationEnded()" @error="videoError" />
     <LocationSelector v-if="phase === 'choosing'" :locations="locations" :selected-id="selected?.id ?? ''" @select="selectPlace" />
     <div v-if="phase === 'opening' || phase === 'destination'" class="entry-skip-wrap">
       <span v-if="selected" class="entry-destination-label">正在前往 {{ selected.name }}</span>

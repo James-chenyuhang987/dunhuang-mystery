@@ -8,11 +8,6 @@ const emit = defineEmits<{ select: [id: string] }>()
 <template>
   <section class="location-selector" aria-labelledby="location-title">
     <div class="location-space" aria-hidden="true"><span v-for="star in 18" :key="star" :style="{ left: `${(star * 37) % 97}%`, top: `${(star * 53) % 91}%` }" /></div>
-    <div class="location-globe" aria-hidden="true">
-      <span class="globe-grid horizontal"/><span class="globe-grid vertical"/>
-      <span class="globe-land land-west"/><span class="globe-land land-east"/>
-      <span class="globe-pulse pulse-one"/><span class="globe-pulse pulse-two"/>
-    </div>
     <div class="location-copy">
       <p class="eyebrow">SELECT YOUR DESTINATION</p>
       <h2 id="location-title">选择探索地点</h2>

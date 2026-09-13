@@ -24,6 +24,7 @@ describe('App', () => {
    expect(wrapper.get('.entry-sequence').attributes('style')).toContain('/entry/select_place.jpeg')
    await wrapper.get('.location-option').trigger('click')
    await flushPromises()
+   expect(wrapper.get('.intro-screen video').attributes('src')).toContain('/entry/ToDunhuang.mp4')
    expect(wrapper.emitted()).toBeDefined()
    await router.push('/dunhuang/thank')
    await flushPromises()
