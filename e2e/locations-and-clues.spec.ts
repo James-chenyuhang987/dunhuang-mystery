@@ -33,6 +33,18 @@ test('the opening plays only at initial website entry, not after clicking start'
   await expect(page.locator('.intro-screen')).toHaveCount(0)
 })
 
+test('level confirmation stays reachable by scrolling on short screens', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 667 })
+  await page.goto('/dunhuang/home')
+  await chooseDefaultLocation(page)
+  await page.getByRole('button', { name: '选关', exact: true }).click()
+  const confirm = page.getByRole('button', { name: '开始所选关卡' })
+  await confirm.scrollIntoViewIfNeeded()
+  await expect(confirm).toBeInViewport()
+  await confirm.click()
+  await expect(page).toHaveURL(/\/dunhuang\/game$/)
+})
+
 test('timeline, ultraviolet texture and sphere discoveries are persisted', async ({ page }) => {
   await page.goto('/dunhuang/home')
   await chooseDefaultLocation(page)
