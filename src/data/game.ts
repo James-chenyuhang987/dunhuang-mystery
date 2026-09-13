@@ -11,7 +11,7 @@ const dunhuangLevels: level[] = [
       {
         name: '现状勘查',
         url: '/art/cave-01.svg',
-        ultraviolet_url: '/art/yungang_cave5_pano.jpg',
+        ultraviolet_url: '/art/dunhuang-uv.svg',
         click_points: [
           { vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '蓝签残片', description: '球面中央的蓝签残片与交接簿记载相互呼应。', image: '/art/clue.svg', in_uv: false },
           { vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '紫外墨迹', description: '紫外纹理中显出的补记，说明这里曾进行过一次复查。', in_uv: true },
@@ -25,7 +25,7 @@ const dunhuangLevels: level[] = [
         ],
       },
     ],
-    hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: 0, pitch: -3 }, { clue_index: 2, yaw: 12, pitch: 7 }],
+    hotspots: [{ clue_index: 0, vec: new Vector3(10, 0.7, -2.1) }, { clue_index: 1, vec: new Vector3(10, -0.5, 0) }, { clue_index: 2, vec: new Vector3(10, 1.2, 2.1) }],
     clues: [
       { type: 'image', name: '抄录员的交接簿', problem_indexes: [0], data: '/art/clue.svg', hint: '虚构交接簿记载：甲匣原存蓝签摹本，乙匣原存红签摹本。交接时蓝签摹本暂移至乙匣，归还记录尚未填写。图像为教学示意。' },
       { type: 'text', name: '保管员便笺', problem_indexes: [1], data: '纸签颜色只能提示分类，不能说明移动经过。请核对交接记录，并向当值保管员了解情况。' },
@@ -49,7 +49,7 @@ const dunhuangLevels: level[] = [
         { vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '九色轮廓', description: '颜料层下方仍能辨认出早期轮廓。', in_uv: true },
       ],
     }],
-    hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: -4, pitch: -5 }, { clue_index: 2, yaw: 5, pitch: 8 }, { clue_index: 3, yaw: 12, pitch: -2 }],
+    hotspots: [{ clue_index: 0, vec: new Vector3(10, 0.7, -2.1) }, { clue_index: 1, vec: new Vector3(10, -0.9, -0.7) }, { clue_index: 2, vec: new Vector3(10, 1.4, 0.9) }, { clue_index: 3, vec: new Vector3(10, -0.35, 2.1) }],
     clues: [
       { type: 'text', name: '展签顺序记录', problem_indexes: [0], data: '教学展签依次写着“救助”“承诺”“背弃”。柜门要求取第二张展签上的两个字。' },
       { type: 'text', name: '策展人的故事卡', problem_indexes: [1], data: '受助者许诺不泄露救助者的所在，后来却为了奖赏泄露了位置。比较许诺的内容与后来的行为。' },
@@ -71,7 +71,7 @@ const dunhuangLevels: level[] = [
       { name: '整理前', url: '/art/cave-03.svg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '待核编号', description: '残卷边缘的编号仍处于待核验状态。', in_uv: false }] },
       { name: '数字复原后', url: '/art/cave-03.svg', ultraviolet_url: '/art/dunhuang-uv.svg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '重合纤维', description: '紫外观察显示两段纸纤维的走向能够衔接。', in_uv: true }] },
     ],
-    hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: 0, pitch: -3 }, { clue_index: 2, yaw: 12, pitch: 7 }],
+    hotspots: [{ clue_index: 0, vec: new Vector3(10, 0.7, -2.1) }, { clue_index: 1, vec: new Vector3(10, -0.5, 0) }, { clue_index: 2, vec: new Vector3(10, 1.2, 2.1) }],
     clues: [
       { type: 'text', name: '虚构整理室日志', problem_indexes: [0], data: '教学整理室有三份数字摹本记录：A为入库，B为临时借阅，C为归还。时间先后是A、B、C；C备注“已归还原位，编号待核”。' },
       { type: 'text', name: '核验清单', problem_indexes: [1], data: '先核对编号，再核对交接时间，最后联系记录人确认。只有三者吻合才能确认流转；仍有疑点时保留“待核验”，不能凭猜测补齐证据。' },
@@ -90,8 +90,8 @@ const terracottaLevels: level[] = [
   {
     name: '军阵失序', subtitle: '列阵',
     description: '步入陶俑军阵，从姿态、方位与编号记录中找出一尊错列的教学复原俑。',
-    panorama: [{ name: '军阵现状', url: '/art/terracotta-01.svg', ultraviolet_url: '/art/terracotta-uv.svg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '错列编号', description: '编号位置与虚构军阵记录不符。', in_uv: false }] }],
-    hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: 0, pitch: -3 }, { clue_index: 2, yaw: 12, pitch: 7 }],
+    panorama: [{ name: '军阵现状', url: '/yungang/yungang_cave3_pano.jpg', ultraviolet_url: '/art/terracotta-uv.svg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '错列编号', description: '编号位置与虚构军阵记录不符。', in_uv: false }] }],
+    hotspots: [{ clue_index: 0, vec: new Vector3(10, 0.7, -2.1) }, { clue_index: 1, vec: new Vector3(10, -0.5, 0) }, { clue_index: 2, vec: new Vector3(10, 1.2, 2.1) }],
     clues: [
       { type: 'text', name: '虚构军阵记录', problem_indexes: [0], data: '教学记录按朝向编号：一列与二列面向东，三列面向南。编号B-07原记于二列，不应出现在三列。' },
       { type: 'image', name: '陶片纹样 · 原创教学示意', problem_indexes: [1], data: '/art/terracotta-clue.svg' },
@@ -106,8 +106,8 @@ const terracottaLevels: level[] = [
   {
     name: '陶片密码', subtitle: '合纹',
     description: '在修复室里寻找相邻陶片，让断开的纹样和编号重新衔接。',
-    panorama: [{ name: '修复记录', url: '/art/terracotta-02.svg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '双斜线断面', description: '相邻陶片边缘出现连续双斜线。', in_uv: false }] }],
-    hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: 0, pitch: -3 }, { clue_index: 2, yaw: 12, pitch: 7 }],
+    panorama: [{ name: '修复记录', url: '/yungang/yungang_cave5_pano.jpg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '双斜线断面', description: '相邻陶片边缘出现连续双斜线。', in_uv: false }] }],
+    hotspots: [{ clue_index: 0, vec: new Vector3(10, 0.7, -2.1) }, { clue_index: 1, vec: new Vector3(10, -0.5, 0) }, { clue_index: 2, vec: new Vector3(10, 1.2, 2.1) }],
     clues: [
       { type: 'text', name: '修复台编号表', problem_indexes: [0], data: '虚构编号表：T12左缘为双斜线，T13右缘为双斜线；两片登记在同一层位，但仍需核对断面。' },
       { type: 'image', name: '断面记录 · 原创教学示意', problem_indexes: [1], data: '/art/terracotta-clue.svg', hint: '用数字图像与尺寸记录比较断面，由专业人员核验；强行拼压实物可能造成二次损伤。' },
@@ -122,8 +122,8 @@ const terracottaLevels: level[] = [
   {
     name: '甬道回声', subtitle: '寻源',
     description: '沿虚构甬道追踪三份巡查记录，判断异常声响来自哪里。',
-    panorama: [{ name: '巡查时刻', url: '/art/terracotta-03.svg', ultraviolet_url: '/art/terracotta-uv.svg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '外罩松动处', description: '设备外罩边缘留有需要专业人员复核的松动痕迹。', in_uv: true }] }],
-    hotspots: [{ clue_index: 0, yaw: -12, pitch: 4 }, { clue_index: 1, yaw: 0, pitch: -3 }, { clue_index: 2, yaw: 12, pitch: 7 }],
+    panorama: [{ name: '巡查时刻', url: '/yungang/yungang_cave6_pano.jpg', ultraviolet_url: '/art/terracotta-uv.svg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '外罩松动处', description: '设备外罩边缘留有需要专业人员复核的松动痕迹。', in_uv: true }] }],
+    hotspots: [{ clue_index: 0, vec: new Vector3(10, 0.7, -2.1) }, { clue_index: 1, vec: new Vector3(10, -0.5, 0) }, { clue_index: 2, vec: new Vector3(10, 1.2, 2.1) }],
     clues: [
       { type: 'text', name: '巡查日志对照', problem_indexes: [0], data: '甲：20:10东段无异常，20:18中段听到两次金属轻响。乙：20:19中段通风设备启动，外罩有一处松动，随后停止运行。对照两份日志的位置。' },
       { type: 'text', name: '设备安全提示', problem_indexes: [1], data: '发现松动设施应先封控并报告，由专业人员检查；不擅自拆除、继续运行设备或移动周边陶俑。' },
@@ -138,8 +138,8 @@ const terracottaLevels: level[] = [
 ]
 
 export const gameLocations: location[] = [
-  { id: 'dunhuang', name: '敦煌莫高窟', title: '敦煌壁画探索', subtitle: '壁画与残卷的千年回响', introduction: '风沙掩埋了足迹，却未曾带走故事。化身壁画探秘者，在方寸洞窟之间，拾起散落的线索，解开沉睡千年的谜题。', coordinates: '40°02′ N · 94°48′ E', intro_video_url: '/entrance.mp4', background_url: '/background.jpeg', art_caption: '莫高窟 · 九层楼', art_caption_english: 'MOGAO CAVES, DUNHUANG', levels: dunhuangLevels },
-  { id: 'terracotta', name: '秦始皇帝陵博物院', title: '兵马俑秘境探索', subtitle: '陶俑军阵中的失落线索', introduction: '暂别大漠壁画，步入沉静的陶俑军阵。循编号、纹样与巡查记录，让深埋地下的线索重新排列。', coordinates: '34°23′ N · 109°16′ E', background_url: '/art/terracotta-landscape.svg', art_caption: '秦俑军阵 · 原创画境', art_caption_english: 'TERRACOTTA ARMY, XI’AN', levels: terracottaLevels },
+  { id: 'dunhuang', name: '敦煌莫高窟', title: '敦煌壁画探索', subtitle: '壁画与残卷的千年回响', introduction: '风沙掩埋了足迹，却未曾带走故事。化身壁画探秘者，在方寸洞窟之间，拾起散落的线索，解开沉睡千年的谜题。', coordinates: '40°02′ N · 94°48′ E', intro_video_url: '/entrance.mp4', destination_video_url: '/entry/ToDunhuang.mp4', background_url: '/dunhuang/background.jpeg', art_caption: '莫高窟 · 九层楼', art_caption_english: 'MOGAO CAVES, DUNHUANG', levels: dunhuangLevels },
+  { id: 'yungang', name: '云冈石窟', title: '云冈石窟探索', subtitle: '石窟造像中的失落线索', introduction: '暂别大漠壁画，步入沉静的石窟造像之间。循编号、纹样与巡查记录，让深埋岁月的线索重新排列。', coordinates: '40°06′ N · 113°07′ E', destination_video_url: '/entry/ToYungang.mp4', background_url: '/yungang/background.jpeg', art_caption: '云冈石窟 · 原创画境', art_caption_english: 'YUNGANG GROTTOES, DATONG', levels: terracottaLevels },
 ]
 
 export const gameLevels: level[] = gameLocations[0]?.levels ?? []

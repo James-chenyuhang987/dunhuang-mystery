@@ -198,13 +198,15 @@ function isLevel(value: unknown): value is level {
   )) return false
 
   const clueCount = value.clues.length
-  return (value.hotspots === undefined || (Array.isArray(value.hotspots) && value.hotspots.every((entry: unknown) =>
-    isRecord(entry) && isInteger(entry.clue_index, 0, clueCount - 1)
-    && ((typeof entry.yaw === 'number' && Number.isFinite(entry.yaw) && entry.yaw >= -180 && entry.yaw <= 180
-      && typeof entry.pitch === 'number' && Number.isFinite(entry.pitch) && entry.pitch >= -90 && entry.pitch <= 90)
-      || (typeof entry.x === 'number' && Number.isFinite(entry.x) && entry.x >= 0 && entry.x <= 100
-      && typeof entry.y === 'number' && Number.isFinite(entry.y) && entry.y >= 0 && entry.y <= 100)),
-  )))
+  return (value.hotspots === undefined || (Array.isArray(value.hotspots) && value.hotspots.every((entry: unknown) => {
+    if (!isRecord(entry) || !isInteger(entry.clue_index, 0, clueCount - 1)) return false
+    const hasVector = isVector(entry.vec)
+    const hasAngles = typeof entry.yaw === 'number' && Number.isFinite(entry.yaw) && entry.yaw >= -180 && entry.yaw <= 180
+      && typeof entry.pitch === 'number' && Number.isFinite(entry.pitch) && entry.pitch >= -90 && entry.pitch <= 90
+    const hasPercentages = typeof entry.x === 'number' && Number.isFinite(entry.x) && entry.x >= 0 && entry.x <= 100
+      && typeof entry.y === 'number' && Number.isFinite(entry.y) && entry.y >= 0 && entry.y <= 100
+    return hasVector || hasAngles || hasPercentages
+  })))
 }
 
 function migrateSnapshot(value: unknown): unknown {

@@ -5,7 +5,7 @@ import BingMaYongView from './BingMaYongView.vue'
 import DunHuangHome from './DunHuangHome.vue'
 
 const route = useRoute()
-const page = computed(() => route.params.place === 'terracotta' ? BingMaYongView : DunHuangHome)
+const page = computed(() => route.params.place === 'yungang' ? BingMaYongView : DunHuangHome)
 </script>
 
 <template><component :is="page" /></template>

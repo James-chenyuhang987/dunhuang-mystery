@@ -5,13 +5,14 @@ import { chooseDefaultLocation } from './helpers'
 const dunhuang = gameLocations.find(location => location.id === 'dunhuang')
 if (!dunhuang) throw new Error('Dunhuang fixture is missing')
 
-test('root and disabled destination routes resolve to the Dunhuang home', async ({ page }) => {
+test('root opens the destination selector and invalid routes resolve to the Dunhuang home', async ({ page }) => {
   await page.goto('/')
   await expect(page).toHaveURL(/\/dunhuang\/home$/)
-  await expect(page.locator('.location-selector')).toHaveCount(0)
+  await expect(page.locator('.entry-sequence')).toBeVisible()
+  await chooseDefaultLocation(page)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(dunhuang.title ?? '')
   await expect(page.getByRole('link', { name: '关于作者' })).toHaveAttribute('href', /\/dunhuang\/thank$/)
-  await page.goto('/terracotta/home')
+  await page.goto('/unknown/home')
   await expect(page).toHaveURL(/\/dunhuang\/home$/)
   await page.goto('/unknown/game')
   await expect(page).toHaveURL(/\/dunhuang\/home$/)
@@ -19,13 +20,12 @@ test('root and disabled destination routes resolve to the Dunhuang home', async 
 
 test('the opening plays only at initial website entry, not after clicking start', async ({ page }) => {
   await page.goto('/dunhuang/home')
-  await page.evaluate(() => localStorage.removeItem('dunhuang-mystery:intro-completed:v1:dunhuang'))
   await page.reload()
-  await expect(page.locator('.landscape')).toHaveAttribute('src', '/background.jpeg')
-  await expect(page.locator('.intro-screen video')).toHaveAttribute('src', '/entrance.mp4')
-  await expect(page.locator('.intro-screen video')).toBeHidden()
+  await expect(page.locator('.entry-sequence')).toBeVisible()
+  await expect(page.locator('.entry-sequence')).toHaveCSS('background-image', /begin_earth/)
   await chooseDefaultLocation(page)
   await expect(page.locator('.intro-screen')).toHaveCount(0)
+  await expect(page.locator('.landscape')).toHaveAttribute('src', /dunhuang\/background.jpeg/)
   await page.getByRole('button', { name: '开始', exact: true }).click()
   await expect(page).toHaveURL(/\/dunhuang\/game$/)
   await expect(page.locator('.intro-screen')).toHaveCount(0)

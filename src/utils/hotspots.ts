@@ -1,10 +1,9 @@
 import { MathUtils, PerspectiveCamera, Vector3 } from 'three'
 import type { hotspot } from '@/types/game'
 
-// Legacy percentages are interpreted once on a fixed 70° reference view.
-// World directions never depend on the current viewport or camera rotation.
 export function hotspotDirection(point: hotspot): Vector3 {
-  if (point.yaw !== undefined) {
+  if ('vec' in point && point.vec) return point.vec.clone().normalize()
+  if ('yaw' in point && point.yaw !== undefined && point.pitch !== undefined) {
     const yaw = MathUtils.degToRad(point.yaw)
     const pitch = MathUtils.degToRad(point.pitch)
     return new Vector3(Math.cos(pitch) * Math.cos(yaw), Math.sin(pitch), Math.cos(pitch) * Math.sin(yaw))
@@ -15,8 +14,8 @@ export function hotspotDirection(point: hotspot): Vector3 {
 
 export function projectHotspot(point: hotspot, camera: PerspectiveCamera) {
   const direction = hotspotDirection(point)
+  const projected = direction.clone().multiplyScalar(10).project(camera)
   const inFront = direction.dot(camera.getWorldDirection(new Vector3())) > 0
-  const projected = direction.multiplyScalar(10).project(camera)
   return {
     x: (projected.x + 1) * 50,
     y: (1 - projected.y) * 50,

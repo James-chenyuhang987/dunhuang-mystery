@@ -37,7 +37,7 @@ const entries: level[] = Array.from({ length: 12 }, (_, index) => ({
 describe('configuration-driven menus', () => {
   it('only exposes start and selection on the first menu, then renders every configured chapter', async () => {
     const { wrapper, router, game } = await setup(entries)
-    expect(wrapper.get('.landscape').attributes('src')).toBe('/background.jpeg')
+    expect(wrapper.get('.landscape').attributes('src')).toBe('/dunhuang/background.jpeg')
     expect(wrapper.find('.intro-screen').exists()).toBe(false)
     expect(wrapper.findAll('.journey-panel > .start-button').map(button => button.text())).toEqual(['开始', '选关'])
     expect(wrapper.find('.level-select-button [data-icon="map"]').exists()).toBe(true)

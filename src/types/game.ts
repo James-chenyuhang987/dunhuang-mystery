@@ -16,8 +16,9 @@ export interface clue {
 }
 
 export type hotspot = { clue_index: number } & (
-  | { yaw: number; pitch: number; x?: never; y?: never }
-  | { x: number; y: number; yaw?: never; pitch?: never }
+  | { vec: Vector3; yaw?: never; pitch?: never; x?: never; y?: never }
+  | { yaw: number; pitch: number; vec?: never; x?: never; y?: never }
+  | { x: number; y: number; vec?: never; yaw?: never; pitch?: never }
 )
 
 export interface ClickPoint {
@@ -55,6 +56,7 @@ export interface location {
   subtitle: string
   coordinates: string
   intro_video_url?: string
+  destination_video_url?: string
   background_url: string
   levels: level[]
   title?: string

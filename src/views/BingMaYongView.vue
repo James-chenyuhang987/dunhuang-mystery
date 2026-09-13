@@ -2,4 +2,4 @@
 import PlaceHome from './PlaceHome.vue'
 </script>
 
-<template><PlaceHome place-id="terracotta" /></template>
+<template><PlaceHome place-id="yungang" /></template>

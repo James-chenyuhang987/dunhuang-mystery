@@ -5,10 +5,11 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
+import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js'
 import AppIcon from './AppIcon.vue'
 import type { ClickPoint, hotspot } from '@/types/game'
 import { findMatchingClickPoint } from '@/utils/clickPoints'
-import { projectHotspot } from '@/utils/hotspots'
+import { hotspotDirection, projectHotspot } from '@/utils/hotspots'
 import { assetUrl } from '@/utils/assets'
 
 const props = withDefaults(defineProps<{
@@ -25,6 +26,8 @@ const hasTexture = ref(false)
 const fov = ref(70)
 const projected = ref<ReturnType<typeof projectHotspot>[]>([])
 let renderer: THREE.WebGLRenderer | undefined
+let cssRenderer: CSS2DRenderer | undefined
+let hotspotGroup: THREE.Group | undefined
 let composer: EffectComposer | undefined
 let ultravioletPass: ShaderPass | undefined
 let outputPass: OutputPass | undefined
@@ -103,7 +106,9 @@ function render(): void {
   // Keep the normal panorama path to one render pass; the composer is only
   // needed while the UV shader is active.
   if (composer && ultravioletPass?.enabled) composer.render(); else renderer.render(scene, camera)
+  cssRenderer?.render(scene, camera)
   projected.value = props.hotspots.map((point) => projectHotspot(point, camera!))
+  hotspotGroup?.children.forEach((object, index) => { object.visible = projected.value[index]?.visible ?? false })
 }
 
 function schedule(): void {
@@ -116,6 +121,7 @@ function resize(): void {
   const { clientWidth: width, clientHeight: height } = host.value
   if (!width || !height) return
   renderer.setSize(width, height)
+  cssRenderer?.setSize(width, height)
   composer?.setSize(width, height)
   ultravioletPass?.uniforms.resolution?.value.set(width * renderPixelRatio(), height * renderPixelRatio())
   camera.aspect = width / height
@@ -134,7 +140,13 @@ function initialize(): void {
     renderer.setPixelRatio(renderPixelRatio())
     renderer.domElement.addEventListener('webglcontextlost', onLost)
     host.value?.append(renderer.domElement)
+    cssRenderer = new CSS2DRenderer()
+    cssRenderer.domElement.className = 'panorama-css2d'
+    cssRenderer.domElement.style.pointerEvents = 'none'
+    host.value?.append(cssRenderer.domElement)
     scene = new THREE.Scene()
+    hotspotGroup = new THREE.Group()
+    scene.add(hotspotGroup)
     camera = new THREE.PerspectiveCamera(70, 1, 0.1, 100)
     composer = new EffectComposer(renderer)
     composer.setPixelRatio(renderPixelRatio())
@@ -152,6 +164,7 @@ function initialize(): void {
     observer = new ResizeObserver(resize)
     if (host.value) observer.observe(host.value)
     resize()
+    rebuildHotspots()
     loadTexture()
   } catch {
     status.value = 'error'
@@ -162,6 +175,7 @@ function loadTexture(): void {
   const id = ++loadId
   const source = assetUrl(props.ultraviolet ? props.ultravioletUrl : props.url)
   const useUltravioletPass = props.ultraviolet && Boolean(props.ultravioletUrl)
+  renderedUltraviolet.value = useUltravioletPass
   clearTimeout(timeout)
   status.value = 'loading'
   if (contextLost || !source || !material || !ultravioletPass) {
@@ -194,8 +208,28 @@ function loadTexture(): void {
   }, undefined, () => {
     if (id === loadId) {
       clearTimeout(timeout)
+      renderedUltraviolet.value = false
       status.value = 'error'
     }
+  })
+}
+
+function rebuildHotspots(): void {
+  if (!hotspotGroup) return
+  const group = hotspotGroup
+  group.clear()
+  props.hotspots.forEach((point) => {
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'panorama-hotspot'
+    button.setAttribute('aria-label', `查看线索 ${point.clue_index + 1}`)
+    button.innerHTML = `<span class="hotspot-label">${String(point.clue_index + 1).padStart(2, '0')}</span>${Array.from({ length: 8 }, (_, index) => `<span class="panorama-particle" aria-hidden="true" style="--particle-angle:${index * 45}deg;--particle-delay:${index * 0.11}s"></span>`).join('')}`
+    button.addEventListener('pointerdown', (event) => event.stopPropagation())
+    button.addEventListener('wheel', (event) => event.stopPropagation())
+    button.addEventListener('click', () => emit('clue', point.clue_index))
+    const object = new CSS2DObject(button)
+    object.position.copy(hotspotDirection(point).multiplyScalar(panoramaRadius))
+    group.add(object)
   })
 }
 
@@ -227,9 +261,12 @@ function dispose(): void {
   renderer?.dispose()
   if (!alreadyLost) renderer?.forceContextLoss()
   renderer?.domElement.remove()
+  cssRenderer?.domElement.remove()
   pointers.clear()
   sphere = undefined
   renderer = undefined
+  cssRenderer = undefined
+  hotspotGroup = undefined
   composer = undefined
   ultravioletPass = undefined
   outputPass = undefined
@@ -324,15 +361,12 @@ function key(event: KeyboardEvent): void {
 
 onMounted(initialize)
 watch(() => [props.url, props.ultravioletUrl, props.ultraviolet] as const, () => { if (renderer) loadTexture() })
-watch(() => props.hotspots, schedule, { deep: true })
+watch(() => props.hotspots, () => { rebuildHotspots(); schedule() }, { deep: true })
 onBeforeUnmount(dispose)
 </script>
 <template>
   <div class="panorama-wrap">
     <div ref="host" class="panorama" tabindex="0" role="application" aria-label="全景视图：拖动旋转，点击寻找隐藏信息，滚轮或双指缩放，也可使用方向键和加减键" :data-fov="Math.round(fov)" :data-ultraviolet-pass="renderedUltraviolet ? 'active' : 'inactive'" @pointerdown="down" @pointermove="move" @pointerup="up" @pointercancel="cancel" @lostpointercapture="cancel" @wheel.prevent="zoom($event.deltaY * 0.035)" @keydown="key" />
-    <div v-if="status === 'ready'" class="panorama-hotspots" aria-label="全景线索点">
-      <button v-for="(point, index) in hotspots" v-show="projected[index]?.visible" :key="`${point.clue_index}-${index}`" class="panorama-hotspot" :style="{ left: `${projected[index]?.x ?? 50}%`, top: `${projected[index]?.y ?? 50}%` }" :aria-label="`查看线索 ${point.clue_index + 1}`" @pointerdown.stop @wheel.stop @click="emit('clue', point.clue_index)"><span class="hotspot-label">{{ String(point.clue_index + 1).padStart(2, '0') }}</span><span v-for="particle in 8" :key="particle" class="panorama-particle" aria-hidden="true" :style="{ '--particle-angle': `${particle * 45}deg`, '--particle-delay': `${particle * 0.11}s` }" /></button>
-    </div>
     <Transition name="fade"><div v-if="status === 'loading' && hasTexture" class="panorama-transition" role="status"><AppIcon name="compass" class="spinning"/><span>正在切换画境</span></div></Transition>
     <div v-if="status === 'error' || (status === 'loading' && !hasTexture)" class="panorama-status surface" role="status">
       <AppIcon name="compass" :class="{ spinning: status === 'loading' }" />
