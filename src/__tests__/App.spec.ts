@@ -21,6 +21,7 @@ describe('App', () => {
    vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => undefined)
    await wrapper.get('.skip-intro').trigger('click')
    await flushPromises()
+   expect(wrapper.get('.entry-sequence').attributes('style')).toContain('/entry/select_place.jpeg')
    await wrapper.get('.location-option').trigger('click')
    await flushPromises()
    expect(wrapper.emitted()).toBeDefined()

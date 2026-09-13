@@ -11,9 +11,21 @@ const phase = ref<Phase>('earth')
 const selected = ref<location | null>(null)
 const video = ref<HTMLVideoElement | null>(null)
 const openingVideoUrl = assetUrl('/entry/begin.mp4')
-const background = computed(() => phase.value === 'earth' || phase.value === 'opening' ? assetUrl('/entry/begin_earth.jpeg') : assetUrl('/entry/select_place.jpeg'))
+const earthFrameUrl = assetUrl('/entry/begin_earth.jpeg')
+const selectPlaceFrameUrl = assetUrl('/entry/select_place.jpeg')
+const background = computed(() => phase.value === 'earth' || phase.value === 'opening' ? earthFrameUrl : selectPlaceFrameUrl)
 let earthTimer: ReturnType<typeof setTimeout> | undefined
 let timeout: ReturnType<typeof setTimeout> | undefined
+function preloadFrame(url: string, maxWait = 1600): Promise<void> {
+  return new Promise((resolve) => {
+    const image = new Image()
+    const done = () => { clearTimeout(timer); resolve() }
+    const timer = setTimeout(done, maxWait)
+    image.onload = done
+    image.onerror = done
+    image.src = url
+  })
+}
 
 function clearTimers() { clearTimeout(earthTimer); clearTimeout(timeout) }
 async function playVideo() {
@@ -29,6 +41,7 @@ function beginOpening() {
   playVideo()
 }
 function openingEnded() {
+  if (phase.value !== 'opening') return
   clearTimers()
   video.value?.pause()
   phase.value = 'choosing'
@@ -41,6 +54,7 @@ function selectPlace(id: string) {
     emit('ready', destination.id)
     return
   }
+  void preloadFrame(assetUrl(destination.background_url))
   phase.value = 'destination'
   clearTimeout(timeout)
   void nextTick().then(() => {
@@ -49,7 +63,7 @@ function selectPlace(id: string) {
   })
 }
 function destinationEnded() {
-  if (!selected.value) return
+  if (!selected.value || phase.value !== 'destination') return
   clearTimers()
   video.value?.pause()
   emit('ready', selected.value.id)
@@ -63,12 +77,16 @@ function skip() {
   else if (phase.value === 'opening') openingEnded()
   else if (phase.value === 'destination') destinationEnded()
 }
-onMounted(() => { earthTimer = setTimeout(beginOpening, 1200) })
+onMounted(() => {
+  void preloadFrame(selectPlaceFrameUrl)
+  void preloadFrame(earthFrameUrl)
+  earthTimer = setTimeout(beginOpening, 1200)
+})
 onBeforeUnmount(clearTimers)
 </script>
 <template>
   <section class="entry-sequence intro-screen" :class="`entry-phase-${phase}`" aria-label="选择探索地点" :style="{ backgroundImage: `url(${background})` }">
-    <video v-if="phase === 'opening' || phase === 'destination'" ref="video" :src="phase === 'opening' ? openingVideoUrl : assetUrl(selected?.destination_video_url ?? '')" preload="metadata" muted playsinline autoplay @ended="phase === 'opening' ? openingEnded() : destinationEnded()" @error="videoError" />
+    <video v-if="phase === 'opening' || phase === 'destination'" ref="video" :src="phase === 'opening' ? openingVideoUrl : assetUrl(selected?.destination_video_url ?? '')" :poster="earthFrameUrl" :preload="phase === 'opening' ? 'auto' : 'metadata'" muted playsinline autoplay disablepictureinpicture controlslist="nodownload nofullscreen noplaybackrate" type="video/mp4" @ended="phase === 'opening' ? openingEnded() : destinationEnded()" @error="videoError" />
     <LocationSelector v-if="phase === 'choosing'" :locations="locations" :selected-id="selected?.id ?? ''" @select="selectPlace" />
     <div v-if="phase === 'opening' || phase === 'destination'" class="entry-skip-wrap">
       <span v-if="selected" class="entry-destination-label">正在前往 {{ selected.name }}</span>
