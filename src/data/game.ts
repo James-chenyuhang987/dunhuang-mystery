@@ -88,7 +88,7 @@ const dunhuangLevels: level[] = [
 
 const terracottaLevels: level[] = [
     {
-    name: "第三窟的建造工程问题的历史演变",
+    name: "第三窟 · 石间春秋",
     subtitle: "第三窟的建造工程问题的历史演变",
     description: "第三窟的建造工程问题的历史演变",
     panorama: [
