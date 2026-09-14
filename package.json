@@ -11,6 +11,7 @@
     "test:unit": "vitest",
     "test:e2e": "playwright test",
     "optimize:panoramas": "python3 tools/slice-panoramas.py",
+    "build:ppt": "python3 tools/build-presentation.py",
     "build-only": "vite build",
     "type-check": "vue-tsc --build"
   },

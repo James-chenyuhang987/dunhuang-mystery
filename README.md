@@ -12,6 +12,12 @@ npm run dev -- --host 127.0.0.1
 
 推荐 Node 24.15+（或 22.22.2+），以满足当前工具链的 engine 要求。
 
+## 技术资料与产品介绍
+
+- `docs/TECHNICAL_OVERVIEW.md`：代码分层、产品主链路、工程保障，以及 360° 全景点击发现和 UV Shader 两项功能的原理说明。
+- `docs/DUNHUANG_EXPLORER_TECH_BRIEF.pptx`：面向汇报/答辩的 15 页产品与技术介绍（封面、目录、Part A/B/C 分隔页及三部分内容）；可用 `npm run build:ppt` 根据最新截图重新生成。
+- `tools/build-presentation.py`：PPT 生成脚本，使用项目已有的视觉快照和素材，不参与前端运行时。
+
 ## 替换正式素材
 
 编辑 `src/data/game.ts`：

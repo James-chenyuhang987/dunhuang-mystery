@@ -88,19 +88,19 @@ const dunhuangLevels: level[] = [
 
 const terracottaLevels: level[] = [
     {
-    name: "第三窟 · 石间春秋",
-    subtitle: "第三窟的建造工程问题的历史演变",
-    description: "第三窟的建造工程问题的历史演变",
+    name: "云冈石窟第三窟",
+    subtitle: "第三窟 · 石间春秋",
+    description: "从北魏开凿、初唐续造到辽金修缮，以石间遗痕串起历代岁月。",
     panorama: [
       { name: "大佛", url: "/yungang/yungang_cave3_pano.jpg", ultraviolet_url: "/yungang/yungang_cave3_pano.jpg", click_points: [] }
     ],
     hotspots: [
-      { clue_index: 0, vec: new Vector3(-3.8415, 9.0624, -1.7651) },
-      { clue_index: 1, vec: new Vector3(-9.3335, 3.5714, 0.362) },
-      { clue_index: 2, vec: new Vector3(-6.6263, 7.4892, -0.0604) }
+      { clue_index: 0, vec: new Vector3(-5.0762, 8.1731, -2.7265) },
+      { clue_index: 1, vec: new Vector3(-8.1635, 5.7726, 0.1835) },
+      { clue_index: 2, vec: new Vector3(-6.3383, 7.6475, 1.1582) }
     ],
     clues: [
-      { type: "text", name: "窟体岩壁的凹陷", problem_indexes: [0], data: "北魏——窟体岩壁的凹陷\n岩壁以砂岩为主，虽然易于开采，但是其本质是碳酸盐矿物，易风化。而当时土木工程技术不完善，所以是否建成了呢？\n太和年间，最初规划以“斩山为壁——向内掘进”的流程建造，但迁都洛阳，经济重心南移，因此窟壁的开凿断面和地面的取石沟槽都留给了后续朝代的建造。" },
+      { type: "text", name: "北魏——窟体岩壁的凹陷", problem_indexes: [0], data: "岩壁以砂岩为主，虽然易于开采，但是其本质是碳酸盐矿物，易风化。而当时土木工程技术不完善，所以是否建成了呢？太和年间，最初规划以“斩山为壁——向内掘进”的流程建造，但迁都洛阳后，经济重心南移，因此窟壁的开凿断面和地面的取石沟槽都留给后续朝代来建造。" },
       { type: "text", name: "初唐——中央大佛", problem_indexes: [1], data: "唐代利用北魏已完成的岩体框架，在此基础上雕刻了“一佛二菩萨”，十米主佛面相丰腴饱满，与北魏“秀骨清像”的清瘦风格完全不同。这样大大减少了工作量并延续了石窟的宗教供奉功能，造就一窟跨两朝的独特奇观。" },
       { type: "text", name: "辽金——主佛周身的密集小孔", problem_indexes: [2], data: "砂岩易受风化，因此后世人们需要附着黄泥以进行雕刻精修。为了使石像外部美观，工匠遇到了砂岩表面光滑导致泥皮附着力不足等问题，最终采用钻孔的方式，将木楔打入，以此为骨架，在外露部分表面进行敷泥塑形，贴金彩绘。" }
     ],
@@ -112,15 +112,15 @@ const terracottaLevels: level[] = [
   },
     {
     name: "云冈石窟第五窟",
-    subtitle: "云冈石窟第五窟",
-    description: "云冈石窟第五窟",
+    subtitle: "第五窟 · 云冈遗韵",
+    description: "将大佛的恢宏、衣冠的变化与迁都后的余韵，收进一窟之中。",
     panorama: [
       { name: "大佛", url: "/yungang/yungang_cave5_pano.jpg", ultraviolet_url: "/yungang/yungang_cave5_pano.jpg", click_points: [] }
     ],
     hotspots: [
-      { clue_index: 0, vec: new Vector3(-5.1975, 8.4997, 0.861) },
+      { clue_index: 0, vec: new Vector3(-5.5103, 8.3392, 0.3081) },
       { clue_index: 1, vec: new Vector3(-8.1449, 5.1217, 2.7256) },
-      { clue_index: 2, vec: new Vector3(-5.7062, 4.8164, -6.6514) }
+      { clue_index: 2, vec: new Vector3(-9.0971, -0.6908, -4.0946) }
     ],
     clues: [
       { type: "text", name: "大佛为什么这么大", problem_indexes: [0], data: "作为云冈石窟中最大的佛像，高约17米的释迦牟尼佛像几乎占满了眼前的空间。开凿这样的大佛，需要众多工匠合作。云冈石窟的建造有北魏皇家的资助，眼前的石窟便反映了佛教在北魏的重视，也向我们展现了文化对于城市建设的影响。" },
@@ -134,14 +134,14 @@ const terracottaLevels: level[] = [
     ],
   },
   {
-    name: "第六窟 · 衣冠交辉",
+    name: "云冈石窟第六窟",
     subtitle: "第六窟 · 衣冠交辉",
-    description: "第六窟 · 衣冠交辉",
+    description: "以人物服饰与佛像衣纹为引，映照不同民族相遇、相知与文化交融。",
     panorama: [
       { name: "第六窟", url: "/yungang/yungang_cave6_pano.jpg", ultraviolet_url: "/yungang/yungang_cave6_pano.jpg", click_points: [] }
     ],
     hotspots: [
-      { clue_index: 0, vec: new Vector3(-7.2303, 2.855, 6.2906) },
+      { clue_index: 0, vec: new Vector3(-7.2435, 5.5666, 4.0675) },
       { clue_index: 1, vec: new Vector3(-9.0376, 4.1193, -1.1627) },
       { clue_index: 2, vec: new Vector3(-7.3076, 2.201, -6.4617) }
     ],
@@ -172,7 +172,7 @@ export const gameAuthors: authors = [
 export const siteConfig = {
   title: '敦煌壁画探索',
   subtitle: '一眼千年',
-  brand: '敦煌 · 探迹',
+  brand: '敦煌 · 大同',
   brandEnglish: 'DUNHUANG EXPLORER',
   heroEnglish: 'BEYOND THE MURALS',
   introduction: '风沙掩埋了足迹，却未曾带走故事。化身壁画探秘者，在方寸洞窟之间，拾起散落的线索，解开沉睡千年的谜题。',
