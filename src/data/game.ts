@@ -95,7 +95,7 @@ const terracottaLevels: level[] = [
       { name: "大佛", url: "/yungang/yungang_cave3_pano.jpg", ultraviolet_url: "/yungang/yungang_cave3_pano.jpg", click_points: [] }
     ],
     hotspots: [
-      { clue_index: 0, vec: new Vector3(4.4485, 7.3131, -5.17) },
+      { clue_index: 0, vec: new Vector3(-3.8415, 9.0624, -1.7651) },
       { clue_index: 1, vec: new Vector3(-9.3335, 3.5714, 0.362) },
       { clue_index: 2, vec: new Vector3(-6.6263, 7.4892, -0.0604) }
     ],
@@ -143,7 +143,7 @@ const terracottaLevels: level[] = [
     hotspots: [
       { clue_index: 0, vec: new Vector3(-7.2303, 2.855, 6.2906) },
       { clue_index: 1, vec: new Vector3(-9.0376, 4.1193, -1.1627) },
-      { clue_index: 2, vec: new Vector3(10, 0, 0) }
+      { clue_index: 2, vec: new Vector3(-7.3076, 2.201, -6.4617) }
     ],
     clues: [
       { type: "text", name: "注意看！他们的穿着为什么不同？", problem_indexes: [0], data: "仔细看看这两个人物：他们的帽饰和衣服有什么不同？\n服饰不仅用于日常穿着，也会反映不同的生活习惯与文化传统。图中的差异，为我们认识当时丰富的服饰文化提供了观察入口。" },
