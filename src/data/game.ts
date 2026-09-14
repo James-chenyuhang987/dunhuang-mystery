@@ -141,8 +141,8 @@ const terracottaLevels: level[] = [
       { name: "第六窟", url: "/yungang/yungang_cave6_pano.jpg", ultraviolet_url: "/yungang/yungang_cave6_pano.jpg", click_points: [] }
     ],
     hotspots: [
-      { clue_index: 0, vec: new Vector3(10, 0.7, -2.1) },
-      { clue_index: 1, vec: new Vector3(10, 0, 0) },
+      { clue_index: 0, vec: new Vector3(-7.2303, 2.855, 6.2906) },
+      { clue_index: 1, vec: new Vector3(-9.0376, 4.1193, -1.1627) },
       { clue_index: 2, vec: new Vector3(10, 0, 0) }
     ],
     clues: [
