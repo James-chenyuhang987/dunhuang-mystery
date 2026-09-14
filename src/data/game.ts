@@ -87,52 +87,73 @@ const dunhuangLevels: level[] = [
 
 
 const terracottaLevels: level[] = [
-  {
-    name: '军阵失序', subtitle: '列阵',
-    description: '步入陶俑军阵，从姿态、方位与编号记录中找出一尊错列的教学复原俑。',
-    panorama: [{ name: '军阵现状', url: '/yungang/yungang_cave3_pano.jpg', ultraviolet_url: '/yungang/yungang_cave3_pano.jpg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '错列编号', description: '编号位置与虚构军阵记录不符。', in_uv: false }] }],
-    hotspots: [{ clue_index: 0, vec: new Vector3(10, 0.7, -2.1) }, { clue_index: 1, vec: new Vector3(10, -0.5, 0) }, { clue_index: 2, vec: new Vector3(10, 1.2, 2.1) }],
+    {
+    name: "第三窟的建造工程问题的历史演变",
+    subtitle: "第三窟的建造工程问题的历史演变",
+    description: "第三窟的建造工程问题的历史演变",
+    panorama: [
+      { name: "大佛", url: "/yungang/yungang_cave3_pano.jpg", ultraviolet_url: "/yungang/yungang_cave3_pano.jpg", click_points: [] }
+    ],
+    hotspots: [
+      { clue_index: 0, vec: new Vector3(4.4485, 7.3131, -5.17) },
+      { clue_index: 1, vec: new Vector3(-9.3335, 3.5714, 0.362) },
+      { clue_index: 2, vec: new Vector3(-6.6263, 7.4892, -0.0604) }
+    ],
     clues: [
-      { type: 'text', name: '虚构军阵记录', problem_indexes: [0], data: '教学记录按朝向编号：一列与二列面向东，三列面向南。编号B-07原记于二列，不应出现在三列。' },
-      { type: 'image', name: '陶片纹样 · 原创教学示意', problem_indexes: [1], data: '/art/terracotta-clue.svg' },
-      { type: 'text', name: '观察守则', problem_indexes: [2], data: '姿态与服饰可以协助分类，但仅凭外观不能断定身份。应同时核对编号、位置与修复记录。' },
+      { type: "text", name: "窟体岩壁的凹陷", problem_indexes: [0], data: "北魏——窟体岩壁的凹陷\n岩壁以砂岩为主，虽然易于开采，但是其本质是碳酸盐矿物，易风化。而当时土木工程技术不完善，所以是否建成了呢？\n太和年间，最初规划以“斩山为壁——向内掘进”的流程建造，但迁都洛阳，经济重心南移，因此窟壁的开凿断面和地面的取石沟槽都留给了后续朝代的建造。" },
+      { type: "text", name: "初唐——中央大佛", problem_indexes: [1], data: "唐代利用北魏已完成的岩体框架，在此基础上雕刻了“一佛二菩萨”，十米主佛面相丰腴饱满，与北魏“秀骨清像”的清瘦风格完全不同。这样大大减少了工作量并延续了石窟的宗教供奉功能，造就一窟跨两朝的独特奇观。" },
+      { type: "text", name: "辽金——主佛周身的密集小孔", problem_indexes: [2], data: "砂岩易受风化，因此后世人们需要附着黄泥以进行雕刻精修。为了使石像外部美观，工匠遇到了砂岩表面光滑导致泥皮附着力不足等问题，最终采用钻孔的方式，将木楔打入，以此为骨架，在外露部分表面进行敷泥塑形，贴金彩绘。" }
     ],
     problems: [
-      { title: '按军阵记录，哪一编号的位置需要复核？', select: ['A-02', 'B-07', 'C-11', 'D-04'], true_answer: 1, reason: 'B-07原记于二列，却出现在三列，因此需要复核。' },
-      { title: '图示中反复出现的主要几何纹样是哪一种？', select: ['连续菱格', '同心圆', '水波线', '五角星'], true_answer: 0, reason: '原创教学示意以连续菱格为主要视觉结构。' },
-      { title: '判断陶俑是否错列，最可靠的做法是什么？', select: ['只看面部', '凭身高猜测', '核对编号、位置与修复记录', '移动陶俑查看底部'], true_answer: 2, reason: '交叉核对记录最审慎，也能避免不必要的接触。' },
+      { title: "你可以从图中找出北魏工程戛然而止的标志吗？", select: ["大佛钻孔", "砂岩风化裂痕", "取石沟槽", "泥皮"], true_answer: 2, reason: "请结合已解锁线索与题干进行判断。" },
+      { title: "即便与北魏原设计不同，唐代工程有什么优势", select: ["增加工程量", "延续宗教功能", "更美观	", "中外融合"], true_answer: 1, reason: "请结合已解锁线索与题干进行判断。" },
+      { title: "人们能看见哪些修复痕迹？", select: ["砂岩", "泥皮", "木楔", "布"], true_answer: 1, reason: "请结合已解锁线索与题干进行判断。" }
+    ],
+  },
+    {
+    name: "云冈石窟第五窟",
+    subtitle: "云冈石窟第五窟",
+    description: "云冈石窟第五窟",
+    panorama: [
+      { name: "大佛", url: "/yungang/yungang_cave5_pano.jpg", ultraviolet_url: "/yungang/yungang_cave5_pano.jpg", click_points: [] }
+    ],
+    hotspots: [
+      { clue_index: 0, vec: new Vector3(-5.1975, 8.4997, 0.861) },
+      { clue_index: 1, vec: new Vector3(-8.1449, 5.1217, 2.7256) },
+      { clue_index: 2, vec: new Vector3(-5.7062, 4.8164, -6.6514) }
+    ],
+    clues: [
+      { type: "text", name: "大佛为什么这么大", problem_indexes: [0], data: "作为云冈石窟中最大的佛像，高约17米的释迦牟尼佛像几乎占满了眼前的空间。开凿这样的大佛，需要众多工匠合作。云冈石窟的建造有北魏皇家的资助，眼前的石窟便反映了佛教在北魏的重视，也向我们展现了文化对于城市建设的影响。" },
+      { type: "text", name: "佛像的衣服内藏着什么变化", problem_indexes: [1], data: "佛教艺术传入中国后，逐渐吸收本土服饰与审美，形成新的造像样式。北魏时期，鲜卑与汉族等不同民族长期交往，孝文帝改革又推动了服饰和习俗的变化。石窟中的衣服，为我们理解这一时代的文化交融提供了线索。" },
+      { type: "text", name: "都城搬走后石窟会怎样", problem_indexes: [2], data: "公元494年，孝文帝将都城从平城迁往洛阳。随着政治中心转移，皇家石窟的重心也转向洛阳，龙门石窟开始兴建,不过云冈并没有完全停工，仍在继续营造中小型洞窟。" }
+    ],
+    problems: [
+      { title: "结合大佛的规模与背景资料，哪项最能体现云冈大型石窟的营造条件？", select: ["主要依靠一位工匠独立完成全部工程", "只要山体足够大，就能自然形成佛像", "北魏皇家的支持，以及众多工匠和资源的集中", "每一座普通村落都能修建同等规模的石窟"], true_answer: 2, reason: "请结合已解锁线索与题干进行判断。" },
+      { title: "佛教造像出现中原服饰特点，最能说明什么？", select: ["外来的佛教艺术吸收了本土文化，产生新的表现形式", "这是佛教造像的服饰自然演变的结果", "穿中原服饰的佛像，表现的一定是某位汉族人物", "不同文化相遇后，其中一种必然完全消失"], true_answer: 0, reason: "请结合已解锁线索与题干进行判断。" },
+      { title: "结合迁都地图与营造资料，哪项判断最合理?", select: ["迁都以后，云冈所有造像活动立即停止", "迁都只改变了都城名称，对文化活动没有影响", "龙门石窟就是将云冈的大佛搬到洛阳后形成的", "政治中心转移影响了皇家营造重心，但云冈仍有后续开凿"], true_answer: 3, reason: "请结合已解锁线索与题干进行判断。" }
     ],
   },
   {
-    name: '陶片密码', subtitle: '合纹',
-    description: '在修复室里寻找相邻陶片，让断开的纹样和编号重新衔接。',
-    panorama: [{ name: '修复记录', url: '/yungang/yungang_cave5_pano.jpg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '双斜线断面', description: '相邻陶片边缘出现连续双斜线。', in_uv: false }] }],
-    hotspots: [{ clue_index: 0, vec: new Vector3(10, 0.7, -2.1) }, { clue_index: 1, vec: new Vector3(10, -0.5, 0) }, { clue_index: 2, vec: new Vector3(10, 1.2, 2.1) }],
+    name: "第六窟 · 衣冠交辉",
+    subtitle: "第六窟 · 衣冠交辉",
+    description: "第六窟 · 衣冠交辉",
+    panorama: [
+      { name: "第六窟", url: "/yungang/yungang_cave6_pano.jpg", ultraviolet_url: "/yungang/yungang_cave6_pano.jpg", click_points: [] }
+    ],
+    hotspots: [
+      { clue_index: 0, vec: new Vector3(10, 0.7, -2.1) },
+      { clue_index: 1, vec: new Vector3(10, 0, 0) },
+      { clue_index: 2, vec: new Vector3(10, 0, 0) }
+    ],
     clues: [
-      { type: 'text', name: '修复台编号表', problem_indexes: [0], data: '虚构编号表：T12左缘为双斜线，T13右缘为双斜线；两片登记在同一层位，但仍需核对断面。' },
-      { type: 'image', name: '断面记录 · 原创教学示意', problem_indexes: [1], data: '/art/terracotta-clue.svg', hint: '用数字图像与尺寸记录比较断面，由专业人员核验；强行拼压实物可能造成二次损伤。' },
-      { type: 'text', name: '数字复原说明', problem_indexes: [2], data: '数字拼合只是提出候选关系；真正结论还需尺寸、材质、层位与专业人员共同核验。' },
+      { type: "text", name: "注意看！他们的穿着为什么不同？", problem_indexes: [0], data: "仔细看看这两个人物：他们的帽饰和衣服有什么不同？\n服饰不仅用于日常穿着，也会反映不同的生活习惯与文化传统。图中的差异，为我们认识当时丰富的服饰文化提供了观察入口。" },
+      { type: "text", name: "佛像为什么穿上宽袍？", problem_indexes: [1], data: "第6窟的造像出现了具有中原特色的“褒衣博带”式服饰。佛教艺术传入中国后，工匠吸收本土的服饰与审美，让佛像呈现出人们更加熟悉的样子。石像衣服的变化，留下了文化相互影响的痕迹。" },
+      { type: "text", name: "一座洞窟里的共同生活", problem_indexes: [2], data: "云冈石窟所在的平城曾是北魏都城。鲜卑、汉族等不同人群在这里交往，共同参与城市生活与文化创造。民族交融，就是不同民族在长期交往中相互学习、相互影响的过程。石窟艺术正是体现了对这一过程的理解。" }
     ],
     problems: [
-      { title: '编号表首先提示哪两片可能相邻？', select: ['T01与T03', 'T12与T13', 'T13与T20', '无法提出候选'], true_answer: 1, reason: 'T12和T13边缘都记录为双斜线，且来自同一层位。' },
-      { title: '比较断面时，不应采取哪种方式？', select: ['查看数字图像', '记录尺寸', '强行拼压实物', '交由专业人员核验'], true_answer: 2, reason: '强行拼压会造成二次损伤，应优先使用非接触记录。' },
-      { title: '数字拼合结果应被理解为什么？', select: ['最终历史定论', '可供核验的候选关系', '可以忽略层位', '自动获得文物身份'], true_answer: 1, reason: '数字结果是辅助证据，必须与其他记录共同核验。' },
-    ],
-  },
-  {
-    name: '甬道回声', subtitle: '寻源',
-    description: '沿虚构甬道追踪三份巡查记录，判断异常声响来自哪里。',
-    panorama: [{ name: '巡查时刻', url: '/yungang/yungang_cave6_pano.jpg', ultraviolet_url: '/art/terracotta-uv.svg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '外罩松动处', description: '设备外罩边缘留有需要专业人员复核的松动痕迹。', in_uv: true }] }],
-    hotspots: [{ clue_index: 0, vec: new Vector3(10, 0.7, -2.1) }, { clue_index: 1, vec: new Vector3(10, -0.5, 0) }, { clue_index: 2, vec: new Vector3(10, 1.2, 2.1) }],
-    clues: [
-      { type: 'text', name: '巡查日志对照', problem_indexes: [0], data: '甲：20:10东段无异常，20:18中段听到两次金属轻响。乙：20:19中段通风设备启动，外罩有一处松动，随后停止运行。对照两份日志的位置。' },
-      { type: 'text', name: '设备安全提示', problem_indexes: [1], data: '发现松动设施应先封控并报告，由专业人员检查；不擅自拆除、继续运行设备或移动周边陶俑。' },
-      { type: 'image', name: '甬道声源核验图', problem_indexes: [2], data: '/art/terracotta-clue.svg', hint: '声响与设备启动的时间、位置相近，使设备成为需检查的声源候选。相关性不能单独证明原因，也没有证据表明文物受损。' },
-    ],
-    problems: [
-      { title: '两份日志共同指向哪个区域需要先检查？', select: ['东段', '中段', '西段', '入口外'], true_answer: 1, reason: '声响与设备启动都记录在中段，且时间相邻。' },
-      { title: '面对松动的设备外罩，合适的处理是什么？', select: ['自行拆除', '继续运行观察', '封控、报告并由专业人员检查', '搬动附近陶俑'], true_answer: 2, reason: '安全和遗产保护都要求避免擅自操作。' },
-      { title: '目前证据能够支持的结论是哪一项？', select: ['设备一定损坏了文物', '有人进入甬道', '中段设备是需核验的声源候选', '声响来自陶俑'], true_answer: 2, reason: '时间和位置使设备成为候选，但尚不足以断言最终原因。' },
+      { title: "观察问题：仔细观察两个人物的帽饰、衣领和衣袖，猜猜他们分别属于什么民族？", select: ["汉族 + 匈奴族", "汉族 + 鲜卑族", "鲜卑族 + 蒙古族", "汉族 + 藏族"], true_answer: 1, reason: "请结合已解锁线索与题干进行判断。" },
+      { title: "佛教造像采用中原“褒衣博带”等服饰特点，说明艺术在传播过程中发生了哪些变化？", select: ["佛教艺术会吸收当地的服饰和审美特点", "外来的艺术形式在传播过程中不会发生本土化变化", "不同文化之间不会相互接触、借鉴和影响", "佛像必须完全保持最初传入中国时的造型，不能发生任何变化"], true_answer: 0, reason: "请结合已解锁线索与题干进行判断。" },
+      { title: "结合前两条线索，第6窟中的人物服饰和佛像造型反映了北魏平城怎样的文化现象？", select: ["不同民族各自生活，彼此之间几乎没有文化交流", "不同民族在长期交往中相互学习、相互影响，逐渐出现文化交融", "中原文化完全取代了鲜卑文化，原有文化全部消失", "石窟中的服饰变化只是工匠个人的艺术选择，与社会生活无关"], true_answer: 1, reason: "请结合已解锁线索与题干进行判断。" }
     ],
   },
 ]
