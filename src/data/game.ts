@@ -90,7 +90,7 @@ const terracottaLevels: level[] = [
   {
     name: '军阵失序', subtitle: '列阵',
     description: '步入陶俑军阵，从姿态、方位与编号记录中找出一尊错列的教学复原俑。',
-    panorama: [{ name: '军阵现状', url: '/yungang/yungang_cave3_pano.jpg', ultraviolet_url: '/art/terracotta-uv.svg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '错列编号', description: '编号位置与虚构军阵记录不符。', in_uv: false }] }],
+    panorama: [{ name: '军阵现状', url: '/yungang/yungang_cave3_pano.jpg', ultraviolet_url: '/yungang/yungang_cave3_pano.jpg', click_points: [{ vec: new Vector3(10, 0, 0), accept_click_range: 0.9, name: '错列编号', description: '编号位置与虚构军阵记录不符。', in_uv: false }] }],
     hotspots: [{ clue_index: 0, vec: new Vector3(10, 0.7, -2.1) }, { clue_index: 1, vec: new Vector3(10, -0.5, 0) }, { clue_index: 2, vec: new Vector3(10, 1.2, 2.1) }],
     clues: [
       { type: 'text', name: '虚构军阵记录', problem_indexes: [0], data: '教学记录按朝向编号：一列与二列面向东，三列面向南。编号B-07原记于二列，不应出现在三列。' },

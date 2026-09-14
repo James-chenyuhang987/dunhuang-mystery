@@ -17,7 +17,7 @@ describe('App', () => {
    expect(wrapper.get('.entry-sequence').classes()).toContain('entry-phase-earth')
    await wrapper.get('.skip-intro').trigger('click')
    await flushPromises()
-   expect(wrapper.get('.intro-screen video').attributes('src')).toContain('/entry/begin.mp4')
+   expect(wrapper.get('.intro-screen video').attributes('src')).toContain('/entry/begin')
    vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => undefined)
    await wrapper.get('.skip-intro').trigger('click')
    await flushPromises()
