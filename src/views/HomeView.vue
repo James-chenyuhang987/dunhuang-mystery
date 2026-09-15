@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import BingMaYongView from './BingMaYongView.vue'
-import DunHuangHome from './DunHuangHome.vue'
+import { gameLocations } from '@/data/game'
+import PlaceHome from './PlaceHome.vue'
 
 const route = useRoute()
-const page = computed(() => route.params.place === 'yungang' ? BingMaYongView : DunHuangHome)
+const location = computed(() => gameLocations.find((entry) => entry.id === route.params.place) ?? gameLocations[0])
 </script>
 
-<template><component :is="page" /></template>
+<template><PlaceHome v-if="location" :place-id="location.id" /></template>

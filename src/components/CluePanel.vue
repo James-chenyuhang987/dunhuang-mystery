@@ -27,6 +27,10 @@ onBeforeUnmount(loaded)
     <div v-if="open && !locked" :id="`clue-${index}`" class="clue-body">
       <p v-if="item.hint">{{ item.hint }}</p>
       <p v-if="item.type === 'text'">{{ item.data }}</p>
+      <div v-else-if="item.type === 'combination'" class="combination-clue">
+        <p v-if="item.data">{{ item.data }}</p>
+        <CluePanel v-for="(subclue, subIndex) in item.subclues ?? []" :key="`${index}-${subIndex}`" :item="subclue" :index="subIndex" />
+      </div>
       <div v-else-if="failed" role="alert"><p>这条线索加载失败。</p><button class="outline-button" @click="retry">重新加载线索</button></div>
       <img v-else-if="item.type === 'image'" :key="`image-${revision}`" :src="assetUrl(item.data)" :alt="item.name" @load="loaded" @error="fail" @click="expand">
       <audio v-else-if="item.type === 'audio'" :key="`audio-${revision}`" :src="assetUrl(item.data)" controls preload="metadata" @loadedmetadata="loaded" @playing="loaded" @waiting="deadline" @error="fail" />

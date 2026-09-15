@@ -14,7 +14,29 @@ const routeIntroActive = inject<Ref<boolean>>('routeIntroActive', ref(false))
 const router = useRouter()
 const route = useRoute()
 const questionDialog = ref<HTMLDialogElement | null>(null)
-const feedback = ref<{ correct: boolean; question: problem; problemIndex: number; selected: number } | null>(null)
+const feedback = ref<{ correct: boolean; question: problem; problemIndex: number; selected: number[] } | null>(null)
+const selectedAnswers = ref<number[]>([])
+const isMultiChoice = computed(() => (game.currentProblem?.true_answers?.length ?? 0) > 1)
+const correctAnswers = (item: problem) => item.true_answers?.length ? item.true_answers : [item.true_answer]
+function resetSelection() { selectedAnswers.value = [] }
+function toggleAnswer(index: number) {
+  if (feedback.value) return
+  if (isMultiChoice.value) {
+    selectedAnswers.value = selectedAnswers.value.includes(index)
+      ? selectedAnswers.value.filter(entry => entry !== index)
+      : [...selectedAnswers.value, index].sort((a, b) => a - b)
+  } else {
+    submitAnswers([index])
+  }
+}
+function submitAnswers(answers: number[] = selectedAnswers.value) {
+  if (!game.currentProblem || feedback.value || game.currentProblemIndex === null || answers.length === 0) return
+  const original = game.currentProblem
+  const problemIndex = game.currentProblemIndex
+  const correct = game.submitAnswer(answers)
+  if (correct !== null) feedback.value = { correct, question: original, problemIndex, selected: answers }
+}
+function answer(index: number) { toggleAnswer(index) }
 const cluePanels = ref<InstanceType<typeof CluePanel>[]>([])
 const highlightedClue = ref<number | null>(null)
 const cluesOpen = ref(false)
@@ -34,15 +56,8 @@ const solvedCount = computed(() => game.selectedQuestionIndexes.filter(index => 
 const elapsed = computed(() => `${String(Math.floor(game.elapsedMs / 60000)).padStart(2, '0')}:${String(Math.floor(game.elapsedMs / 1000) % 60).padStart(2, '0')}`)
 const suggestedClues = computed(() => feedback.value && !feedback.value.correct ? game.currentLevel?.clues.flatMap((clue, index) => clue.problem_indexes?.includes(feedback.value?.problemIndex ?? -1) ? [index] : []) ?? [] : [])
 function openQuestions() { questionDialog.value?.showModal() }
-function answer(index: number) {
-  if (!game.currentProblem || feedback.value || game.currentProblemIndex === null) return
-  const original = game.currentProblem
-  const problemIndex = game.currentProblemIndex
-  const correct = game.submitAnswer(index)
-  if (correct !== null) feedback.value = { correct, question: original, problemIndex, selected: index }
-}
 function skipQuestion() { if (!feedback.value) game.skipCurrentProblem() }
-function continueAnswer() { feedback.value = null }
+function continueAnswer() { feedback.value = null; resetSelection() }
 function handleClue(index: number): void {
   game.unlockClue(index)
   void revealClue(index)
@@ -80,7 +95,8 @@ async function openDiscoveryImage(): Promise<void> {
   discoveryMedia.value?.open()
 }
 function nextLevel() { feedback.value = null; questionDialog.value?.close(); if (game.advanceLevel()) void router.push(thankPath.value) }
-watch(() => game.difficulty, () => { feedback.value = null })
+watch(() => game.difficulty, () => { feedback.value = null; resetSelection() })
+watch(() => game.currentProblemIndex, () => resetSelection())
 watch(() => game.currentLevelIndex, () => { cluesOpen.value = false; archiveOpen.value = false; ultraviolet.value = false; discovery.value = null })
 onMounted(async () => {
   if (game.locationId !== placeId.value) game.selectLocation(placeId.value)
@@ -133,10 +149,11 @@ onBeforeUnmount(() => { game.pauseTimer(); game.persist() })
       <DifficultyControl :level-index="game.currentLevelIndex" :editable="false"/>
       <template v-if="question">
         <div class="question-progress">解谜进度 {{ solvedCount }} / {{ game.selectedQuestionIndexes.length }}</div>
-        <h2 id="question-title">{{ question.title }}</h2><p class="muted">结合手札中的线索，选择你的推断。</p>
-        <div class="answer-list"><button v-for="(option, index) in question.select" :key="index" class="answer-option" :class="{ correct: feedback && index === question.true_answer, incorrect: feedback && !feedback.correct && feedback.selected === index }" :disabled="!!feedback" @click="answer(index)"><span>{{ index + 1 }}</span>{{ option }}<AppIcon v-if="feedback && index === question.true_answer" name="check"/></button></div>
+        <h2 id="question-title">{{ question.title }}</h2><p class="muted">{{ isMultiChoice ? '多选题 · 请选择 2–3 个选项后提交。' : '单选题 · 请选择一个选项。' }}</p>
+        <div class="answer-list" :class="{ 'multi-choice': isMultiChoice }"><button v-for="(option, index) in question.select" :key="index" class="answer-option" :class="{ selected: selectedAnswers.includes(index), correct: feedback && correctAnswers(question).includes(index), incorrect: feedback && !feedback.correct && feedback.selected.includes(index) && !correctAnswers(question).includes(index) }" :disabled="!!feedback" @click="answer(index)"><span class="answer-marker">{{ String.fromCharCode(65 + index) }}</span>{{ option }}<AppIcon v-if="feedback && correctAnswers(question).includes(index)" name="check"/></button></div>
+        <button v-if="!feedback && isMultiChoice" class="primary submit-answer" :disabled="selectedAnswers.length < 2" @click="submitAnswers()">提交</button>
         <button v-if="!feedback" class="text-button skip-question" @click="skipQuestion">跳过此题 →</button>
-        <div v-if="feedback" class="answer-feedback" :class="{ wrong: !feedback.correct }" role="status"><strong>{{ feedback.correct ? '推断正确 · 线索已连接' : '推断有误 · 查看对应线索' }}</strong><p v-if="feedback.correct">{{ feedback.question.reason }}</p><p v-else>本题已经记录为错误。正确答案已用绿色标记，请查看对应解析与线索后继续下一题。</p><div v-if="suggestedClues.length" class="feedback-clues"><button v-for="index in suggestedClues" :key="index" class="outline-button" :disabled="!game.isClueUnlocked(index)" @click="revealClue(index); questionDialog?.close()">{{ game.isClueUnlocked(index) ? `线索 ${String(index + 1).padStart(2, '0')} · ${game.currentLevel.clues[index]?.name}` : `线索 ${String(index + 1).padStart(2, '0')} · 尚未解锁` }}</button></div><button class="primary" @click="continueAnswer">{{ game.levelSolved ? '查看本卷结果' : '下一道谜题' }}<AppIcon name="arrow"/></button></div>
+        <div v-if="feedback" class="answer-feedback" :class="{ wrong: !feedback.correct }" role="status"><strong>{{ feedback.correct ? '推断正确 · 线索已连接' : '推断有误 · 查看对应线索' }}</strong><p>{{ feedback.question.reason }}</p><div v-if="suggestedClues.length" class="feedback-clues"><button v-for="index in suggestedClues" :key="index" class="outline-button" :disabled="!game.isClueUnlocked(index)" @click="revealClue(index); questionDialog?.close()">{{ game.isClueUnlocked(index) ? `线索 ${String(index + 1).padStart(2, '0')} · ${game.currentLevel.clues[index]?.name}` : `线索 ${String(index + 1).padStart(2, '0')} · 尚未解锁` }}</button></div><button class="primary" @click="continueAnswer">{{ game.levelSolved ? '查看本卷结果' : '下一道谜题' }}<AppIcon name="arrow"/></button></div>
       </template>
       <template v-else-if="game.levelSolved"><div class="completion-symbol">✧</div><h2 id="question-title">{{ game.currentLevel.problems.length ? siteConfig.chapterCompleteHeading : '本关没有题目，可自由探索。' }}</h2><p>散落的线索在你的手中，重新连成了故事。</p><p class="muted">已完成「{{ game.currentLevel.name }}」本档全部 {{ game.selectedQuestionIndexes.length }} 道谜题。</p><button class="primary" @click="nextLevel">{{ game.mode === 'campaign' && game.currentLevelIndex < game.levels.length - 1 ? '完成本关 · 前往下一关' : '落款 · 查看探索回响' }}<AppIcon name="arrow"/></button></template>
     </dialog>
