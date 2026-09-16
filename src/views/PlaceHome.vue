@@ -8,17 +8,18 @@ import ChapterThumbnail from '@/components/ChapterThumbnail.vue'
 import DifficultyControl from '@/components/DifficultyControl.vue'
 import { assetUrl } from '@/utils/assets'
 
-const props = defineProps<{ placeId: string }>()
+const props = defineProps<{ placeId?: string }>()
 const game = useGameStore()
 const router = useRouter()
 const route = useRoute()
+const placeId = computed(() => props.placeId ?? String(route.params.place ?? game.locationId))
 const selecting = computed(() => route.query.panel === 'levels')
 const posterFailed = ref(false)
 const posterRevision = ref(0)
 const introReady = ref(true)
-const activeLocation = computed(() => gameLocations.find((location) => location.id === props.placeId))
+const activeLocation = computed(() => gameLocations.find((location) => location.id === placeId.value))
 const selected = computed(() => game.levels[game.selectedLevelIndex])
-const homePath = computed(() => `/${props.placeId}/home`)
+const homePath = computed(() => `/${placeId.value}/home`)
 
 function gamePath(section: 'game' | 'thank'): string {
   return `/${props.placeId}/${section}`
@@ -38,7 +39,7 @@ function resume(): void {
 
 onMounted(() => {
   game.pauseTimer()
-  if (activeLocation.value && game.locationId !== props.placeId) game.selectLocation(props.placeId)
+  if (activeLocation.value && game.locationId !== placeId.value) game.selectLocation(placeId.value)
 })
 </script>
 

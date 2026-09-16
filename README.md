@@ -12,6 +12,12 @@ npm run dev -- --host 127.0.0.1
 
 推荐 Node 24.15+（或 22.22.2+），以满足当前工具链的 engine 要求。
 
+## 技术资料与产品介绍
+
+- `docs/TECHNICAL_OVERVIEW.md`：代码分层、产品主链路、工程保障，以及 360° 全景点击发现和 UV Shader 两项功能的原理说明。
+- `docs/DUNHUANG_EXPLORER_TECH_BRIEF.pptx`：面向汇报/答辩的 15 页产品与技术介绍（封面、目录、Part A/B/C 分隔页及三部分内容）；可用 `npm run build:ppt` 根据最新截图重新生成。
+- `tools/build-presentation.py`：PPT 生成脚本，使用项目已有的视觉快照和素材，不参与前端运行时。
+
 ## 替换正式素材
 
 编辑 `src/data/game.ts`：
@@ -28,7 +34,7 @@ npm run dev -- --host 127.0.0.1
 
 ## 玩法和数据
 
-路由结构为 `/{PLACE}/{home|game|thank}`（GitHub Pages 地址中位于 `#` 后）。`/` 与 `/dunhuang` 重定向到 `/dunhuang/home`；暂时禁用的兵马俑及未知地点也会回到该页。一级菜单仅提供“开始”和 outline 样式的“选关”：开始按 `levels` 顺序线性游玩；选关进入 `/dunhuang/home?panel=levels` 二级菜单，所选关完成后直接前往 `/dunhuang/thank`。游戏状态由 Pinia 管理，全部关卡共享 `/dunhuang/game`。
+路由结构为 `/{PLACE}/{home|game|thank}`（GitHub Pages 地址中位于 `#` 后）；地点首页路由直接渲染 `PlaceHome`，由它根据 `route.params.place` 解析 `gameLocations`，不再经过地点包装视图。`/` 与 `/dunhuang` 重定向到 `/dunhuang/home`；暂时禁用的兵马俑及未知地点也会回到该页。一级菜单仅提供“开始”和 outline 样式的“选关”：开始按 `levels` 顺序线性游玩；选关进入 `/dunhuang/home?panel=levels` 二级菜单，所选关完成后直接前往 `/dunhuang/thank`。游戏状态由 Pinia 管理，全部关卡共享 `/dunhuang/game`。
 
 初探抽取 1 题，寻踪抽取题量一半（向上取整），解谜抽取全部。二级选关菜单、游戏设置及题目弹窗均可修改难度，显示“本关需答 X / Y 题”；难度标签可直接点击，滑块也支持触摸、鼠标与键盘。每关生成稳定随机顺序，途中改变难度调整当前关的题目集合但保留答题历史；线性模式中已离开的关卡按通过时的难度保留完成状态，不受后续难度切换影响。答对数为首次正确的题数，答错数为错误尝试次数；每次记录原始题目下标、关卡下标、选择和时间。
 
@@ -36,7 +42,9 @@ npm run dev -- --host 127.0.0.1
 
 `ClickPoint.vec` 是以球心为原点、半径约 10 的球面笛卡尔坐标；点击射线与球面的交点减去球心后，与同模式点击点计算欧氏距离，距离小于等于 `accept_click_range` 即命中。每次非拖动点击都会在浏览器控制台输出实际 `Vector3` 和可直接粘贴到配置的 `new Vector3(x, y, z)`。`in_uv: false` 仅普通模式可发现，`true` 仅紫外模式可发现；重叠范围取最近点。发现按关卡、时相和配置下标去重并持久化，但不影响答题通关。
 
-`hotspots` 显示配置驱动的线索点并展开相应 `clue_index`；`clue.problem_indexes` 可关联原始题目下标。线索默认锁定，点击全景中的对应编号后解锁；已解锁线索可随时反复查看，未解锁线索显示锁定状态。线索支持图片、音频、视频、文本，面板事件不会传给全景。图片、视频及带图彩蛋提供全屏查看器，支持按钮、滚轮与双指缩放（100%–500%）、放大后拖动、重置及设备全屏。
+`hotspots` 显示配置驱动的线索点并展开相应 `clue_index`；`clue.problem_indexes` 可关联原始题目下标。线索默认锁定，点击全景中的对应编号后解锁；已解锁线索可随时反复查看，未解锁线索显示锁定状态。线索支持图片、音频、视频、文本和 `combination` 组合类型；组合线索通过递归 `subclues` 展示子线索内容，面板事件不会传给全景。
+
+`PanoramaViewer` 仅负责模板、props/emits 和事件接线。`SceneManager` composable 独立拥有 Three.js renderer、CSS2DRenderer、scene/camera/sphere/material、EffectComposer/UV pass、纹理竞态、ResizeObserver、WebGL context lost、重试和释放生命周期；`GameUI` composable 负责 FOV/拖拽/捏合/键盘交互、热点 DOM 与投影可见性，以及使用 Raycaster 和 `findMatchingClickPoint` 的彩蛋点击发现。两者通过 getter/API 协作，避免 SFC 持有场景核心对象。图片、视频及带图彩蛋提供全屏查看器，支持按钮、滚轮与双指缩放（100%–500%）、放大后拖动、重置及设备全屏。
 
 每题只有一次作答机会：答错后记录结果但不直接公布正确答案，可查看已解锁的关联线索后继续；尚未发现的线索会保持锁定，也可跳过，答错与跳过分别统计并持久化。
 

@@ -1,6 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { gameLocations, siteConfig } from '@/data/game'
-import HomeView from '@/views/HomeView.vue'
+import PlaceHome from '@/views/PlaceHome.vue'
 import GameView from '@/views/GameView.vue'
 import EndingView from '@/views/EndingView.vue'
 
@@ -12,7 +12,7 @@ const router = createRouter({
   routes: [
     { path: '/', redirect: HOME_PATH },
     { path: '/dunhuang', redirect: HOME_PATH },
-    { path: '/:place/home', name: 'place-home', component: HomeView, meta: { section: 'home', title: `${siteConfig.title} · ${siteConfig.subtitle}` }, beforeEnter: (to) => typeof to.params.place === 'string' && validPlaces.has(to.params.place) ? true : HOME_PATH },
+    { path: '/:place/home', name: 'place-home', component: PlaceHome, meta: { section: 'home', title: `${siteConfig.title} · ${siteConfig.subtitle}` }, beforeEnter: (to) => typeof to.params.place === 'string' && validPlaces.has(to.params.place) ? true : HOME_PATH },
     { path: '/:place/game', name: 'place-game', component: GameView, meta: { section: 'game', title: `入画寻踪 · ${siteConfig.title}` }, beforeEnter: (to) => typeof to.params.place === 'string' && validPlaces.has(to.params.place) ? true : HOME_PATH },
     { path: '/:place/thank', name: 'place-thank', component: EndingView, meta: { section: 'thank', title: `千年回响 · ${siteConfig.title}` }, beforeEnter: (to) => typeof to.params.place === 'string' && validPlaces.has(to.params.place) ? true : HOME_PATH },
     { path: '/terracotta/:pathMatch(.*)*', redirect: '/yungang/home' },

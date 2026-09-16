@@ -19,6 +19,19 @@ describe('clue panels', () => {
     }
     wrapper.unmount()
   })
+  it('renders combination clues and their child content', async () => {
+    const wrapper = mount(CluePanel, { props: { item: { type: 'combination', name: '组合线索', data: '总览', subclues: [
+      { type: 'text', name: '文字碎片', data: '子线索一' },
+      { type: 'text', name: '第二碎片', data: '子线索二' },
+    ] }, index: 0 } })
+    await wrapper.find('.clue-toggle').trigger('click')
+    expect(wrapper.text()).toContain('总览')
+    expect(wrapper.text()).toContain('文字碎片')
+    expect(wrapper.text()).toContain('第二碎片')
+    expect(wrapper.findAll('.clue-toggle')).toHaveLength(3)
+    wrapper.unmount()
+  })
+
   it('keeps locked clues unavailable until the parent unlocks them', async () => {
     const wrapper = mount(CluePanel, { props: { item: { type: 'text', name: '未解线索', data: '隐藏内容' }, index: 0, locked: true } })
     expect(wrapper.find('.clue-toggle').attributes('aria-disabled')).toBe('true')

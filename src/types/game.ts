@@ -4,15 +4,23 @@ export interface problem {
   title: string
   select: [string, string, string, string]
   true_answer: number
+  /** Present for questions that require selecting more than one option. */
+  true_answers?: number[]
   reason: string
 }
 
 export interface clue {
-  type: 'image' | 'audio' | 'text' | 'video'
+  type: 'image' | 'audio' | 'text' | 'video' | 'combination'
   name: string
+  /** Media path or text body. Combination clues use this as an optional summary. */
   data: string
+  /** Child clues rendered in order for combination clues. */
+  subclues?: clue[]
   problem_indexes?: number[]
   hint?: string
+  /** Authoring notes from the latest clue brief; used to keep placement and media requirements explicit. */
+  placement?: string
+  media_note?: string
 }
 
 export type hotspot = { clue_index: number } & (
@@ -80,7 +88,7 @@ interface AttemptBase {
 }
 
 export type Attempt = AttemptBase & (
-  | { selectedAnswer: number; correct: boolean; skipped?: false; legacy?: true }
+  | { selectedAnswer: number | number[]; correct: boolean; skipped?: false; legacy?: true }
   | { selectedAnswer: null; correct: false; skipped: true; legacy?: never }
 )
 
