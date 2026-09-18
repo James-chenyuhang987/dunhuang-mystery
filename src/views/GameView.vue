@@ -21,7 +21,8 @@ const feedback = ref<{
   selected: number[]
 } | null>(null)
 const selectedAnswers = ref<number[]>([])
-const isMultiChoice = computed(() => (game.currentProblem?.true_answers?.length ?? 0) > 1)
+const question = computed(() => feedback.value?.question ?? game.currentProblem)
+const isMultiChoice = computed(() => (question.value?.true_answers?.length ?? 0) > 1)
 const correctAnswers = (item: problem) =>
   item.true_answers?.length ? item.true_answers : [item.true_answer]
 function resetSelection() {
@@ -72,7 +73,6 @@ const discoveryClue = computed<clue | null>(() =>
     ? { type: 'image', name: discovery.value.name, data: discovery.value.image }
     : null,
 )
-const question = computed(() => feedback.value?.question ?? game.currentProblem)
 const solvedCount = computed(
   () =>
     game.selectedQuestionIndexes.filter((index) =>
@@ -426,8 +426,12 @@ onBeforeUnmount(() => {
           <strong>{{
             feedback.correct ? '推断正确 · 线索已连接' : '推断有误 · 查看对应线索'
           }}</strong>
-          <p v-if="feedback.correct">{{ feedback.question.reason }}</p>
-          <p v-else>本题已经记录为错误。正确答案已用绿色标记。{{ feedback.question.reason }}</p>
+          <p v-if="!feedback.correct" class="answer-note">
+            本题已经记录为错误，正确答案已用绿色标记。
+          </p>
+          <p class="answer-explanation">
+            <strong>题目解析：</strong>{{ feedback.question.reason }}
+          </p>
           <div v-if="suggestedClues.length" class="feedback-clues">
             <button
               v-for="index in suggestedClues"
