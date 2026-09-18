@@ -7,7 +7,6 @@ import AppIcon from '@/components/AppIcon.vue'
 import ChapterThumbnail from '@/components/ChapterThumbnail.vue'
 import DifficultyControl from '@/components/DifficultyControl.vue'
 import { assetUrl } from '@/utils/assets'
-import Swal from 'sweetalert2'
 
 const props = defineProps<{ placeId?: string }>()
 const game = useGameStore()
@@ -32,25 +31,9 @@ function gamePath(section: 'game' | 'thank'): string {
   return `/${placeId.value}/${section}`
 }
 
-async function start(campaign: boolean): Promise<void> {
+function start(campaign: boolean): void {
   if (!game.levels.length || !introReady.value) return
-  if (game.hasProgress) {
-    const result = await Swal.fire({
-      title: '重新开始探索？',
-      text: '重新探索将替换此设备上的答题记录。',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: '继续探索',
-      cancelButtonText: '取消',
-      buttonsStyling: false,
-      customClass: {
-        popup: 'surface swal-surface',
-        confirmButton: 'primary swal-confirm',
-        cancelButton: 'outline-button swal-cancel',
-      },
-    })
-    if (!result.isConfirmed) return
-  }
+  if (game.hasProgress && !window.confirm('重新探索将替换此设备上的答题记录，是否继续？')) return
   if (campaign) game.startCampaign()
   else game.startGame()
   if (game.hasProgress) void router.push(gamePath('game'))

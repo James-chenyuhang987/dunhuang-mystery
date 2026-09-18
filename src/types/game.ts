@@ -54,8 +54,6 @@ export interface level {
   hotspots?: hotspot[]
   clues: clue[]
   problems: problem[]
-  ui_plugins?: import('@/plugin/plugins').PluginReference<'UI'>[]
-  render_plugins?: import('@/plugin/plugins').PluginReference<'Renderer'>[]
 }
 
 export type levels = level[]
