@@ -8,7 +8,12 @@ import { siteConfig } from '@/data/game'
 import type { level } from '@/types/game'
 
 const wrappers: ReturnType<typeof mount>[] = []
-afterEach(() => { wrappers.splice(0).forEach(wrapper => wrapper.unmount()); vi.restoreAllMocks(); localStorage.clear(); sessionStorage.clear() })
+afterEach(() => {
+  wrappers.splice(0).forEach((wrapper) => wrapper.unmount())
+  vi.restoreAllMocks()
+  localStorage.clear()
+  sessionStorage.clear()
+})
 async function setup(levels: level[], path = '/dunhuang/home') {
   sessionStorage.setItem('dunhuang-mystery:location-selected', '1')
   localStorage.setItem('dunhuang-mystery:intro-completed:v2:dunhuang', 'true')
@@ -16,11 +21,14 @@ async function setup(levels: level[], path = '/dunhuang/home') {
   setActivePinia(pinia)
   const game = useGameStore()
   game.levels = levels
-  const router = createRouter({ history: createMemoryHistory(), routes: [
-    { path: '/dunhuang/home', component: HomeView },
-    { path: '/dunhuang/game', component: HomeView },
-    { path: '/dunhuang/thank', component: HomeView },
-  ] })
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/dunhuang/home', component: HomeView },
+      { path: '/dunhuang/game', component: HomeView },
+      { path: '/dunhuang/thank', component: HomeView },
+    ],
+  })
   await router.push(path)
   const wrapper = mount(HomeView, { global: { plugins: [pinia, router] } })
   wrappers.push(wrapper)
@@ -29,9 +37,14 @@ async function setup(levels: level[], path = '/dunhuang/home') {
 }
 const entries: level[] = Array.from({ length: 12 }, (_, index) => ({
   name: index < 2 ? '重复关卡名' : `配置名称 ${index + 1}`,
-  panorama: [{ name: `配置时相 ${index + 1}`, url: `/custom/panorama-${index}.png`, click_points: [] }],
-  clues: [], problems: [],
-  ...(index === 11 ? { thumbnail_url: '/custom/preview.png', subtitle: '配置副标题', description: '配置介绍' } : {}),
+  panorama: [
+    { name: `配置时相 ${index + 1}`, url: `/custom/panorama-${index}.png`, click_points: [] },
+  ],
+  clues: [],
+  problems: [],
+  ...(index === 11
+    ? { thumbnail_url: '/custom/preview.png', subtitle: '配置副标题', description: '配置介绍' }
+    : {}),
 }))
 
 describe('configuration-driven menus', () => {
@@ -39,7 +52,9 @@ describe('configuration-driven menus', () => {
     const { wrapper, router, game } = await setup(entries)
     expect(wrapper.get('.landscape').attributes('src')).toBe('/dunhuang/background.jpeg')
     expect(wrapper.find('.intro-screen').exists()).toBe(false)
-    expect(wrapper.findAll('.journey-panel > .start-button').map(button => button.text())).toEqual(['开始', '选关'])
+    expect(
+      wrapper.findAll('.journey-panel > .start-button').map((button) => button.text()),
+    ).toEqual(['开始', '选关'])
     expect(wrapper.find('.level-select-button [data-icon="map"]').exists()).toBe(true)
     expect(wrapper.get('header nav a').text()).toContain('关于作者')
     expect(wrapper.get('header nav a').attributes('href')).toBe('/dunhuang/thank')
@@ -58,7 +73,9 @@ describe('configuration-driven menus', () => {
     expect(last.text()).toContain('第 12 章')
     expect(last.text()).toContain('配置名称 12')
     expect(last.text()).toContain('配置副标题')
-    expect(wrapper.findAll('.chapter-preview img')[11]!.attributes('src')).toBe('/custom/preview.png')
+    expect(wrapper.findAll('.chapter-preview img')[11]!.attributes('src')).toBe(
+      '/custom/preview.png',
+    )
     await last.trigger('click')
     expect(game.selectedLevelIndex).toBe(11)
     expect(wrapper.find('.chapter-description').text()).toBe('配置介绍')

@@ -2,7 +2,24 @@ import { defineStore } from 'pinia'
 import { gameLocations } from '@/data/game'
 import type { Attempt, Difficulty, ImagePanorama, level, problem } from '@/types/game'
 import type { GameMode, GameRound, GameState, Snapshot } from '@/types/gamestore'
-import { copyConfig, countFor, defaultLocationId, isInteger, isSnapshot, locationLevels, migrateSnapshot, questionFingerprint, shuffle, solvedIndexes, correctlySolvedIndexes, selectedIndexes, clickPointKey, clueKey, validClickPointKey, validClueKey } from '@/utils/utils'
+import {
+  copyConfig,
+  countFor,
+  defaultLocationId,
+  isInteger,
+  isSnapshot,
+  locationLevels,
+  migrateSnapshot,
+  questionFingerprint,
+  shuffle,
+  solvedIndexes,
+  correctlySolvedIndexes,
+  selectedIndexes,
+  clickPointKey,
+  clueKey,
+  validClickPointKey,
+  validClueKey,
+} from '@/utils/utils'
 
 export const GAME_STORAGE_KEY = 'dunhuang-mystery:game:v1'
 
@@ -31,30 +48,50 @@ export const useGameStore = defineStore('game', {
     currentPanorama(): ImagePanorama | undefined {
       return this.currentLevel?.panorama[this.currentPanoramaIndex]
     },
-    discoveredCount: (state): number => state.discoveredClickPoints.filter((key) =>
-      key.startsWith(`${state.currentLevelIndex}:`),
-    ).length,
-    totalClickPointCount: (state): number => state.levels[state.currentLevelIndex]?.panorama.reduce(
-      (total, panorama) => total + panorama.click_points.length, 0,
-    ) ?? 0,
+    discoveredCount: (state): number =>
+      state.discoveredClickPoints.filter((key) => key.startsWith(`${state.currentLevelIndex}:`))
+        .length,
+    totalClickPointCount: (state): number =>
+      state.levels[state.currentLevelIndex]?.panorama.reduce(
+        (total, panorama) => total + panorama.click_points.length,
+        0,
+      ) ?? 0,
     selectedQuestionIndexes: (state): number[] => selectedIndexes(state, state.currentLevelIndex),
     currentProblemIndex(): number | null {
-      return this.selectedQuestionIndexes.find((index) => !this.attempts.some((attempt) =>
-        attempt.levelIndex === this.currentLevelIndex && attempt.problemIndex === index,
-      )) ?? null
+      return (
+        this.selectedQuestionIndexes.find(
+          (index) =>
+            !this.attempts.some(
+              (attempt) =>
+                attempt.levelIndex === this.currentLevelIndex && attempt.problemIndex === index,
+            ),
+        ) ?? null
+      )
     },
     currentProblem(): problem | null {
-      return this.currentProblemIndex === null ? null : this.currentLevel?.problems[this.currentProblemIndex] ?? null
+      return this.currentProblemIndex === null
+        ? null
+        : (this.currentLevel?.problems[this.currentProblemIndex] ?? null)
     },
-    correctCount: (state): number => new Set(state.attempts.filter((entry) => entry.correct)
-      .map((entry) => `${entry.levelIndex}:${entry.problemIndex}`)).size,
-    wrongCount: (state): number => state.attempts.filter((entry) => !entry.correct && !entry.skipped).length,
-    skippedCount: (state): number => state.attempts.filter((entry) => entry.skipped === true).length,
+    correctCount: (state): number =>
+      new Set(
+        state.attempts
+          .filter((entry) => entry.correct)
+          .map((entry) => `${entry.levelIndex}:${entry.problemIndex}`),
+      ).size,
+    wrongCount: (state): number =>
+      state.attempts.filter((entry) => !entry.correct && !entry.skipped).length,
+    skippedCount: (state): number =>
+      state.attempts.filter((entry) => entry.skipped === true).length,
     levelSolved(): boolean {
-      return this.hasStarted && this.rounds.some((round) => round.levelIndex === this.currentLevelIndex)
-        && this.currentProblemIndex === null
+      return (
+        this.hasStarted &&
+        this.rounds.some((round) => round.levelIndex === this.currentLevelIndex) &&
+        this.currentProblemIndex === null
+      )
     },
-    isLastLevel: (state): boolean => state.mode === 'single' || state.currentLevelIndex === state.levels.length - 1,
+    isLastLevel: (state): boolean =>
+      state.mode === 'single' || state.currentLevelIndex === state.levels.length - 1,
     canAdvance(): boolean {
       return this.levelSolved && !this.completed
     },
@@ -69,13 +106,18 @@ export const useGameStore = defineStore('game', {
         this.$reset()
         this.locationId = locationId
         this.$patch(config)
-        if (hadProgress) this.persistenceError = '题目配置已更新，旧进度不兼容，已重置。请重新开始。'
+        if (hadProgress)
+          this.persistenceError = '题目配置已更新，旧进度不兼容，已重置。请重新开始。'
         return
       }
       this.$patch(config)
-      this.currentPanoramaIndex = Math.min(this.currentPanoramaIndex,
-        Math.max(0, (this.currentLevel?.panorama.length ?? 1) - 1))
-      this.discoveredClickPoints = this.discoveredClickPoints.filter((key) => validClickPointKey(this.levels, key))
+      this.currentPanoramaIndex = Math.min(
+        this.currentPanoramaIndex,
+        Math.max(0, (this.currentLevel?.panorama.length ?? 1) - 1),
+      )
+      this.discoveredClickPoints = this.discoveredClickPoints.filter((key) =>
+        validClickPointKey(this.levels, key),
+      )
       this.unlockedClues = this.unlockedClues.filter((key) => validClueKey(this.levels, key))
     },
     setDifficulty(value: Difficulty): void {
@@ -106,19 +148,33 @@ export const useGameStore = defineStore('game', {
       return true
     },
     isClueUnlocked(index: number): boolean {
-      return isInteger(index, 0, (this.currentLevel?.clues.length ?? 0) - 1)
-        && this.unlockedClues.includes(clueKey(this.currentLevelIndex, index))
+      return (
+        isInteger(index, 0, (this.currentLevel?.clues.length ?? 0) - 1) &&
+        this.unlockedClues.includes(clueKey(this.currentLevelIndex, index))
+      )
     },
     unlockClue(index: number): boolean {
-      if (!this.hasStarted || !isInteger(index, 0, (this.currentLevel?.clues.length ?? 0) - 1)
-        || this.isClueUnlocked(index)) return false
+      if (
+        !this.hasStarted ||
+        !isInteger(index, 0, (this.currentLevel?.clues.length ?? 0) - 1) ||
+        this.isClueUnlocked(index)
+      )
+        return false
       this.unlockedClues.push(clueKey(this.currentLevelIndex, index))
       this.persist()
       return true
     },
     discoverClickPoint(panoramaIndex: number, pointIndex: number): boolean {
-      if (!this.hasStarted || !isInteger(panoramaIndex, 0, (this.currentLevel?.panorama.length ?? 0) - 1)
-        || !isInteger(pointIndex, 0, (this.currentLevel?.panorama[panoramaIndex]?.click_points.length ?? 0) - 1)) return false
+      if (
+        !this.hasStarted ||
+        !isInteger(panoramaIndex, 0, (this.currentLevel?.panorama.length ?? 0) - 1) ||
+        !isInteger(
+          pointIndex,
+          0,
+          (this.currentLevel?.panorama[panoramaIndex]?.click_points.length ?? 0) - 1,
+        )
+      )
+        return false
       const key = clickPointKey(this.currentLevelIndex, panoramaIndex, pointIndex)
       if (this.discoveredClickPoints.includes(key)) return false
       this.discoveredClickPoints.push(key)
@@ -137,7 +193,9 @@ export const useGameStore = defineStore('game', {
       this.unlockedClues = []
       this.attempts = []
       this.completedLevelIndexes = []
-      this.rounds = [{ levelIndex: index, questionOrder: shuffle(this.levels[index]?.problems.length ?? 0) }]
+      this.rounds = [
+        { levelIndex: index, questionOrder: shuffle(this.levels[index]?.problems.length ?? 0) },
+      ]
       this.completedLevelIndexes = solvedIndexes(this)
       this.elapsedMs = 0
       this.completed = false
@@ -157,22 +215,46 @@ export const useGameStore = defineStore('game', {
       const question = this.currentProblem
       const problemIndex = this.currentProblemIndex
       const answers = Array.isArray(answer) ? [...new Set(answer)].sort((a, b) => a - b) : [answer]
-      if (!this.hasStarted || this.completed || !question || problemIndex === null
-        || answers.length === 0 || !answers.every((entry) => isInteger(entry, 0, 3))) return null
-      const expected = question.true_answers?.length ? [...new Set(question.true_answers)].sort((a, b) => a - b) : [question.true_answer]
-      const correct = answers.length === expected.length && answers.every((entry, index) => entry === expected[index])
+      if (
+        !this.hasStarted ||
+        this.completed ||
+        !question ||
+        problemIndex === null ||
+        answers.length === 0 ||
+        !answers.every((entry) => isInteger(entry, 0, 3))
+      )
+        return null
+      const expected = question.true_answers?.length
+        ? [...new Set(question.true_answers)].sort((a, b) => a - b)
+        : [question.true_answer]
+      const correct =
+        answers.length === expected.length &&
+        answers.every((entry, index) => entry === expected[index])
       const selectedAnswer = answers.length === 1 ? answers[0]! : answers
-      this.attempts.push({ levelIndex: this.currentLevelIndex, problemIndex, selectedAnswer,
-        correct, skipped: false, at: Date.now() })
+      this.attempts.push({
+        levelIndex: this.currentLevelIndex,
+        problemIndex,
+        selectedAnswer,
+        correct,
+        skipped: false,
+        at: Date.now(),
+      })
       this.completedLevelIndexes = solvedIndexes(this)
       this.persist()
       return correct
     },
     skipCurrentProblem(): boolean {
       const problemIndex = this.currentProblemIndex
-      if (!this.hasStarted || this.completed || problemIndex === null || !this.currentProblem) return false
-      this.attempts.push({ levelIndex: this.currentLevelIndex, problemIndex, selectedAnswer: null,
-        correct: false, skipped: true, at: Date.now() })
+      if (!this.hasStarted || this.completed || problemIndex === null || !this.currentProblem)
+        return false
+      this.attempts.push({
+        levelIndex: this.currentLevelIndex,
+        problemIndex,
+        selectedAnswer: null,
+        correct: false,
+        skipped: true,
+        at: Date.now(),
+      })
       this.completedLevelIndexes = solvedIndexes(this)
       this.persist()
       return true
@@ -188,7 +270,8 @@ export const useGameStore = defineStore('game', {
         this.currentLevelIndex += 1
         this.selectedLevelIndex = this.currentLevelIndex
         this.currentPanoramaIndex = 0
-        this.rounds.push({ levelIndex: this.currentLevelIndex,
+        this.rounds.push({
+          levelIndex: this.currentLevelIndex,
           questionOrder: shuffle(this.currentLevel?.problems.length ?? 0),
         })
         this.completedLevelIndexes = solvedIndexes(this)
@@ -273,7 +356,10 @@ export const useGameStore = defineStore('game', {
           return
         }
         const config = copyConfig(locationId)
-        if ((snapshot.questionFingerprint ?? questionFingerprint(snapshot.levels)) !== questionFingerprint(config.levels)) {
+        if (
+          (snapshot.questionFingerprint ?? questionFingerprint(snapshot.levels)) !==
+          questionFingerprint(config.levels)
+        ) {
           this.$reset()
           this.locationId = locationId
           this.$patch(config)
@@ -284,23 +370,34 @@ export const useGameStore = defineStore('game', {
         // Aggregate active time is retained in both cases. Restore paused.
         const currentLevelIndex = snapshot.currentLevelIndex
         const campaign = snapshot.mode === 'campaign'
-        const firstAttemptRules = snapshot.completionRule === 'first-attempt'
-          || snapshot.attempts.some((entry) => entry.skipped !== undefined)
+        const firstAttemptRules =
+          snapshot.completionRule === 'first-attempt' ||
+          snapshot.attempts.some((entry) => entry.skipped !== undefined)
         const attempts = snapshot.attempts
           .filter((entry) => campaign || entry.levelIndex === currentLevelIndex)
           .map((entry): Attempt => {
             if (firstAttemptRules || entry.selectedAnswer === null) return entry
             return { ...entry, legacy: true }
           })
-        const rounds = snapshot.rounds.filter((entry) => campaign || entry.levelIndex === currentLevelIndex)
-        const completedLevelIndexes = solvedIndexes({ levels: config.levels, rounds,
-          attempts, difficulty: snapshot.difficulty })
-        const currentPanoramaIndex = Math.min(snapshot.currentPanoramaIndex ?? 0,
-          Math.max(0, (config.levels[currentLevelIndex]?.panorama.length ?? 1) - 1))
-        const discoveredClickPoints = (snapshot.discoveredClickPoints ?? [])
-          .filter((key) => validClickPointKey(config.levels, key))
-        const unlockedClues = (snapshot.unlockedClues ?? [])
-          .filter((key) => validClueKey(config.levels, key))
+        const rounds = snapshot.rounds.filter(
+          (entry) => campaign || entry.levelIndex === currentLevelIndex,
+        )
+        const completedLevelIndexes = solvedIndexes({
+          levels: config.levels,
+          rounds,
+          attempts,
+          difficulty: snapshot.difficulty,
+        })
+        const currentPanoramaIndex = Math.min(
+          snapshot.currentPanoramaIndex ?? 0,
+          Math.max(0, (config.levels[currentLevelIndex]?.panorama.length ?? 1) - 1),
+        )
+        const discoveredClickPoints = (snapshot.discoveredClickPoints ?? []).filter((key) =>
+          validClickPointKey(config.levels, key),
+        )
+        const unlockedClues = (snapshot.unlockedClues ?? []).filter((key) =>
+          validClueKey(config.levels, key),
+        )
         this.$patch({
           ...config,
           mode: snapshot.mode ?? 'single',

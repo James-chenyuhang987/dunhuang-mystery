@@ -1,0 +1,15 @@
+node_modules/
+dist/
+dist-ssr/
+coverage/
+playwright-report/
+test-results/
+__screenshots__/
+.presentation-build/
+public/
+交付/
+照片/
+package-lock.json
+*.tsbuildinfo
+.env
+.env.*

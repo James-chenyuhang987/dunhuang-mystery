@@ -3,7 +3,15 @@ import type { Attempt, author, Difficulty, level, Round } from './game'
 export type GameMode = 'single' | 'campaign'
 export type GameRound = Round & { completedDifficulty?: Difficulty }
 
-export type Snapshot = Omit<GameState, 'persistenceError' | 'mode' | 'locationId' | 'currentPanoramaIndex' | 'discoveredClickPoints' | 'unlockedClues'> & {
+export type Snapshot = Omit<
+  GameState,
+  | 'persistenceError'
+  | 'mode'
+  | 'locationId'
+  | 'currentPanoramaIndex'
+  | 'discoveredClickPoints'
+  | 'unlockedClues'
+> & {
   currentPanoramaIndex?: number
   discoveredClickPoints?: string[]
   unlockedClues?: string[]

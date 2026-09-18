@@ -1,0 +1,107 @@
+{"kind":"deck","id":"pr/sap8af","name":"Deck"}
+{"kind":"layout","layoutId":"037828b9-2d57-486a-892e-b4d135116501","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"35a50706-0e66-46e5-9b13-e469d92c623b","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/rn3442","slide":1,"title":"01","textShapes":5}
+{"kind":"textbox","id":"sh/dkbqdk3y","slide":1,"name":"01","text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[1170,670,48,28]}
+{"kind":"textbox","id":"sh/qh0ripkn","slide":1,"name":"敦煌·探迹","text":"敦煌·探迹","textPreview":"敦煌·探迹","textChars":5,"textLines":1,"bbox":[64,85,450,75]}
+{"kind":"textbox","id":"sh/ri98buls","slide":1,"name":"项目与核心原理","text":"项目与核心原理","textPreview":"项目与核心原理","textChars":7,"textLines":1,"bbox":[64,185,470,60]}
+{"kind":"textbox","id":"sh/4vipgf2h","slide":1,"name":"360° 全景与点击发现\n紫外线观察","text":"360° 全景与点击发现\n紫外线观察","textPreview":"360° 全景与点击发现 | 紫外线观察","textChars":18,"textLines":2,"bbox":[64,300,465,110]}
+{"kind":"textbox","id":"sh/5wrq9k32","slide":1,"name":"F4·筑境者","text":"F4·筑境者","textPreview":"F4·筑境者","textChars":6,"textLines":1,"bbox":[64,565,460,45]}
+{"kind":"image","id":"im/7a1872lw","slide":1,"name":"","alt":"原展示PPT中的F4筑境者品牌画面","bbox":[550,125,666,455]}
+{"kind":"notes","id":"nt/rn3442","slide":1,"text":"我们做的是一个在浏览器里运行的文化探索游戏。用户可以环顾洞窟、寻找线索，再结合线索答题。今天重点解释两项功能：全景和点击发现怎样工作，紫外线模式又怎样把预先设计的线索显示出来。\n\n依据与出处\n项目材料：docs/展示PPT.pptx，第1、2、19页。封面图直接取自原稿，不作为真实洞窟影像的证明。"}
+{"kind":"slide","id":"sl/fu0zo9","slide":2,"title":"在全景中观察、找线索、做推理","textShapes":5}
+{"kind":"textbox","id":"sh/j6lw7idg","slide":2,"name":"在全景中观察、找线索、做推理","text":"在全景中观察、找线索、做推理","textPreview":"在全景中观察、找线索、做推理","textChars":14,"textLines":1,"bbox":[64,50,1152,76]}
+{"kind":"textbox","id":"sh/47ux0ne1","slide":2,"name":"02","text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1170,670,48,28]}
+{"kind":"textbox","id":"sh/u1svutwz","slide":2,"name":"用户在做什么","text":"用户在做什么","textPreview":"用户在做什么","textChars":6,"textLines":1,"bbox":[920,180,310,48]}
+{"kind":"textbox","id":"sh/v21w3ydk","slide":2,"name":"环顾场景\n寻找线索\n结合证据答题","text":"环顾场景\n寻找线索\n结合证据答题","textPreview":"环顾场景 | 寻找线索 | 结合证据答题","textChars":16,"textLines":3,"bbox":[920,253,300,185]}
+{"kind":"textbox","id":"sh/w3adw3e5","slide":2,"name":"敦煌与云冈\n桌面和手机均可使用","text":"敦煌与云冈\n桌面和手机均可使用","textPreview":"敦煌与云冈 | 桌面和手机均可使用","textChars":15,"textLines":2,"bbox":[920,498,300,100]}
+{"kind":"image","id":"im/s3y94n2l","slide":2,"name":"","alt":"当前项目九色秘语关卡界面","bbox":[64,165,815,460]}
+{"kind":"notes","id":"nt/fu0zo9","slide":2,"text":"这个产品把全景浏览和侦探式解谜结合起来。用户选择地点和关卡后，可以拖动观察、打开编号线索，也能寻找隐藏发现。题目把观察结果组织成推理过程。项目包含原创教学素材和虚构情节，演示效果不能作为考古结论。\n\n依据与出处\nsrc/views/GameView.vue\nsrc/data/game.ts\n图：2026-09-15本地项目真实运行截图。"}
+{"kind":"slide","id":"sl/s8lnx1","slide":3,"title":"研学过程中的几次取舍","textShapes":12}
+{"kind":"textbox","id":"sh/43ax4zm1","slide":3,"name":"研学过程中的几次取舍","text":"研学过程中的几次取舍","textPreview":"研学过程中的几次取舍","textChars":10,"textLines":1,"bbox":[64,50,1152,76]}
+{"kind":"textbox","id":"sh/ji1wbu5g","slide":3,"name":"03","text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1170,670,48,28]}
+{"kind":"textbox","id":"sh/ih8f2p4v","slide":3,"name":"研学前","text":"研学前","textPreview":"研学前","textChars":3,"textLines":1,"bbox":[64,174,235,60]}
+{"kind":"textbox","id":"sh/t8jehoni","slide":3,"name":"确定“全景浏览 + 侦探解谜”的产品形式","text":"确定“全景浏览 + 侦探解谜”的产品形式","textPreview":"确定“全景浏览 + 侦探解谜”的产品形式","textChars":20,"textLines":1,"bbox":[324,174,888,70]}
+{"kind":"textbox","id":"sh/s7ax8jmd","slide":3,"name":"研学第一天","text":"研学第一天","textPreview":"研学第一天","textChars":5,"textLines":1,"bbox":[64,262,235,60]}
+{"kind":"textbox","id":"sh/r61wfe5s","slide":3,"name":"把地点、关卡和题目集中到配置中","text":"把地点、关卡和题目集中到配置中","textPreview":"把地点、关卡和题目集中到配置中","textChars":15,"textLines":1,"bbox":[324,262,888,70]}
+{"kind":"textbox","id":"sh/65sf6947","slide":3,"name":"参观过程中","text":"参观过程中","textPreview":"参观过程中","textChars":5,"textLines":1,"bbox":[64,350,235,60]}
+{"kind":"textbox","id":"sh/9cze5kne","slide":3,"name":"加入时间轴与紫外线观察","text":"加入时间轴与紫外线观察","textPreview":"加入时间轴与紫外线观察","textChars":11,"textLines":1,"bbox":[324,350,888,70]}
+{"kind":"textbox","id":"sh/8bqdwfmt","slide":3,"name":"扩展到云冈","text":"扩展到云冈","textPreview":"扩展到云冈","textChars":5,"textLines":1,"bbox":[64,438,235,60]}
+{"kind":"textbox","id":"sh/y5knq1s3","slide":3,"name":"用另一组地点内容检验通用结构","text":"用另一组地点内容检验通用结构","textPreview":"用另一组地点内容检验通用结构","textChars":14,"textLines":1,"bbox":[324,438,888,70]}
+{"kind":"textbox","id":"sh/z6doz69o","slide":3,"name":"内容编辑阶段","text":"内容编辑阶段","textPreview":"内容编辑阶段","textChars":6,"textLines":1,"bbox":[64,526,235,60]}
+{"kind":"textbox","id":"sh/k7mpsba9","slide":3,"name":"增加图形化关卡配置生成器","text":"增加图形化关卡配置生成器","textPreview":"增加图形化关卡配置生成器","textChars":12,"textLines":1,"bbox":[324,526,888,70]}
+{"kind":"notes","id":"nt/s8lnx1","slide":3,"text":"原来的展示稿记录了这些决策：先确定探索与解谜的形式，再在研学过程中加入观察维度和新的地点。内容越来越多后，配置生成器降低了手写配置的负担。这里强调的是产品需求怎样推动技术选择。\n\n依据与出处\n团队过程记录：docs/展示PPT.pptx，第6页。\n当前实现：src/data/game.ts、utils/index.html。\n原稿记录的Google Earth Studio开场制作工具仅在此作为团队记录，运行时播放的是导出的MP4。"}
+{"kind":"slide","id":"sl/q4i7x2","slide":4,"title":"页面、进度和全景各有分工","textShapes":3}
+{"kind":"textbox","id":"sh/7e94fylc","slide":4,"name":"页面、进度和全景各有分工","text":"页面、进度和全景各有分工","textPreview":"页面、进度和全景各有分工","textChars":12,"textLines":1,"bbox":[64,50,1152,76]}
+{"kind":"textbox","id":"sh/sfi5832x","slide":4,"name":"04","text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1170,670,48,28]}
+{"kind":"textbox","id":"sh/ipgn2tkv","slide":4,"name":"Vite 构建，GitHub Pages 发布，Vite","text":"Vite 构建，GitHub Pages 发布，Vitest 与 Playwright 验证","textPreview":"Vite 构建，GitHub Pages 发布，Vitest 与 Playwright 验证","textChars":46,"textLines":1,"bbox":[64,576,1150,56]}
+{"kind":"table","id":"tb/4nehkbal","slide":4,"name":"","rows":5,"cols":3,"preview":"职责 | 技术 | 项目中的工作","bbox":[64,170,1152,365]}
+{"kind":"notes","id":"nt/q4i7x2","slide":4,"text":"Vue负责界面，路由负责跳转。Pinia保存当前游戏状态，localStorage让刷新后还能恢复。Three.js负责三维视图。关卡内容通过TypeScript配置，增加内容时通常无需重写页面。工具链负责构建、测试和静态部署。当前没有业务后端或服务器数据库。\n\n依据与出处\npackage.json\nsrc/main.ts\nsrc/router/index.ts\nsrc/stores/game.ts\nsrc/types/game.ts\n.github/workflows/deploy-pages.yml"}
+{"kind":"slide","id":"sl/vipzbq","slide":5,"title":"360° 全景：在球心看一张环绕图片","textShapes":5}
+{"kind":"textbox","id":"sh/wf65c7e5","slide":5,"name":"360° 全景：在球心看一张环绕图片","text":"360° 全景：在球心看一张环绕图片","textPreview":"360° 全景：在球心看一张环绕图片","textChars":18,"textLines":1,"bbox":[64,50,1152,76]}
+{"kind":"textbox","id":"sh/bexoj2dk","slide":5,"name":"05","text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1170,670,48,28]}
+{"kind":"textbox","id":"sh/adonaxwf","slide":5,"name":"全景图横向覆盖 360°\n纵向覆盖 180°","text":"全景图横向覆盖 360°\n纵向覆盖 180°","textPreview":"全景图横向覆盖 360° | 纵向覆盖 180°","textChars":22,"textLines":2,"bbox":[64,166,495,96]}
+{"kind":"textbox","id":"sh/k3q5g7eh","slide":5,"name":"把 2:1 等距柱状图贴到球内壁\n虚拟相机固定在球心","text":"把 2:1 等距柱状图贴到球内壁\n虚拟相机固定在球心","textPreview":"把 2:1 等距柱状图贴到球内壁 | 虚拟相机固定在球心","textChars":26,"textLines":2,"bbox":[64,563,555,92]}
+{"kind":"textbox","id":"sh/yh8nexwb","slide":5,"name":"概念示意","text":"概念示意","textPreview":"概念示意","textChars":4,"textLines":1,"bbox":[1074,606,140,28]}
+{"kind":"image","id":"im/gjap0ne5","slide":5,"name":"","alt":"项目使用的2比1等距柱状全景图片","bbox":[64,294,468,234]}
+{"kind":"image","id":"im/uhsnyxwz","slide":5,"name":"","alt":"相机在球心观察球体内壁贴图的概念示意","bbox":[562,146,668,454]}
+{"kind":"notes","id":"nt/vipzbq","slide":5,"text":"可以把它想成站在一个内壁贴满照片的球里。等距柱状图把水平角和垂直角对应到图片坐标，完整覆盖360度乘180度，所以通常是2比1。Three.js生成球体，再反转X轴使内侧可见。相机留在球心，从一个方向看过去，就得到当前屏幕画面。单纯把普通照片拉成2比1不会变成正确的全景。项目中的半径10是场景单位，不代表真实洞窟尺寸。\n\n依据与出处\nsrc/components/PanoramaViewer.vue：initialize()，SphereGeometry(10,64,32)、geometry.scale(-1,1,1)。\nhttps://threejs.org/docs/pages/SphereGeometry.html\n图：public/yungang/yungang_cave3_pano.jpg。球体插图为本次生成的概念示意，不是真实洞窟模型。"}
+{"kind":"slide","id":"sl/v6n7ps","slide":6,"title":"拖动改变朝向，缩放改变视野","textShapes":5}
+{"kind":"textbox","id":"sh/sne9872p","slide":6,"name":"拖动改变朝向，缩放改变视野","text":"拖动改变朝向，缩放改变视野","textPreview":"拖动改变朝向，缩放改变视野","textChars":13,"textLines":1,"bbox":[64,50,1152,76]}
+{"kind":"textbox","id":"sh/7m58z21k","slide":6,"name":"06","text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1170,670,48,28]}
+{"kind":"textbox","id":"sh/6lwr6xkz","slide":6,"name":"FOV 70°：看得更宽","text":"FOV 70°：看得更宽","textPreview":"FOV 70°：看得更宽","textChars":12,"textLines":1,"bbox":[64,163,560,52]}
+{"kind":"textbox","id":"sh/hc7q5cjm","slide":6,"name":"FOV 40°：同一方向看得更近","text":"FOV 40°：同一方向看得更近","textPreview":"FOV 40°：同一方向看得更近","textChars":16,"textLines":1,"bbox":[662,163,560,52]}
+{"kind":"textbox","id":"sh/u9grahkv","slide":6,"name":"相机位置保持不变，图片也没有增加新细节","text":"相机位置保持不变，图片也没有增加新细节","textPreview":"相机位置保持不变，图片也没有增加新细节","textChars":19,"textLines":1,"bbox":[64,609,1150,47]}
+{"kind":"image","id":"im/d0vyt8fe","slide":6,"name":"","alt":"项目实际视野角70度","bbox":[64,230,552,346]}
+{"kind":"image","id":"im/qd4zytgn","slide":6,"name":"","alt":"项目实际视野角40度","bbox":[664,230,552,346]}
+{"kind":"notes","id":"nt/v6n7ps","slide":6,"text":"拖动时，代码修改水平角和垂直角，再让相机看向新的方向。缩放时修改FOV，也就是相机的垂直视野角：数值小，屏幕装下的范围更窄，物体就显得更大。这类似在原地用长焦观察，并没有走到物体前面。代码把FOV限制在30到100度。两个截图来自同一关卡、同一朝向。\n\n依据与出处\nsrc/components/PanoramaViewer.vue：move()、zoom()、render()。\nhttps://threejs.org/docs/pages/PerspectiveCamera.html\n图：本次本地运行截图，70度和40度。"}
+{"kind":"slide","id":"sl/scmh1k","slide":7,"title":"点击发现：求交点，再比较距离","textShapes":6}
+{"kind":"textbox","id":"sh/rexkrad8","slide":7,"name":"点击发现：求交点，再比较距离","text":"点击发现：求交点，再比较距离","textPreview":"点击发现：求交点，再比较距离","textChars":14,"textLines":1,"bbox":[64,50,1152,76]}
+{"kind":"textbox","id":"sh/cf6lkfet","slide":7,"name":"07","text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1170,670,48,28]}
+{"kind":"textbox","id":"sh/e1o3mpwz","slide":7,"name":"点击怎样变成一个三维点","text":"点击怎样变成一个三维点","textPreview":"点击怎样变成一个三维点","textChars":11,"textLines":1,"bbox":[740,170,480,70]}
+{"kind":"textbox","id":"sh/z2x4vudk","slide":7,"name":"1  将屏幕点击换成射线\n2  求出射线与球面的交点\n3","text":"1  将屏幕点击换成射线\n2  求出射线与球面的交点\n3  找范围内最近的配置点","textPreview":"1  将屏幕点击换成射线 | 2  求出射线与球面的交点 | 3  找范围内最近的配置点","textChars":40,"textLines":3,"bbox":[740,257,480,185]}
+{"kind":"textbox","id":"sh/036lozep","slide":7,"name":"距离 ≤ 点击半径\n且普通／紫外模式一致","text":"距离 ≤ 点击半径\n且普通／紫外模式一致","textPreview":"距离 ≤ 点击半径 | 且普通／紫外模式一致","textChars":20,"textLines":2,"bbox":[740,469,480,104]}
+{"kind":"textbox","id":"sh/l4fmx4va","slide":7,"name":"编号按钮用 CSS2D 定位，隐藏发现使用射线判定","text":"编号按钮用 CSS2D 定位，隐藏发现使用射线判定","textPreview":"编号按钮用 CSS2D 定位，隐藏发现使用射线判定","textChars":25,"textLines":1,"bbox":[64,632,1120,40]}
+{"kind":"image","id":"im/c761oje5","slide":7,"name":"","alt":"相机射线穿过屏幕点击点，与球面相交并接近目标点的概念示意","bbox":[30,144,690,476]}
+{"kind":"notes","id":"nt/scmh1k","slide":7,"text":"点击不是把屏幕像素坐标直接存下来。先按画布大小把点击坐标归一化到负1到1，Raycaster结合相机投影生成射线，再与半径10的球求交。交点减去球心后，和配置的Vector3计算欧氏距离。距离不超过accept_click_range才算命中，重叠区域选最近的一个，in_uv负责匹配当前观察模式。示例配置半径0.9是场景单位。同一份空间坐标能随屏幕尺寸和朝向继续工作。注意编号线索按钮是CSS2DObject，隐藏发现才由这一段射线逻辑处理。\n\n依据与出处\nsrc/components/PanoramaViewer.vue：discover()、rebuildHotspots()。\nsrc/utils/clickPoints.ts：findMatchingClickPoint()。\nsrc/utils/hotspots.ts\nhttps://threejs.org/docs/pages/Raycaster.html\n插图为本次生成的示意，位置与大小不表示真实尺度。"}
+{"kind":"slide","id":"sl/ydfyxh","slide":8,"title":"为什么选择球面全景","textShapes":3}
+{"kind":"textbox","id":"sh/mlkjulgb","slide":8,"name":"为什么选择球面全景","text":"为什么选择球面全景","textPreview":"为什么选择球面全景","textChars":9,"textLines":1,"bbox":[64,50,1152,76]}
+{"kind":"textbox","id":"sh/9ob2p0f2","slide":8,"name":"08","text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[1170,670,48,28]}
+{"kind":"textbox","id":"sh/vadkraxs","slide":8,"name":"团队记录：采集条件有限，先保证环顾和解谜体验","text":"团队记录：采集条件有限，先保证环顾和解谜体验","textPreview":"团队记录：采集条件有限，先保证环顾和解谜体验","textChars":22,"textLines":1,"bbox":[64,588,1150,60]}
+{"kind":"table","id":"tb/po7i9cz2","slide":8,"name":"","rows":5,"cols":3,"preview":"比较 | 本项目的球面全景 | 3D 高斯（3DGS）","bbox":[64,170,1152,368]}
+{"kind":"notes","id":"nt/ydfyxh","slide":8,"text":"两种技术的差别在于怎样表示场景。全景把一个观察点看到的颜色存进图片，旋转相机就能环顾。3D高斯使用大量位置、形状、颜色和不透明度可调整的高斯体，从多视角照片拟合场景，再把它们投影到新视角并混合成图像。因此它能支持观察位置变化，但效果取决于拍摄覆盖、相机位姿和优化质量。原稿记录我们受采集条件限制，选择全景方案。这是本项目的取舍，不是说全景在所有场景下都比3DGS更好。当前代码没有高斯模型或渲染器。\n\n依据与出处\n团队选型：docs/展示PPT.pptx，第7页。\n实现核验：src/components/PanoramaViewer.vue、package.json。\nKerbl等，2023，3D Gaussian Splatting for Real-Time Radiance Field Rendering：https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/"}
+{"kind":"slide","id":"sl/o3jrly","slide":9,"title":"紫外线观察：切换素材，再突出标记","textShapes":5}
+{"kind":"textbox","id":"sh/54vy5sf6","slide":9,"name":"紫外线观察：切换素材，再突出标记","text":"紫外线观察：切换素材，再突出标记","textPreview":"紫外线观察：切换素材，再突出标记","textChars":16,"textLines":1,"bbox":[64,50,1152,76]}
+{"kind":"textbox","id":"sh/i1kfaxwv","slide":9,"name":"09","text":"09","textPreview":"09","textChars":2,"textLines":1,"bbox":[1170,670,48,28]}
+{"kind":"textbox","id":"sh/j2dg32xg","slide":9,"name":"普通素材","text":"普通素材","textPreview":"普通素材","textChars":4,"textLines":1,"bbox":[64,163,550,50]}
+{"kind":"textbox","id":"sh/s7mxg7ex","slide":9,"name":"紫外线素材 + 着色器","text":"紫外线素材 + 着色器","textPreview":"紫外线素材 + 着色器","textChars":11,"textLines":1,"bbox":[664,163,550,50]}
+{"kind":"textbox","id":"sh/r6dg72xc","slide":9,"name":"线索先画进专用素材，程序负责让它更醒目","text":"线索先画进专用素材，程序负责让它更醒目","textPreview":"线索先画进专用素材，程序负责让它更醒目","textChars":19,"textLines":1,"bbox":[64,599,1150,53]}
+{"kind":"image","id":"im/8zelojul","slide":9,"name":"","alt":"同一朝向的普通模式实际截图","bbox":[64,223,552,346]}
+{"kind":"image","id":"im/7y5kved0","slide":9,"name":"","alt":"同一朝向的紫外线模式实际截图，白色预制标记被突出显示","bbox":[664,223,552,346]}
+{"kind":"notes","id":"nt/o3jrly","slide":9,"text":"这里有两个步骤。首先把普通纹理url换成专用的ultraviolet_url，然后启用紫外线着色器。专用素材已经画好了白色标记。着色器让背景偏紫蓝、让白色标记显得更亮。它不会从一张普通照片自动发现真实隐藏文字，也没有在测量真实紫外光。当前截图使用原创教学SVG，代表游戏里的视觉模拟。只有当前时相提供了专用素材，界面才允许开启这个模式。\n\n依据与出处\nsrc/components/PanoramaViewer.vue：loadTexture()。\nsrc/views/GameView.vue\nsrc/data/game.ts：九色秘语的url与ultraviolet_url。\npublic/art/cave-02.svg、public/art/dunhuang-uv.svg。\n图：同一朝向的本地项目截图，素材和效果均来自现有实现。"}
+{"kind":"slide","id":"sl/rtvefi","slide":10,"title":"着色器给每个像素重新算颜色","textShapes":6}
+{"kind":"textbox","id":"sh/cb6tgnm5","slide":10,"name":"着色器给每个像素重新算颜色","text":"着色器给每个像素重新算颜色","textPreview":"着色器给每个像素重新算颜色","textChars":13,"textLines":1,"bbox":[64,50,1152,76]}
+{"kind":"textbox","id":"sh/baxcnilk","slide":10,"name":"10","text":"10","textPreview":"10","textChars":2,"textLines":1,"bbox":[1170,670,48,28]}
+{"kind":"textbox","id":"sh/q9obex4z","slide":10,"name":"专用素材中已有白色标记","text":"专用素材中已有白色标记","textPreview":"专用素材中已有白色标记","textChars":11,"textLines":1,"bbox":[64,164,555,52]}
+{"kind":"textbox","id":"sh/0zqtk7m1","slide":10,"name":"1  读取像素明暗和色差\n\n2  用“亮且接近白色”找标","text":"1  读取像素明暗和色差\n\n2  用“亮且接近白色”找标记\n\n3  背景转紫蓝，标记转亮青\n\n4  采样上下左右，叠加辉光","textPreview":"1  读取像素明暗和色差 |  | 2  用“亮且接近白色”找标记 |  | 3  背景转紫蓝，标记转亮青 |  | 4  采样上下左右，叠加辉光","textChars":61,"textLines":7,"bbox":[660,165,558,357]}
+{"kind":"textbox","id":"sh/zehcr2lg","slide":10,"name":"亮度 = 0.2126R + 0.7152G + 0.0","text":"亮度 = 0.2126R + 0.7152G + 0.0722B","textPreview":"亮度 = 0.2126R + 0.7152G + 0.0722B","textChars":32,"textLines":1,"bbox":[64,552,1150,46]}
+{"kind":"textbox","id":"sh/yd8bix4v","slide":10,"name":"GPU 在当前画面上逐像素处理，形成可控的视觉滤镜","text":"GPU 在当前画面上逐像素处理，形成可控的视觉滤镜","textPreview":"GPU 在当前画面上逐像素处理，形成可控的视觉滤镜","textChars":25,"textLines":1,"bbox":[64,620,1150,44]}
+{"kind":"image","id":"im/cf25w3ul","slide":10,"name":"","alt":"项目实际使用的紫外线专用素材，预先绘制白色虚线圆和曲线","bbox":[64,230,546,273]}
+{"kind":"notes","id":"nt/rtvefi","slide":10,"text":"Shader可以理解成一段让GPU对每个像素执行的计算规则。代码先把sRGB纹理解码，在线性颜色空间里用加权RGB算亮度，再用最大分量减最小分量估计色差。白色既亮又没有明显色偏，所以用高亮度、低色差作为荧光候选。smoothstep让阈值平滑过渡。背景按明暗映射到紫蓝色，候选标记映射到亮青色。再取上下左右四个邻点的白色强度做平均，叠加一圈小范围辉光。流程是RenderPass渲染场景、ShaderPass改颜色、OutputPass处理最终输出。它是一种自定义后处理滤镜，不能判断文物的年代、材质或真实隐迹。\n\n依据与出处\nsrc/components/PanoramaViewer.vue：ultravioletShader、whiteness()、ultravioletColor()、initialize()。\nhttps://threejs.org/docs/pages/ShaderPass.html\nhttps://threejs.org/docs/pages/EffectComposer.html\n补充：uvLuminance()权重为0.2126、0.7152、0.0722。邻域步长为1.5/resolution。"}
+{"kind":"slide","id":"sl/csmy4h","slide":11,"title":"功能落地，还要处理加载和恢复","textShapes":3}
+{"kind":"textbox","id":"sh/qh4re5sf","slide":11,"name":"功能落地，还要处理加载和恢复","text":"功能落地，还要处理加载和恢复","textPreview":"功能落地，还要处理加载和恢复","textChars":14,"textLines":1,"bbox":[64,50,1152,76]}
+{"kind":"textbox","id":"sh/d4fa90r6","slide":11,"name":"11","text":"11","textPreview":"11","textChars":2,"textLines":1,"bbox":[1170,670,48,28]}
+{"kind":"textbox","id":"sh/3eds3q94","slide":11,"name":"目前全景仍整图加载，分辨率决定放大后的细节上限","text":"目前全景仍整图加载，分辨率决定放大后的细节上限","textPreview":"目前全景仍整图加载，分辨率决定放大后的细节上限","textChars":23,"textLines":1,"bbox":[64,592,1150,54]}
+{"kind":"table","id":"tb/h8jihw3a","slide":11,"name":"","rows":5,"cols":2,"preview":"用户遇到的情况 | 目前的处理","bbox":[64,170,1152,368]}
+{"kind":"notes","id":"nt/csmy4h","slide":11,"text":"除了画面效果，我们也处理真实使用中的问题。异步加载用编号区分新旧请求，避免旧请求覆盖新画面；纹理成功后才替换，并释放旧资源。普通模式直接渲染，紫外模式才运行后处理。存档在关键动作和页面离开时保存，另外每15秒备份。强制结束浏览器时，最后一小段计时仍可能丢失。项目有Vitest和Playwright测试，不能把存在测试等同于完全没有错误。虽然仓库有切片工具，当前渲染器还没有实现分级瓦片加载。\n\n依据与出处\nsrc/components/PanoramaViewer.vue：renderPixelRatio()、render()、loadTexture()、dispose()。\nsrc/App.vue\nsrc/stores/game.ts\ntools/slice-panoramas.py\nvitest.config.ts、playwright.config.ts。"}
+{"kind":"slide","id":"sl/228xie","slide":12,"title":"现场演示","textShapes":8}
+{"kind":"textbox","id":"sh/gzexcn2t","slide":12,"name":"现场演示","text":"现场演示","textPreview":"现场演示","textChars":4,"textLines":1,"bbox":[64,50,1152,76]}
+{"kind":"textbox","id":"sh/fy5wjil8","slide":12,"name":"12","text":"12","textPreview":"12","textChars":2,"textLines":1,"bbox":[1170,670,48,28]}
+{"kind":"textbox","id":"sh/uxwfadkn","slide":12,"name":"全景与点击","text":"全景与点击","textPreview":"全景与点击","textChars":5,"textLines":1,"bbox":[64,167,550,56]}
+{"kind":"textbox","id":"sh/po7eps3a","slide":12,"name":"球内贴图，原地环顾\n射线求交，距离判定","text":"球内贴图，原地环顾\n射线求交，距离判定","textPreview":"球内贴图，原地环顾 | 射线求交，距离判定","textChars":19,"textLines":2,"bbox":[64,244,580,114]}
+{"kind":"textbox","id":"sh/onexg72p","slide":12,"name":"紫外线观察","text":"紫外线观察","textPreview":"紫外线观察","textChars":5,"textLines":1,"bbox":[64,408,550,56]}
+{"kind":"textbox","id":"sh/325wn2lk","slide":12,"name":"切换专用素材\n按像素计算颜色和辉光","text":"切换专用素材\n按像素计算颜色和辉光","textPreview":"切换专用素材 | 按像素计算颜色和辉光","textChars":17,"textLines":2,"bbox":[64,485,580,114]}
+{"kind":"textbox","id":"sh/5s3ed836","slide":12,"name":"打开项目网页","text":"打开项目网页","textPreview":"打开项目网页","textChars":6,"textLines":1,"bbox":[702,546,510,54]}
+{"kind":"textbox","id":"sh/krud432l","slide":12,"name":"拖动和缩放，切换紫外线，查看线索","text":"拖动和缩放，切换紫外线，查看线索","textPreview":"拖动和缩放，切换紫外线，查看线索","textChars":16,"textLines":1,"bbox":[64,642,1100,35]}
+{"kind":"image","id":"im/be9oj698","slide":12,"name":"","alt":"当前项目入口页面","bbox":[702,170,514,324]}
+{"kind":"notes","id":"nt/228xie","slide":12,"text":"最后演示三个动作。第一，在同一位置拖动和缩放，观察视野怎样变化。第二，打开紫外线模式，旋转到白色示意标记所在方向，比较两套素材的区别。第三，点击编号线索并打开题目。我们的理解可以压成两句话：全景是在球心看贴图，点击用射线求交和距离判断；紫外线模式先换专用素材，再按规则改变每个像素的颜色。网络不方便时，前面的截图也足以完成讲解。\n\n依据与出处\n网页地址来自docs/展示PPT.pptx，第20页：https://james-chenyuhang987.github.io/dunhuang-mystery/\n图：本次本地运行截图。\n演示建议约60秒，总讲解建议约6至8分钟。"}

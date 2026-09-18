@@ -1,7 +1,11 @@
 import type { Vector3 } from 'three'
 import type { ClickPoint } from '@/types/game'
 
-export function findMatchingClickPoint(position: Vector3, points: ClickPoint[], ultraviolet: boolean): number | null {
+export function findMatchingClickPoint(
+  position: Vector3,
+  points: ClickPoint[],
+  ultraviolet: boolean,
+): number | null {
   let nearestIndex: number | null = null
   let nearestDistance = Number.POSITIVE_INFINITY
   points.forEach((point, index) => {

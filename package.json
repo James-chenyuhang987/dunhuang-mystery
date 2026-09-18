@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prettier": "prettier --write . --ignore-unknown",
+    "prettier:check": "prettier --check . --ignore-unknown",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "config": "serve utils",
@@ -17,6 +19,7 @@
   },
   "dependencies": {
     "pinia": "^4.0.2",
+    "sweetalert2": "^11.26.25",
     "three": "^0.185.1",
     "vue": "^3.5.40",
     "vue-router": "^5.2.0"
@@ -32,6 +35,7 @@
     "@vue/tsconfig": "^0.9.1",
     "jsdom": "^29.1.1",
     "npm-run-all2": "^9.0.2",
+    "prettier": "^3.9.6",
     "serve": "^14.2.6",
     "typescript": "~6.0.0",
     "vite": "^8.1.5",

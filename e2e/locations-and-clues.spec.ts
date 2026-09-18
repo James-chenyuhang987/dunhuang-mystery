@@ -2,23 +2,30 @@ import { test, expect } from '@playwright/test'
 import { gameLocations } from '../src/data/game'
 import { chooseDefaultLocation } from './helpers'
 
-const dunhuang = gameLocations.find(location => location.id === 'dunhuang')
+const dunhuang = gameLocations.find((location) => location.id === 'dunhuang')
 if (!dunhuang) throw new Error('Dunhuang fixture is missing')
 
-test('root opens the destination selector and invalid routes resolve to the Dunhuang home', async ({ page }) => {
+test('root opens the destination selector and invalid routes resolve to the Dunhuang home', async ({
+  page,
+}) => {
   await page.goto('/')
   await expect(page).toHaveURL(/\/dunhuang\/home$/)
   await expect(page.locator('.entry-sequence')).toBeVisible()
   await chooseDefaultLocation(page)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(dunhuang.title ?? '')
-  await expect(page.getByRole('link', { name: '关于作者' })).toHaveAttribute('href', /\/dunhuang\/thank$/)
+  await expect(page.getByRole('link', { name: '关于作者' })).toHaveAttribute(
+    'href',
+    /\/dunhuang\/thank$/,
+  )
   await page.goto('/unknown/home')
   await expect(page).toHaveURL(/\/dunhuang\/home$/)
   await page.goto('/unknown/game')
   await expect(page).toHaveURL(/\/dunhuang\/home$/)
 })
 
-test('the opening plays only at initial website entry, not after clicking start', async ({ page }) => {
+test('the opening plays only at initial website entry, not after clicking start', async ({
+  page,
+}) => {
   await page.goto('/dunhuang/home')
   await page.reload()
   await expect(page.locator('.entry-sequence')).toBeVisible()
@@ -52,8 +59,13 @@ test('timeline, ultraviolet texture and sphere discoveries are persisted', async
   await page.getByRole('button', { name: /第 1 章/ }).click()
   await page.getByRole('button', { name: '开始所选关卡' }).click()
   await expect(page).toHaveURL(/\/dunhuang\/game$/)
-  await expect(page.getByRole('navigation', { name: '全景时间轴' }).getByRole('button')).toHaveCount(2)
-  await expect(page.getByRole('button', { name: '现状勘查' })).toHaveAttribute('aria-current', 'step')
+  await expect(
+    page.getByRole('navigation', { name: '全景时间轴' }).getByRole('button'),
+  ).toHaveCount(2)
+  await expect(page.getByRole('button', { name: '现状勘查' })).toHaveAttribute(
+    'aria-current',
+    'step',
+  )
   await expect(page.locator('.discovery-count')).toContainText('已发现 0 / 共 3')
 
   const vectorLogs: string[] = []
@@ -61,41 +73,91 @@ test('timeline, ultraviolet texture and sphere discoveries are persisted', async
   page.on('console', (message) => {
     const text = message.text()
     if (message.type() === 'info' && text.startsWith('[Panorama click]')) vectorLogs.push(text)
-    if (message.type() === 'error' && /THREE\.WebGLProgram|Shader Error|VALIDATE_STATUS|function already has a body/i.test(text)) shaderErrors.push(text)
+    if (
+      message.type() === 'error' &&
+      /THREE\.WebGLProgram|Shader Error|VALIDATE_STATUS|function already has a body/i.test(text)
+    )
+      shaderErrors.push(text)
   })
   const panorama = page.locator('.panorama')
   const bounds = await panorama.boundingBox()
   if (!bounds) throw new Error('Panorama bounds unavailable')
   const center = { clientX: bounds.x + bounds.width / 2, clientY: bounds.y + bounds.height / 2 }
-  await panorama.dispatchEvent('pointerdown', { pointerId: 1, pointerType: 'mouse', button: 0, ...center })
-  await panorama.dispatchEvent('pointerup', { pointerId: 1, pointerType: 'mouse', button: 0, ...center })
+  await panorama.dispatchEvent('pointerdown', {
+    pointerId: 1,
+    pointerType: 'mouse',
+    button: 0,
+    ...center,
+  })
+  await panorama.dispatchEvent('pointerup', {
+    pointerId: 1,
+    pointerType: 'mouse',
+    button: 0,
+    ...center,
+  })
   await expect(page.locator('.discovery-card')).toContainText('蓝签残片')
   await expect(page.locator('.discovery-count')).toContainText('已发现 1 / 共 3')
-  await expect.poll(() => vectorLogs.at(-1)).toMatch(/^\[Panorama click\].*new Vector3\(10, 0, 0\)$/)
-  await panorama.dispatchEvent('pointerdown', { pointerId: 2, pointerType: 'mouse', button: 0, ...center })
-  await panorama.dispatchEvent('pointermove', { pointerId: 2, pointerType: 'mouse', ...center, clientX: center.clientX + 20 })
-  await panorama.dispatchEvent('pointerup', { pointerId: 2, pointerType: 'mouse', button: 0, ...center, clientX: center.clientX + 20 })
+  await expect
+    .poll(() => vectorLogs.at(-1))
+    .toMatch(/^\[Panorama click\].*new Vector3\(10, 0, 0\)$/)
+  await panorama.dispatchEvent('pointerdown', {
+    pointerId: 2,
+    pointerType: 'mouse',
+    button: 0,
+    ...center,
+  })
+  await panorama.dispatchEvent('pointermove', {
+    pointerId: 2,
+    pointerType: 'mouse',
+    ...center,
+    clientX: center.clientX + 20,
+  })
+  await panorama.dispatchEvent('pointerup', {
+    pointerId: 2,
+    pointerType: 'mouse',
+    button: 0,
+    ...center,
+    clientX: center.clientX + 20,
+  })
   await expect(page.locator('.discovery-count')).toContainText('已发现 1 / 共 3')
   await page.getByRole('button', { name: '开启紫外线' }).click()
   await expect(page.getByRole('button', { name: '退出紫外线' })).toBeVisible()
   await expect(page.locator('.panorama-transition')).toHaveCount(0)
   await expect(panorama).toHaveAttribute('data-ultraviolet-pass', 'active')
-  await panorama.dispatchEvent('pointerdown', { pointerId: 3, pointerType: 'mouse', button: 0, ...center })
-  await panorama.dispatchEvent('pointerup', { pointerId: 3, pointerType: 'mouse', button: 0, ...center })
+  await panorama.dispatchEvent('pointerdown', {
+    pointerId: 3,
+    pointerType: 'mouse',
+    button: 0,
+    ...center,
+  })
+  await panorama.dispatchEvent('pointerup', {
+    pointerId: 3,
+    pointerType: 'mouse',
+    button: 0,
+    ...center,
+  })
   await expect(page.locator('.discovery-card')).toContainText('紫外墨迹')
   await expect(page.locator('.discovery-count')).toContainText('已发现 2 / 共 3')
   expect(shaderErrors).toEqual([])
 
   await page.getByRole('button', { name: '旧档复原' }).click()
-  await expect(page.getByRole('button', { name: '旧档复原' })).toHaveAttribute('aria-current', 'step')
+  await expect(page.getByRole('button', { name: '旧档复原' })).toHaveAttribute(
+    'aria-current',
+    'step',
+  )
   await expect(page.getByRole('button', { name: '开启紫外线' })).toHaveCount(0)
   await expect(panorama).toHaveAttribute('data-ultraviolet-pass', 'inactive')
   await page.reload()
-  await expect(page.getByRole('button', { name: '旧档复原' })).toHaveAttribute('aria-current', 'step')
+  await expect(page.getByRole('button', { name: '旧档复原' })).toHaveAttribute(
+    'aria-current',
+    'step',
+  )
   await expect(page.locator('.discovery-count')).toContainText('已发现 2 / 共 3')
 })
 
-test('panorama hotspots reveal clues and a wrong answer advances without retry', async ({ page }) => {
+test('panorama hotspots reveal clues and a wrong answer advances without retry', async ({
+  page,
+}) => {
   await page.goto('/dunhuang/home')
   await chooseDefaultLocation(page)
   await page.getByRole('button', { name: '选关', exact: true }).click()
@@ -111,13 +173,18 @@ test('panorama hotspots reveal clues and a wrong answer advances without retry',
   await expect(page.locator('.clue-panel').first().locator('.clue-body')).toBeVisible()
   await page.getByRole('button', { name: '开启谜题' }).click()
   const title = await page.locator('#question-title').innerText()
-  const question = dunhuang.levels[0]!.problems.find(entry => entry.title === title)
+  const question = dunhuang.levels[0]!.problems.find((entry) => entry.title === title)
   if (!question) throw new Error(`Question not found: ${title}`)
-  await page.locator('.answer-option').nth((question.true_answer + 1) % 4).click()
+  await page
+    .locator('.answer-option')
+    .nth((question.true_answer + 1) % 4)
+    .click()
   await expect(page.locator('.answer-feedback')).toContainText('本题已经记录为错误')
   await expect(page.locator('.answer-feedback')).toContainText('正确答案已用绿色标记')
   await expect(page.locator('.answer-option.correct')).toHaveCount(1)
-  await expect(page.locator('.answer-option.correct')).toContainText(question.select[question.true_answer])
+  await expect(page.locator('.answer-option.correct')).toContainText(
+    question.select[question.true_answer],
+  )
   await expect(page.getByRole('button', { name: /线索 \d/ }).first()).toBeVisible()
   await expect(page.getByRole('button', { name: '再次推断' })).toHaveCount(0)
   await page.getByRole('button', { name: /查看本卷结果|下一道谜题/ }).click()

@@ -3,7 +3,7 @@ import { chooseDefaultLocation } from './helpers'
 
 test('desktop and mobile visual checks', async ({ page }, testInfo) => {
   const errors: string[] = []
-  page.on('pageerror', error => errors.push(error.message))
+  page.on('pageerror', (error) => errors.push(error.message))
   await page.setViewportSize({ width: 1440, height: 1000 })
   await page.goto('/')
   await chooseDefaultLocation(page)
@@ -16,7 +16,9 @@ test('desktop and mobile visual checks', async ({ page }, testInfo) => {
   await page.screenshot({ path: testInfo.outputPath('selection-desktop.png'), fullPage: true })
   await page.setViewportSize({ width: 390, height: 844 })
   await page.screenshot({ path: testInfo.outputPath('selection-mobile.png'), fullPage: true })
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  )
   await page.getByRole('link', { name: '返回主菜单' }).click()
   await page.setViewportSize({ width: 390, height: 844 })
   await page.screenshot({ path: testInfo.outputPath('home-mobile.png'), fullPage: true })
@@ -30,7 +32,10 @@ test('desktop and mobile visual checks', async ({ page }, testInfo) => {
   await page.screenshot({ path: testInfo.outputPath('game-desktop.png'), fullPage: true })
   await page.getByRole('button', { name: '开启紫外线' }).click()
   await expect(page.locator('.panorama')).toHaveAttribute('data-ultraviolet-pass', 'active')
-  await page.screenshot({ path: testInfo.outputPath('game-desktop-ultraviolet.png'), fullPage: true })
+  await page.screenshot({
+    path: testInfo.outputPath('game-desktop-ultraviolet.png'),
+    fullPage: true,
+  })
   await page.getByRole('button', { name: '退出紫外线' }).click()
   await expect(page.locator('.panorama')).toHaveAttribute('data-ultraviolet-pass', 'inactive')
   await page.setViewportSize({ width: 390, height: 844 })
@@ -38,10 +43,18 @@ test('desktop and mobile visual checks', async ({ page }, testInfo) => {
   const mobileClueToggle = page.getByRole('button', { name: '探秘手礼', exact: true })
   await expect(mobileClueToggle).toBeVisible()
   await expect(page.locator('.clue-drawer-desktop-toggle')).not.toBeVisible()
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
-  const toolbarChildren = await page.locator('.game-toolbar > *').evaluateAll(elements => elements.map(element => element.className))
-  expect(toolbarChildren.indexOf('archive-toggle outline-button')).toBeLessThan(toolbarChildren.indexOf('mobile-clue-toggle outline-button'))
-  expect(toolbarChildren.indexOf('mobile-clue-toggle outline-button')).toBeLessThan(toolbarChildren.indexOf('game-stats'))
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  )
+  const toolbarChildren = await page
+    .locator('.game-toolbar > *')
+    .evaluateAll((elements) => elements.map((element) => element.className))
+  expect(toolbarChildren.indexOf('archive-toggle outline-button')).toBeLessThan(
+    toolbarChildren.indexOf('mobile-clue-toggle outline-button'),
+  )
+  expect(toolbarChildren.indexOf('mobile-clue-toggle outline-button')).toBeLessThan(
+    toolbarChildren.indexOf('game-stats'),
+  )
   await mobileClueToggle.click()
   await expect(page.locator('.clue-drawer')).toBeVisible()
   await mobileClueToggle.click()

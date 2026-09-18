@@ -1,0 +1,52 @@
+import { chromium } from '../node_modules/@playwright/test/index.mjs';
+const out = new URL('./assets/', import.meta.url).pathname;
+const browser = await chromium.launch({headless:true});
+const page = await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1});
+page.on('pageerror',e=>console.log('PAGE ERROR',e.message));
+page.on('console',m=>{if(m.type()==='error')console.log('CONSOLE ERROR',m.text())});
+page.setDefaultTimeout(15000);
+await page.goto('http://127.0.0.1:5173/');
+await page.waitForTimeout(1500);
+for(let i=0;i<4;i++) {
+  const skip=page.getByRole('button',{name:/跳过地球动画|跳过视频/});
+  if(await skip.first().isVisible().catch(()=>false)) {await skip.first().click();await page.waitForTimeout(350);}
+  const location=page.locator('.location-option').first();
+  if(await location.isVisible().catch(()=>false)){await location.click();await page.waitForTimeout(350);}
+}
+await page.locator('.intro-screen').waitFor({state:'hidden'});
+await page.screenshot({path:out+'home.png'});
+await page.getByRole('button',{name:'选关',exact:true}).click();
+await page.waitForTimeout(350);
+await page.screenshot({path:out+'levels.png'});
+console.log('LEVEL BUTTONS',await page.locator('button').allTextContents());
+await page.getByRole('button',{name:/九色秘语/}).click();
+await page.getByRole('button',{name:'开始所选关卡'}).click();
+await page.locator('.panorama-status').waitFor({state:'hidden'});
+await page.waitForTimeout(500);
+await page.screenshot({path:out+'game-normal.png'});
+await page.locator('.panorama canvas').screenshot({path:out+'fov70.png'});
+for(let i=0;i<6;i++) await page.getByRole('button',{name:'放大全景',exact:true}).click();
+await page.waitForTimeout(250);
+await page.locator('.panorama canvas').screenshot({path:out+'fov40.png'});
+for(let i=0;i<6;i++) await page.getByRole('button',{name:'缩小全景',exact:true}).click();
+console.log('GAME BUTTONS',await page.locator('button').allTextContents());
+await page.getByRole('button',{name:/紫外线/}).click();
+await page.waitForTimeout(800);
+await page.screenshot({path:out+'game-uv.png'});
+await page.locator('.panorama canvas').screenshot({path:out+'uv-canvas.png'});
+const box=await page.locator('.panorama').boundingBox();
+await page.mouse.click(box.x+box.width/2,box.y+box.height/2);
+await page.waitForTimeout(500);
+await page.screenshot({path:out+'discovery.png'});
+const close=page.getByRole('button',{name:'关闭发现详情'});
+if(await close.isVisible().catch(()=>false))await close.click();
+await page.waitForTimeout(1000);
+await page.locator('.panorama').focus();
+for(let i=0;i<36;i++)await page.keyboard.press('ArrowRight');
+await page.waitForTimeout(350);
+await page.locator('.panorama canvas').screenshot({path:out+'uv-mark.png'});
+await page.getByRole('button',{name:'退出紫外线'}).click();
+await page.waitForTimeout(500);
+await page.locator('.panorama canvas').screenshot({path:out+'normal-mark.png'});
+await browser.close();
+console.log('Screenshots saved');

@@ -2,7 +2,9 @@ import { test, expect } from '@playwright/test'
 import { chooseDefaultLocation } from './helpers'
 import { gameLevels, siteConfig } from '../src/data/game'
 
-test('main menu starts a linear campaign, survives reload and ends only after last chapter', async ({ page }) => {
+test('main menu starts a linear campaign, survives reload and ends only after last chapter', async ({
+  page,
+}) => {
   await page.goto('/')
   await chooseDefaultLocation(page)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(siteConfig.title)
@@ -19,18 +21,27 @@ test('main menu starts a linear campaign, survives reload and ends only after la
       await page.reload()
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(level.name)
     }
-    await page.getByRole('button', { name: level.problems.length ? '开启谜题' : '完成本关', exact: true }).click()
+    await page
+      .getByRole('button', { name: level.problems.length ? '开启谜题' : '完成本关', exact: true })
+      .click()
     if (level.problems.length) {
       const title = await page.locator('#question-title').innerText()
-      const question = level.problems.find(question => question.title === title)
+      const question = level.problems.find((question) => question.title === title)
       if (!question) throw new Error(`Missing question fixture: ${title}`)
       await page.locator('.answer-option').nth(question.true_answer).click()
       await page.getByRole('button', { name: '查看本卷结果', exact: true }).click()
     }
-    await page.getByRole('button', { name: index < gameLevels.length - 1 ? '完成本关 · 前往下一关' : '落款 · 查看探索回响', exact: true }).click()
+    await page
+      .getByRole('button', {
+        name: index < gameLevels.length - 1 ? '完成本关 · 前往下一关' : '落款 · 查看探索回响',
+        exact: true,
+      })
+      .click()
   }
   await expect(page).toHaveURL(/\/dunhuang\/thank$/)
-  await expect(page.locator('.ending-stats strong').first()).toHaveText(String(gameLevels.filter(level => level.problems.length).length))
+  await expect(page.locator('.ending-stats strong').first()).toHaveText(
+    String(gameLevels.filter((level) => level.problems.length).length),
+  )
   await page.reload()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(siteConfig.endingHeading)
 })

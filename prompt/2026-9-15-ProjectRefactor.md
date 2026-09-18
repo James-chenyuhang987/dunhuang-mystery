@@ -2,16 +2,18 @@
 
 1. IntroSequence.vue疑似无用,若确定无用则进行移除操作
 2. clue增加type='combination',可直接增加类型
+
 ```ts
 type subclue = Omit<clue, 'name' | 'hint' | 'problem_indexes'>
-interface clue{
-    type: 'combination'
-    name: string
-    data: subclue[]
-    problem_indexes?: number[]
-    hint?: string
+interface clue {
+  type: 'combination'
+  name: string
+  data: subclue[]
+  problem_indexes?: number[]
+  hint?: string
 }
 ```
+
 3. 移除BingMaYongView,DunHuangHome的具体地点组件,直接route到PlaceHome,根据route与配置中的路由地址来获得当前地点
 4. 重构stores/game.ts,重点在于将通用函数抽离到utils/utils.ts,相关类型定义移至types/gamestore.ts
 5. 重构PanoramaViewer.vue,此文件当前过于臃肿,下面为更改内容

@@ -13,13 +13,18 @@ const video = ref<HTMLVideoElement | null>(null)
 const openingVideoUrl = assetUrl('/entry/begin.mp4')
 const earthFrameUrl = assetUrl('/entry/begin_earth.jpeg')
 const selectPlaceFrameUrl = assetUrl('/entry/select_place.jpeg')
-const background = computed(() => phase.value === 'earth' || phase.value === 'opening' ? earthFrameUrl : selectPlaceFrameUrl)
+const background = computed(() =>
+  phase.value === 'earth' || phase.value === 'opening' ? earthFrameUrl : selectPlaceFrameUrl,
+)
 let earthTimer: ReturnType<typeof setTimeout> | undefined
 let timeout: ReturnType<typeof setTimeout> | undefined
 function preloadFrame(url: string, maxWait = 1600): Promise<void> {
   return new Promise((resolve) => {
     const image = new Image()
-    const done = () => { clearTimeout(timer); resolve() }
+    const done = () => {
+      clearTimeout(timer)
+      resolve()
+    }
     const timer = setTimeout(done, maxWait)
     image.onload = done
     image.onerror = done
@@ -27,13 +32,20 @@ function preloadFrame(url: string, maxWait = 1600): Promise<void> {
   })
 }
 
-function clearTimers() { clearTimeout(earthTimer); clearTimeout(timeout) }
+function clearTimers() {
+  clearTimeout(earthTimer)
+  clearTimeout(timeout)
+}
 async function playVideo() {
   phase.value = 'opening'
   clearTimeout(timeout)
   timeout = setTimeout(openingEnded, 45000)
   await nextTick()
-  try { await video.value?.play() } catch { phase.value = 'choosing' }
+  try {
+    await video.value?.play()
+  } catch {
+    phase.value = 'choosing'
+  }
 }
 function beginOpening() {
   if (phase.value !== 'earth') return
@@ -85,9 +97,34 @@ onMounted(() => {
 onBeforeUnmount(clearTimers)
 </script>
 <template>
-  <section class="entry-sequence intro-screen" :class="`entry-phase-${phase}`" aria-label="选择探索地点" :style="{ backgroundImage: `url(${background})` }">
-    <video v-if="phase === 'opening' || phase === 'destination'" :key="phase" ref="video" :src="phase === 'opening' ? openingVideoUrl : assetUrl(selected?.destination_video_url ?? '')" :poster="earthFrameUrl" :preload="phase === 'opening' ? 'auto' : 'metadata'"  playsinline autoplay disablepictureinpicture controlslist="nodownload nofullscreen noplaybackrate" type="video/mp4" @ended="phase === 'opening' ? openingEnded() : destinationEnded()" @error="videoError" />
-    <LocationSelector v-if="phase === 'choosing'" :locations="locations" :selected-id="selected?.id ?? ''" @select="selectPlace" />
+  <section
+    class="entry-sequence intro-screen"
+    :class="`entry-phase-${phase}`"
+    aria-label="选择探索地点"
+    :style="{ backgroundImage: `url(${background})` }"
+  >
+    <video
+      v-if="phase === 'opening' || phase === 'destination'"
+      :key="phase"
+      ref="video"
+      :src="phase === 'opening' ? openingVideoUrl : assetUrl(selected?.destination_video_url ?? '')"
+      :poster="earthFrameUrl"
+      :preload="phase === 'opening' ? 'auto' : 'metadata'"
+      muted
+      playsinline
+      autoplay
+      disablepictureinpicture
+      controlslist="nodownload nofullscreen noplaybackrate"
+      type="video/mp4"
+      @ended="phase === 'opening' ? openingEnded() : destinationEnded()"
+      @error="videoError"
+    />
+    <LocationSelector
+      v-if="phase === 'choosing'"
+      :locations="locations"
+      :selected-id="selected?.id ?? ''"
+      @select="selectPlace"
+    />
     <div v-if="phase === 'opening' || phase === 'destination'" class="entry-skip-wrap">
       <span v-if="selected" class="entry-destination-label">正在前往 {{ selected.name }}</span>
       <button class="skip-intro" @click="skip">跳过视频 →</button>

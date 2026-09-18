@@ -7,16 +7,14 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 // https://vite.dev/config/
 const [repositoryOwner, repositoryName] = process.env.GITHUB_REPOSITORY?.split('/') ?? []
 const isUserSite = repositoryName?.toLowerCase() === `${repositoryOwner}.github.io`.toLowerCase()
-const base = process.env.GITHUB_ACTIONS === 'true' && repositoryName && !isUserSite
-  ? `/${repositoryName}/`
-  : '/'
+const base =
+  process.env.GITHUB_ACTIONS === 'true' && repositoryName && !isUserSite
+    ? `/${repositoryName}/`
+    : '/'
 
 export default defineConfig({
   base,
-  plugins: [
-    vue(),
-    vueDevTools(),
-  ],
+  plugins: [vue(), vueDevTools()],
   build: {
     rolldownOptions: {
       output: {

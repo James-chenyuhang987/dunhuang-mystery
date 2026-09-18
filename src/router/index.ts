@@ -12,9 +12,30 @@ const router = createRouter({
   routes: [
     { path: '/', redirect: HOME_PATH },
     { path: '/dunhuang', redirect: HOME_PATH },
-    { path: '/:place/home', name: 'place-home', component: PlaceHome, meta: { section: 'home', title: `${siteConfig.title} · ${siteConfig.subtitle}` }, beforeEnter: (to) => typeof to.params.place === 'string' && validPlaces.has(to.params.place) ? true : HOME_PATH },
-    { path: '/:place/game', name: 'place-game', component: GameView, meta: { section: 'game', title: `入画寻踪 · ${siteConfig.title}` }, beforeEnter: (to) => typeof to.params.place === 'string' && validPlaces.has(to.params.place) ? true : HOME_PATH },
-    { path: '/:place/thank', name: 'place-thank', component: EndingView, meta: { section: 'thank', title: `千年回响 · ${siteConfig.title}` }, beforeEnter: (to) => typeof to.params.place === 'string' && validPlaces.has(to.params.place) ? true : HOME_PATH },
+    {
+      path: '/:place/home',
+      name: 'place-home',
+      component: PlaceHome,
+      meta: { section: 'home', title: `${siteConfig.title} · ${siteConfig.subtitle}` },
+      beforeEnter: (to) =>
+        typeof to.params.place === 'string' && validPlaces.has(to.params.place) ? true : HOME_PATH,
+    },
+    {
+      path: '/:place/game',
+      name: 'place-game',
+      component: GameView,
+      meta: { section: 'game', title: `入画寻踪 · ${siteConfig.title}` },
+      beforeEnter: (to) =>
+        typeof to.params.place === 'string' && validPlaces.has(to.params.place) ? true : HOME_PATH,
+    },
+    {
+      path: '/:place/thank',
+      name: 'place-thank',
+      component: EndingView,
+      meta: { section: 'thank', title: `千年回响 · ${siteConfig.title}` },
+      beforeEnter: (to) =>
+        typeof to.params.place === 'string' && validPlaces.has(to.params.place) ? true : HOME_PATH,
+    },
     { path: '/terracotta/:pathMatch(.*)*', redirect: '/yungang/home' },
     { path: '/levels', redirect: { path: HOME_PATH, query: { panel: 'levels' } } },
     { path: '/game', redirect: '/dunhuang/game' },
@@ -23,6 +44,8 @@ const router = createRouter({
   ],
   scrollBehavior: () => ({ top: 0 }),
 })
-router.afterEach((to) => { document.title = String(to.meta.title ?? siteConfig.title) })
+router.afterEach((to) => {
+  document.title = String(to.meta.title ?? siteConfig.title)
+})
 
 export default router

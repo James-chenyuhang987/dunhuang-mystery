@@ -19,12 +19,17 @@ test('desktop: finish selected chapter, track wrong answer, persist progress', a
   await expect(page.locator('.clue-body').first()).toBeVisible()
   await page.getByRole('button', { name: '开启谜题', exact: true }).click()
   const title = await page.locator('#question-title').innerText()
-  const problem = gameLevels[0]?.problems.find(item => item.title === title)
+  const problem = gameLevels[0]?.problems.find((item) => item.title === title)
   if (!problem) throw new Error(`Missing fixture: ${title}`)
-  await page.locator('.answer-option').nth((problem.true_answer + 1) % 4).click()
+  await page
+    .locator('.answer-option')
+    .nth((problem.true_answer + 1) % 4)
+    .click()
   await expect(page.getByRole('status').filter({ hasText: '推断有误' })).toBeVisible()
   await expect(page.locator('.answer-option.correct')).toHaveCount(1)
-  await expect(page.locator('.answer-option.correct')).toContainText(problem.select[problem.true_answer])
+  await expect(page.locator('.answer-option.correct')).toContainText(
+    problem.select[problem.true_answer],
+  )
   await expect(page.getByRole('button', { name: '再次推断' })).toHaveCount(0)
   await page.getByRole('button', { name: '查看本卷结果' }).click()
   await page.getByRole('button', { name: '关闭题目' }).click()
@@ -43,7 +48,9 @@ test('mobile: responsive layout, live difficulty and isolated clue gestures', as
   await page.goto('/')
   await chooseDefaultLocation(page)
   await page.getByRole('button', { name: '选关', exact: true }).click()
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  )
   const slider = page.getByRole('slider', { name: '探索难度' })
   await slider.focus()
   await slider.press('End')
@@ -61,17 +68,34 @@ test('mobile: responsive layout, live difficulty and isolated clue gestures', as
   await page.locator('.clue-body').dispatchEvent('wheel', { deltaY: 200 })
   await expect(page.locator('.panorama')).toHaveAttribute('data-fov', previous ?? '')
   const canvas = page.locator('.panorama')
-  await canvas.dispatchEvent('pointerdown', { pointerId: 100, pointerType: 'touch', clientX: 310, clientY: 400 })
-  await canvas.dispatchEvent('pointerdown', { pointerId: 101, pointerType: 'touch', clientX: 350, clientY: 400 })
-  await canvas.dispatchEvent('pointermove', { pointerId: 101, pointerType: 'touch', clientX: 380, clientY: 400 })
+  await canvas.dispatchEvent('pointerdown', {
+    pointerId: 100,
+    pointerType: 'touch',
+    clientX: 310,
+    clientY: 400,
+  })
+  await canvas.dispatchEvent('pointerdown', {
+    pointerId: 101,
+    pointerType: 'touch',
+    clientX: 350,
+    clientY: 400,
+  })
+  await canvas.dispatchEvent('pointermove', {
+    pointerId: 101,
+    pointerType: 'touch',
+    clientX: 380,
+    clientY: 400,
+  })
   await expect(canvas).not.toHaveAttribute('data-fov', previous ?? '')
   await canvas.dispatchEvent('pointerup', { pointerId: 100 })
   await canvas.dispatchEvent('pointerup', { pointerId: 101 })
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  )
 })
 
 test('panorama and clue failures offer working reload buttons', async ({ page }) => {
-  await page.route('**/art/cave-01.svg', route => route.abort())
+  await page.route('**/art/cave-01.svg', (route) => route.abort())
   await page.goto('/')
   await chooseDefaultLocation(page)
   await page.getByRole('button', { name: '选关', exact: true }).click()
@@ -87,8 +111,8 @@ test('panorama and clue failures offer working reload buttons', async ({ page })
   await expect(page.getByRole('button', { name: '重新加载全景' })).toBeVisible()
   await page.getByRole('button', { name: '重新加载全景' }).click()
   await expect(page.locator('.panorama-status')).toHaveCount(0)
-  await page.route('**/art/clue.svg', route => route.abort())
-  const imageIndex = gameLevels[0]?.clues.findIndex(item => item.type === 'image') ?? -1
+  await page.route('**/art/clue.svg', (route) => route.abort())
+  const imageIndex = gameLevels[0]?.clues.findIndex((item) => item.type === 'image') ?? -1
   expect(imageIndex).toBeGreaterThanOrEqual(0)
   await page.locator('.clue-drawer-heading').click()
   await page.locator('.panorama-hotspot').nth(imageIndex).click()

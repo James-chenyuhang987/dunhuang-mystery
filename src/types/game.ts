@@ -54,6 +54,8 @@ export interface level {
   hotspots?: hotspot[]
   clues: clue[]
   problems: problem[]
+  ui_plugins?: import('@/plugin/plugins').PluginReference<'UI'>[]
+  render_plugins?: import('@/plugin/plugins').PluginReference<'Renderer'>[]
 }
 
 export type levels = level[]
@@ -87,10 +89,11 @@ interface AttemptBase {
   at: number
 }
 
-export type Attempt = AttemptBase & (
-  | { selectedAnswer: number | number[]; correct: boolean; skipped?: false; legacy?: true }
-  | { selectedAnswer: null; correct: false; skipped: true; legacy?: never }
-)
+export type Attempt = AttemptBase &
+  (
+    | { selectedAnswer: number | number[]; correct: boolean; skipped?: false; legacy?: true }
+    | { selectedAnswer: null; correct: false; skipped: true; legacy?: never }
+  )
 
 export interface Round {
   levelIndex: number
