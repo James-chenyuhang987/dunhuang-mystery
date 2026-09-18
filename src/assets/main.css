@@ -3119,33 +3119,3 @@ button {
   background: rgba(195, 165, 108, 0.35);
   color: rgba(23, 45, 42, 0.72);
 }
-
-.plugin-footer-panel {
-  display: grid;
-  gap: 8px;
-  min-width: min(34vw, 360px);
-}
-.plugin-footer-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.plugin-footer-button {
-  min-height: 34px;
-  padding: 7px 11px;
-}
-.plugin-footer-panel > .plugin-wrapper,
-.plugin-footer-panel > [style*='display: none'] {
-  min-width: 0;
-}
-.swal-surface {
-  color: #e7dcc1;
-}
-.swal-surface .swal2-title,
-.swal-surface .swal2-html-container {
-  color: inherit;
-}
-.swal-confirm,
-.swal-cancel {
-  margin: 0 0.35rem;
-}

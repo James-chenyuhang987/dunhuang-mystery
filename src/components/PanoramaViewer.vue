@@ -4,14 +4,6 @@ import AppIcon from './AppIcon.vue'
 import type { ClickPoint, hotspot } from '@/types/game'
 import { useSceneManager } from '@/composables/SceneManager'
 import { useGameUI } from '@/composables/GameUI'
-import { usePlugin } from '@/composables/usePlugin'
-import { usePluginUtilsStore } from '@/stores/pluginUtils'
-import {
-  normalizePluginReference,
-  type LoadedUIPlugin,
-  type PluginReference,
-  type PluginType,
-} from '@/plugin/plugins'
 
 const props = withDefaults(
   defineProps<{
@@ -20,29 +12,11 @@ const props = withDefaults(
     hotspots?: hotspot[]
     clickPoints?: ClickPoint[]
     ultraviolet?: boolean
-    uiPlugins?: PluginReference<'UI'>[]
-    renderPlugins?: PluginReference<'Renderer'>[]
   }>(),
-  {
-    ultravioletUrl: '',
-    hotspots: () => [],
-    clickPoints: () => [],
-    ultraviolet: false,
-    uiPlugins: () => [],
-    renderPlugins: () => [],
-  },
+  { ultravioletUrl: '', hotspots: () => [], clickPoints: () => [], ultraviolet: false },
 )
-const emit = defineEmits<{
-  clue: [index: number]
-  discover: [index: number]
-  'ui-plugins': [plugins: LoadedUIPlugin[]]
-}>()
+const emit = defineEmits<{ clue: [index: number]; discover: [index: number] }>()
 const host = ref<HTMLDivElement | null>(null)
-const pluginEngine = usePlugin()
-const pluginUtils = usePluginUtilsStore()
-const activePlugins: { name: string; type: PluginType }[] = []
-const loadedUiPlugins = ref<LoadedUIPlugin[]>([])
-let contextReady = false
 const scene = useSceneManager({
   host,
   getUrl: () => props.url,
@@ -58,53 +32,8 @@ const ui = useGameUI({
   onClue: (index) => emit('clue', index),
   onDiscover: (index) => emit('discover', index),
 })
-function createSceneContext(): void {
-  pluginUtils.set_ctx({
-    renderer: scene.getRenderer(),
-    cssRenderer: scene.getCssRenderer(),
-    camera: scene.getCamera(),
-    scene: scene.getScene(),
-    sphere: scene.getSphere(),
-    material: scene.getMaterial(),
-    composer: scene.getComposer(),
-    uvPass: scene.getUvPass(),
-    hotspotGroup: scene.getHotspotGroup(),
-    schedule: scene.schedule,
-    resetView: () => {
-      scene.fov.value = 70
-      scene.longitude.value = 0
-      scene.latitude.value = 0
-      scene.schedule()
-    },
-  })
-  contextReady = true
-}
-function disposePlugins(disposeContext = false): void {
-  pluginEngine.dispose()
-  activePlugins.length = 0
-  loadedUiPlugins.value = []
-  emit('ui-plugins', [])
-  if (disposeContext) {
-    pluginUtils.dispose_all()
-    contextReady = false
-  }
-}
-function loadPlugins(): void {
-  disposePlugins()
-  if (!contextReady) createSceneContext()
-  const load = (reference: PluginReference, type: PluginType): void => {
-    const { name, options } = normalizePluginReference(reference)
-    if (!pluginEngine.load(name, type, options)) return
-    activePlugins.push({ name, type })
-  }
-  props.renderPlugins.forEach((reference) => load(reference, 'Renderer'))
-  props.uiPlugins.forEach((reference) => load(reference, 'UI'))
-  loadedUiPlugins.value = [...pluginUtils.getUIPlugins()]
-  emit('ui-plugins', loadedUiPlugins.value)
-}
-scene.rebuildHooks({ onInitialize: loadPlugins, onDispose: () => disposePlugins(true) })
 const { status, hasTexture, renderedUltraviolet, retry } = scene
-const { fov, down, move, up, cancel, zoom, key } = ui
+const { fov, projected, down, move, up, cancel, zoom, key } = ui
 watch(
   () => [props.url, props.ultravioletUrl, props.ultraviolet] as const,
   () => {
@@ -116,13 +45,6 @@ watch(
   () => {
     ui.rebuildHotspots()
     scene.schedule()
-  },
-  { deep: true },
-)
-watch(
-  () => [props.uiPlugins, props.renderPlugins],
-  () => {
-    if (scene.getRenderer()) loadPlugins()
   },
   { deep: true },
 )

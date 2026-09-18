@@ -144,13 +144,12 @@ export function useSceneManager(options: SceneManagerOptions): SceneManagerApi {
       scene.add(sphere)
       observer = new ResizeObserver(resize)
       if (options.host.value) observer.observe(options.host.value)
+      resize()
+      hooks.onInitialize?.()
+      loadTexture()
     } catch {
       status.value = 'error'
-      return
     }
-    resize()
-    hooks.onInitialize?.()
-    loadTexture()
   }
   const loadTexture = () => {
     const id = ++loadId,
@@ -239,27 +238,7 @@ export function useSceneManager(options: SceneManagerOptions): SceneManagerApi {
     initialize()
   }
   const rebuildHooks = (next: Hooks) => {
-    const previous = hooks
-    hooks = {
-      onInitialize: next.onInitialize
-        ? () => {
-            previous.onInitialize?.()
-            next.onInitialize?.()
-          }
-        : previous.onInitialize,
-      onRender: next.onRender
-        ? (activeCamera) => {
-            previous.onRender?.(activeCamera)
-            next.onRender?.(activeCamera)
-          }
-        : previous.onRender,
-      onDispose: next.onDispose
-        ? () => {
-            next.onDispose?.()
-            previous.onDispose?.()
-          }
-        : previous.onDispose,
-    }
+    hooks = { ...hooks, ...next }
   }
   onMounted(initialize)
   onBeforeUnmount(dispose)

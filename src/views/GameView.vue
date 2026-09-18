@@ -9,9 +9,6 @@ import CluePanel from '@/components/CluePanel.vue'
 import DifficultyControl from '@/components/DifficultyControl.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import MediaViewer from '@/components/MediaViewer.vue'
-import UIPluginWrapper from '@/components/plugins/UIPluginWrapper.vue'
-import FooterPluginPanel from '@/components/plugins/FooterPluginPanel.vue'
-import type { LoadedUIPlugin } from '@/plugin/plugins'
 const game = useGameStore()
 const routeIntroActive = inject<Ref<boolean>>('routeIntroActive', ref(false))
 const router = useRouter()
@@ -63,13 +60,6 @@ const cluesOpen = ref(false)
 const settingsOpen = ref(false)
 const archiveOpen = ref(false)
 const ultraviolet = ref(false)
-const loadedUiPlugins = ref<LoadedUIPlugin[]>([])
-const panelPlugins = computed(() =>
-  loadedUiPlugins.value.filter((plugin) => (plugin.placement ?? 'panel') === 'panel'),
-)
-const footerPlugins = computed(() =>
-  loadedUiPlugins.value.filter((plugin) => plugin.placement === 'footer'),
-)
 const discovery = ref<ClickPoint | null>(null)
 const discoveryMedia = ref<InstanceType<typeof MediaViewer> | null>(null)
 const placeId = computed(() =>
@@ -213,11 +203,8 @@ onBeforeUnmount(() => {
       :hotspots="game.currentLevel.hotspots"
       :click-points="game.currentPanorama?.click_points"
       :ultraviolet="ultraviolet"
-      :ui-plugins="game.currentLevel.ui_plugins"
-      :render-plugins="game.currentLevel.render_plugins"
       @clue="handleClue"
       @discover="showDiscovery"
-      @ui-plugins="loadedUiPlugins = $event"
     />
     <div class="game-vignette" />
     <header class="game-header">
@@ -273,7 +260,6 @@ onBeforeUnmount(() => {
         />
       </div>
     </aside>
-    <UIPluginWrapper v-if="panelPlugins.length" :plugins="panelPlugins" />
     <Transition name="fade"
       ><aside
         v-if="discovery"
@@ -352,7 +338,6 @@ onBeforeUnmount(() => {
           >
         </div>
       </section>
-      <FooterPluginPanel :plugins="footerPlugins" />
       <div class="game-stats">
         <span
           >已解谜题<strong
