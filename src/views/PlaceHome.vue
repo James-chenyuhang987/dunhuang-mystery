@@ -73,7 +73,8 @@ watch(
       </div>
       <nav aria-label="首页导航">
         <span>{{ activeLocation?.name }}</span
-        ><RouterLink :to="gamePath('thank')"><AppIcon name="users" />关于作者</RouterLink>
+        ><RouterLink :to="gamePath('thank')"><AppIcon name="users" />关于作者</RouterLink
+        ><a href="#/studio"><AppIcon name="map" />故事工坊</a>
       </nav>
     </header>
     <main class="home-main">

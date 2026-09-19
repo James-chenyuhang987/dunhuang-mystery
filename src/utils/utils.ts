@@ -43,9 +43,27 @@ export function copyConfig(
       clues: entry.clues.map((item) => ({
         ...item,
         problem_indexes: item.problem_indexes ? [...item.problem_indexes] : undefined,
+        dialogue: item.dialogue
+          ? {
+              start: item.dialogue.start,
+              nodes: item.dialogue.nodes.map((node) => ({
+                ...node,
+                options: node.options?.map((option) => ({ ...option })),
+              })),
+            }
+          : undefined,
         subclues: item.subclues?.map((subclue) => ({
           ...subclue,
           problem_indexes: subclue.problem_indexes ? [...subclue.problem_indexes] : undefined,
+          dialogue: subclue.dialogue
+            ? {
+                start: subclue.dialogue.start,
+                nodes: subclue.dialogue.nodes.map((node) => ({
+                  ...node,
+                  options: node.options?.map((option) => ({ ...option })),
+                })),
+              }
+            : undefined,
         })),
       })),
       problems: entry.problems.map((item) => ({ ...item, select: [...item.select] })),
@@ -218,7 +236,8 @@ function isPanorama(value: unknown): value is ImagePanorama {
         typeof point.name === 'string' &&
         typeof point.description === 'string' &&
         isOptionalString(point.image) &&
-        typeof point.in_uv === 'boolean',
+        typeof point.in_uv === 'boolean' &&
+        isOptionalString(point.dialogue_id),
     )
   )
 }
@@ -226,15 +245,63 @@ function isPanorama(value: unknown): value is ImagePanorama {
 function isClue(value: unknown, problemCount: number): value is import('@/types/game').clue {
   if (
     !isRecord(value) ||
-    !['image', 'audio', 'text', 'video', 'combination'].includes(String(value.type)) ||
+    !['image', 'audio', 'text', 'video', 'combination', 'dialogue'].includes(String(value.type)) ||
     typeof value.name !== 'string' ||
     typeof value.data !== 'string' ||
     !isOptionalString(value.hint) ||
+    !isOptionalString(value.dialogue_id) ||
     (value.problem_indexes !== undefined &&
       (!Array.isArray(value.problem_indexes) ||
         !value.problem_indexes.every((index: unknown) => isInteger(index, 0, problemCount - 1))))
   )
     return false
+  if (value.dialogue !== undefined) {
+    const dialogue = value.dialogue as Record<string, unknown>
+    if (
+      !isRecord(dialogue) ||
+      typeof dialogue.start !== 'string' ||
+      !Array.isArray(dialogue.nodes) ||
+      !dialogue.nodes.every((entry: unknown) => {
+        if (
+          !isRecord(entry) ||
+          typeof entry.id !== 'string' ||
+          typeof entry.speaker !== 'string' ||
+          typeof entry.text !== 'string'
+        )
+          return false
+        if (entry.avatar !== undefined && typeof entry.avatar !== 'string') return false
+        if (entry.next !== undefined && entry.next !== null && typeof entry.next !== 'string')
+          return false
+        return (
+          entry.options === undefined ||
+          (Array.isArray(entry.options) &&
+            entry.options.every(
+              (option: unknown) =>
+                isRecord(option) &&
+                typeof option.label === 'string' &&
+                (option.next === null || typeof option.next === 'string'),
+            ))
+        )
+      })
+    )
+      return false
+    const ids = new Set(dialogue.nodes.map((entry) => (entry as Record<string, unknown>).id))
+    if (!ids.has(dialogue.start)) return false
+    for (const entry of dialogue.nodes as Record<string, unknown>[]) {
+      if (
+        entry.next !== undefined &&
+        entry.next !== null &&
+        (typeof entry.next !== 'string' || !ids.has(entry.next))
+      )
+        return false
+      for (const option of (entry.options as Record<string, unknown>[] | undefined) ?? []) {
+        if (option.next !== null && (typeof option.next !== 'string' || !ids.has(option.next)))
+          return false
+      }
+    }
+  } else if (value.type === 'dialogue') {
+    return false
+  }
   return (
     value.subclues === undefined ||
     (Array.isArray(value.subclues) &&

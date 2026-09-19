@@ -4,6 +4,7 @@ import type { clue } from '@/types/game'
 import { assetUrl } from '@/utils/assets'
 import AppIcon from './AppIcon.vue'
 import MediaViewer from './MediaViewer.vue'
+import DialogueViewer from './DialogueViewer.vue'
 const viewer = ref<InstanceType<typeof MediaViewer> | null>(null)
 const inlineVideo = ref<HTMLVideoElement | null>(null)
 function expand() {
@@ -66,7 +67,15 @@ onBeforeUnmount(loaded)
       <span class="clue-number">{{ String(index + 1).padStart(2, '0') }}</span
       ><AppIcon
         :name="
-          locked ? 'lock' : item.type === 'audio' ? 'sound' : item.type === 'text' ? 'book' : 'eye'
+          locked
+            ? 'lock'
+            : item.type === 'audio'
+              ? 'sound'
+              : item.type === 'text' || item.type === 'dialogue'
+                ? item.type === 'dialogue'
+                  ? 'users'
+                  : 'book'
+                : 'eye'
         "
       /><span>{{ item.name }}</span
       ><span class="clue-sign">{{ locked ? '未解锁' : open ? '−' : '＋' }}</span>
@@ -74,6 +83,7 @@ onBeforeUnmount(loaded)
     <div v-if="open && !locked" :id="`clue-${index}`" class="clue-body">
       <p v-if="item.hint">{{ item.hint }}</p>
       <p v-if="item.type === 'text'">{{ item.data }}</p>
+      <DialogueViewer v-else-if="item.type === 'dialogue'" :item="item" />
       <div v-else-if="item.type === 'combination'" class="combination-clue">
         <p v-if="item.data">{{ item.data }}</p>
         <CluePanel

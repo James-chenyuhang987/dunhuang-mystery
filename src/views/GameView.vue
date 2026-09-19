@@ -9,6 +9,7 @@ import CluePanel from '@/components/CluePanel.vue'
 import DifficultyControl from '@/components/DifficultyControl.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import MediaViewer from '@/components/MediaViewer.vue'
+import DialogueOverlay from '@/components/DialogueOverlay.vue'
 const game = useGameStore()
 const routeIntroActive = inject<Ref<boolean>>('routeIntroActive', ref(false))
 const router = useRouter()
@@ -62,6 +63,7 @@ const settingsOpen = ref(false)
 const archiveOpen = ref(false)
 const ultraviolet = ref(false)
 const discovery = ref<ClickPoint | null>(null)
+const activeDialogue = ref<clue | null>(null)
 const discoveryMedia = ref<InstanceType<typeof MediaViewer> | null>(null)
 const placeId = computed(() =>
   typeof route.params.place === 'string' ? route.params.place : 'dunhuang',
@@ -107,6 +109,11 @@ function continueAnswer() {
 }
 function handleClue(index: number): void {
   game.unlockClue(index)
+  const clue = game.currentLevel?.clues[index]
+  if (clue?.type === 'dialogue') {
+    activeDialogue.value = clue
+    return
+  }
   void revealClue(index)
 }
 function revealFeedbackClue(index: number): void {
@@ -128,6 +135,18 @@ async function revealClue(index: number) {
 function showDiscovery(pointIndex: number): void {
   const point = game.currentPanorama?.click_points[pointIndex]
   if (!point) return
+  if (point.dialogue_id) {
+    const clueIndex = game.currentLevel?.clues.findIndex(
+      (clue) => clue.type === 'dialogue' && clue.dialogue_id === point.dialogue_id,
+    )
+    if (clueIndex !== undefined && clueIndex >= 0) {
+      game.unlockClue(clueIndex)
+      const clue = game.currentLevel?.clues[clueIndex]
+      if (clue?.type === 'dialogue') activeDialogue.value = clue
+      else void revealClue(clueIndex)
+      return
+    }
+  }
   game.discoverClickPoint(game.currentPanoramaIndex, pointIndex)
   discovery.value = point
 }
@@ -136,6 +155,7 @@ function switchPanorama(index: number): void {
     ultraviolet.value = false
     archiveOpen.value = false
     discovery.value = null
+    activeDialogue.value = null
   }
 }
 function toggleUltraviolet(): void {
@@ -163,6 +183,10 @@ watch(
   () => game.currentProblemIndex,
   () => resetSelection(),
 )
+watch(activeDialogue, (active) => {
+  if (active) game.pauseTimer()
+  else if (!document.hidden && game.hasProgress && !game.completed) game.resumeTimer()
+})
 watch(
   () => game.currentLevelIndex,
   () => {
@@ -170,6 +194,7 @@ watch(
     archiveOpen.value = false
     ultraviolet.value = false
     discovery.value = null
+    activeDialogue.value = null
   },
 )
 onMounted(async () => {
@@ -207,6 +232,7 @@ onBeforeUnmount(() => {
       @discover="showDiscovery"
     />
     <div class="game-vignette" />
+    <DialogueOverlay v-if="activeDialogue" :item="activeDialogue" @close="activeDialogue = null" />
     <header class="game-header">
       <RouterLink :to="homePath" class="game-back"
         ><AppIcon name="home" /><span>返回画境</span></RouterLink

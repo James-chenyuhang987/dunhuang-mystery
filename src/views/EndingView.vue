@@ -5,6 +5,7 @@ import { useRoute } from 'vue-router'
 import { useGameStore } from '@/stores/game'
 import { gameLocations, siteConfig } from '@/data/game'
 import AppIcon from '@/components/AppIcon.vue'
+import PostcardGenerator from '@/components/PostcardGenerator.vue'
 const game = useGameStore()
 const route = useRoute()
 const homePath = computed(
@@ -15,6 +16,12 @@ const elapsed = computed(
 )
 const location = computed(
   () => gameLocations.find((entry) => entry.id === game.locationId) ?? gameLocations[0],
+)
+const postcardBackground = computed(
+  () => location.value?.background_url ?? siteConfig.backgroundUrl,
+)
+const postcardCover = computed(
+  () => game.currentLevel?.thumbnail_url ?? game.currentLevel?.panorama[0]?.url,
 )
 onMounted(() => {
   game.pauseTimer()
@@ -61,6 +68,18 @@ onMounted(() => {
           ><span>探索用时</span>
         </div>
       </div>
+      <PostcardGenerator
+        v-if="game.hasProgress"
+        :title="game.currentLevel?.name ?? siteConfig.title"
+        :location="location?.name ?? '故事工坊'"
+        :background-url="postcardBackground"
+        :cover-url="postcardCover"
+        :completed="game.completed"
+        :correct="game.correctCount"
+        :wrong="game.wrongCount"
+        :skipped="game.skippedCount"
+        :elapsed="elapsed"
+      />
       <div class="credits">
         <p class="eyebrow">BEHIND THE MURALS · 创作团队</p>
         <div v-for="(author, index) in game.authors" :key="index">

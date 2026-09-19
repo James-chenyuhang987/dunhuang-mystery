@@ -53,7 +53,8 @@ export const useGameStore = defineStore('game', {
         .length,
     totalClickPointCount: (state): number =>
       state.levels[state.currentLevelIndex]?.panorama.reduce(
-        (total, panorama) => total + panorama.click_points.length,
+        (total, panorama) =>
+          total + panorama.click_points.filter((point) => !point.dialogue_id).length,
         0,
       ) ?? 0,
     selectedQuestionIndexes: (state): number[] => selectedIndexes(state, state.currentLevelIndex),

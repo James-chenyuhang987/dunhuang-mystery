@@ -35,6 +35,18 @@ const emit = defineEmits<{ select: [id: string] }>()
         >
         <span class="location-arrow">进入 →</span>
       </button>
+      <button
+        class="location-option location-option-studio"
+        :class="{ selected: selectedId === 'story-studio' }"
+        @click="emit('select', 'story-studio')"
+      >
+        <span class="location-index">03</span>
+        <span
+          ><strong>故事工坊</strong><small>创建属于你的探索故事</small
+          ><small>本地创作 · JSON 导出</small></span
+        >
+        <span class="location-arrow">进入 →</span>
+      </button>
     </div>
   </section>
 </template>

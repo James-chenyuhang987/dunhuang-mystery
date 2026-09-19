@@ -3,6 +3,7 @@ import { gameLocations, siteConfig } from '@/data/game'
 import PlaceHome from '@/views/PlaceHome.vue'
 import GameView from '@/views/GameView.vue'
 import EndingView from '@/views/EndingView.vue'
+import StoryStudioView from '@/views/StoryStudioView.vue'
 
 const HOME_PATH = '/dunhuang/home'
 const validPlaces = new Set(gameLocations.map((location) => location.id))
@@ -10,6 +11,12 @@ const validPlaces = new Set(gameLocations.map((location) => location.id))
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/studio',
+      name: 'story-studio',
+      component: StoryStudioView,
+      meta: { section: 'studio', title: '故事工坊 · 用户创作' },
+    },
     { path: '/', redirect: HOME_PATH },
     { path: '/dunhuang', redirect: HOME_PATH },
     {

@@ -9,8 +9,27 @@ export interface problem {
   reason: string
 }
 
+export interface DialogueOption {
+  label: string
+  next: string | null
+}
+
+export interface DialogueNode {
+  id: string
+  speaker: string
+  text: string
+  avatar?: string
+  options?: DialogueOption[]
+  next?: string | null
+}
+
+export interface DialogueDefinition {
+  start: string
+  nodes: DialogueNode[]
+}
+
 export interface clue {
-  type: 'image' | 'audio' | 'text' | 'video' | 'combination'
+  type: 'image' | 'audio' | 'text' | 'video' | 'combination' | 'dialogue'
   name: string
   /** Media path or text body. Combination clues use this as an optional summary. */
   data: string
@@ -21,6 +40,8 @@ export interface clue {
   /** Authoring notes from the latest clue brief; used to keep placement and media requirements explicit. */
   placement?: string
   media_note?: string
+  dialogue_id?: string
+  dialogue?: DialogueDefinition
 }
 
 export type hotspot = { clue_index: number } & (
@@ -36,6 +57,7 @@ export interface ClickPoint {
   description: string
   image?: string
   in_uv: boolean
+  dialogue_id?: string
 }
 
 export interface ImagePanorama {
@@ -80,6 +102,19 @@ export interface author {
 
 export type authors = author[]
 export type Difficulty = 1 | 2 | 3
+
+export interface StoryPackage {
+  version: 1
+  id: string
+  name: string
+  subtitle: string
+  introduction: string
+  coordinates: string
+  background_url: string
+  cover_url?: string
+  levels: level[]
+  authors: authors
+}
 
 interface AttemptBase {
   levelIndex: number

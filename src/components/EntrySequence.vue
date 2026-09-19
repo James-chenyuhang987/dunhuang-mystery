@@ -59,6 +59,10 @@ function openingEnded() {
   phase.value = 'choosing'
 }
 function selectPlace(id: string) {
+  if (id === 'story-studio') {
+    if (phase.value === 'choosing') emit('ready', id)
+    return
+  }
   const destination = props.locations.find((item) => item.id === id)
   if (!destination || phase.value !== 'choosing') return
   selected.value = destination

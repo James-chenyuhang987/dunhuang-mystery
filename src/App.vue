@@ -21,7 +21,7 @@ function initializeEntry(): void {
 }
 function finishEntry(placeId: string): void {
   entryActive.value = false
-  void router.replace(`/${placeId}/home`)
+  void router.replace(placeId === 'story-studio' ? '/studio' : `/${placeId}/home`)
 }
 provide('routeIntroActive', entryActive)
 game.restore()

@@ -63,6 +63,38 @@ describe('clue panels', () => {
     expect(wrapper.find('.clue-body').exists()).toBe(false)
   })
 
+  it('renders a branching dialogue clue and advances through a choice', async () => {
+    const wrapper = mount(CluePanel, {
+      props: {
+        item: {
+          type: 'dialogue',
+          name: '人物口述',
+          data: '一段谈话',
+          dialogue_id: 'test-dialogue',
+          dialogue: {
+            start: 'start',
+            nodes: [
+              {
+                id: 'start',
+                speaker: '守护者',
+                text: '你要先看哪一份记录？',
+                options: [{ label: '交接簿', next: 'end' }],
+              },
+              { id: 'end', speaker: '守护者', text: '记录比猜测可靠。', next: null },
+            ],
+          },
+        },
+        index: 0,
+      },
+    })
+    await wrapper.find('.clue-toggle').trigger('click')
+    expect(wrapper.text()).toContain('开始对话')
+    await wrapper.get('.primary').trigger('click')
+    expect(wrapper.text()).toContain('你要先看哪一份记录')
+    await wrapper.get('.dialogue-option').trigger('click')
+    expect(wrapper.text()).toContain('记录比猜测可靠')
+  })
+
   it.each(['image', 'audio', 'video'] as const)('reloads failed %s assets', async (type) => {
     const wrapper = mount(CluePanel, {
       props: { item: { type, name: '线索', data: '/missing' }, index: 1 },
