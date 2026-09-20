@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import EntrySequence from '@/components/EntrySequence.vue'
 import { gameLocations } from '@/data/game'
 import { useGameStore } from '@/stores/game'
+import { getStory } from '@/utils/storyPackage'
+import { storyRevision } from '@/utils/runtimeSource'
 
 const game = useGameStore()
 const route = useRoute()
@@ -24,7 +26,36 @@ function finishEntry(placeId: string): void {
   void router.replace(placeId === 'story-studio' ? '/studio' : `/${placeId}/home`)
 }
 provide('routeIntroActive', entryActive)
-game.restore()
+
+/** Keep the Pinia runtime aligned with the route without mixing save namespaces. */
+function syncRuntimeSource(): void {
+  const sourceKind = route.meta.sourceKind
+  if (sourceKind === 'ugc') {
+    const rawId = typeof route.params.storyId === 'string' ? route.params.storyId : ''
+    const story = getStory(rawId)
+    if (!story) {
+      if (route.path.startsWith('/story/')) void router.replace('/studio')
+      return
+    }
+    const revision = storyRevision(story)
+    if (
+      game.sourceKind !== 'ugc' ||
+      game.sourceId !== story.id ||
+      game.sourceRevision !== revision
+    ) {
+      game.loadStory(story)
+    } else {
+      game.restoreSource()
+    }
+    return
+  }
+
+  const place = typeof route.params.place === 'string' ? route.params.place : ''
+  if (gameLocations.some((location) => location.id === place)) {
+    if (game.sourceKind !== 'builtin' || game.sourceId !== place) game.loadBuiltin(place)
+    else game.restoreSource()
+  }
+}
 
 function save() {
   game.pauseTimer()
@@ -48,12 +79,15 @@ function visibility() {
 }
 
 function syncTimer() {
+  // Vue Router briefly exposes an unmatched initial route during a hard reload.
+  // Persisting in that window would overwrite the real save with Pinia's defaults.
+  if (route.matched.length === 0) return
   if (route.meta.section !== 'game' || entryActive.value) save()
   else resume()
 }
 
 function restoreProgress() {
-  game.restore()
+  syncRuntimeSource()
   resume()
 }
 
@@ -66,6 +100,8 @@ const backup = setInterval(() => game.persist(), 15000)
 watch(
   () => [route.fullPath, route.matched.length],
   () => {
+    if (route.matched.length === 0) return
+    syncRuntimeSource()
     initializeEntry()
     syncTimer()
   },

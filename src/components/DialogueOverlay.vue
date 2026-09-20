@@ -27,6 +27,19 @@ function advance() {
   if (node.value?.next) nodeId.value = node.value.next
   else emit('close')
 }
+function advanceFromBubble(event: MouseEvent): void {
+  if (hasOptions.value || (event.target as HTMLElement).closest('button')) return
+  advance()
+}
+function advanceFromKeyboard(event: KeyboardEvent): void {
+  if (hasOptions.value) return
+  event.preventDefault()
+  advance()
+}
+function advanceFromStage(event: MouseEvent): void {
+  if (hasOptions.value || (event.target as HTMLElement).closest('button')) return
+  advance()
+}
 watch(() => props.item, reset, { immediate: true })
 </script>
 
@@ -38,6 +51,7 @@ watch(() => props.item, reset, { immediate: true })
       role="dialog"
       aria-modal="true"
       :aria-label="item.name"
+      @click="advanceFromStage"
     >
       <button class="dialogue-backdrop" aria-label="关闭对话" @click="emit('close')" />
       <div class="dialogue-overlay-content" @pointerdown.stop @wheel.stop>
@@ -48,20 +62,27 @@ watch(() => props.item, reset, { immediate: true })
           <img v-if="node.avatar" :src="assetUrl(node.avatar)" :alt="node.speaker" />
           <span v-else aria-hidden="true">{{ node.speaker.slice(0, 1) }}</span>
         </div>
-        <div class="dialogue-bubble">
+        <div
+          class="dialogue-bubble"
+          :class="{ 'is-clickable': !hasOptions }"
+          :tabindex="hasOptions ? undefined : 0"
+          :aria-label="hasOptions ? undefined : '继续对话'"
+          @keydown.enter="advanceFromKeyboard"
+          @keydown.space="advanceFromKeyboard"
+        >
           <p class="dialogue-speaker">{{ node.speaker }}</p>
-          <p class="dialogue-text">{{ node.text }}</p>
+          <p class="dialogue-text" aria-live="polite">{{ node.text }}</p>
           <div v-if="hasOptions" class="dialogue-overlay-options">
             <button
               v-for="option in node.options"
               :key="`${node.id}-${option.label}`"
               class="dialogue-overlay-option"
-              @click="choose(option.next)"
+              @click.stop="choose(option.next)"
             >
               {{ option.label }}
             </button>
           </div>
-          <button v-else class="dialogue-continue" @click="advance">
+          <button v-else class="dialogue-continue" @click.stop="advance">
             {{ node.next ? '继续' : '结束对话' }} <span>›</span>
           </button>
         </div>

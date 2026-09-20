@@ -183,6 +183,13 @@ h2 {
   font-size: 18px;
   letter-spacing: 3px;
 }
+.brand-home-button {
+  padding: 0;
+  text-align: left;
+}
+.brand-home-button:hover {
+  color: #f0dfb5;
+}
 .brand small {
   display: block;
   font:
@@ -1115,6 +1122,11 @@ h2 {
   padding: 25px 4%;
   z-index: 3;
   gap: 12px;
+  pointer-events: none;
+}
+.game-header .game-back,
+.game-header > button {
+  pointer-events: auto;
 }
 .game-back {
   display: flex;
@@ -1647,8 +1659,10 @@ h2 {
 @media (min-width: 1600px) {
   .home-main {
     grid-template-columns: 1fr 410px;
-    padding-top: 80px;
-    padding-bottom: 80px;
+    padding-top: 36px;
+    padding-bottom: 34px;
+    min-height: calc(100svh - 142px);
+    gap: 48px;
   }
   .journey-panel {
     padding: 32px;
@@ -1657,13 +1671,30 @@ h2 {
     padding: 12px;
   }
   .hero-copy {
-    padding-top: 50px;
+    padding-top: 24px;
   }
   .hero-coordinate {
-    margin-top: 80px;
+    margin-top: 38px;
   }
   .title-layout h1 {
     font-size: 102px;
+  }
+}
+@media (min-width: 1101px) and (max-width: 1599px) {
+  .home-main {
+    padding-top: 34px;
+    padding-bottom: 30px;
+    min-height: calc(100svh - 150px);
+    gap: 44px;
+  }
+  .site-header {
+    height: 92px;
+  }
+  .title-layout {
+    margin-top: 22px;
+  }
+  .hero-coordinate {
+    margin-top: 38px;
   }
 }
 @media (max-width: 1100px) {
@@ -2328,11 +2359,20 @@ body {
   background: #17302b;
   translate: -50% 0;
 }
-.panorama-timeline button span {
+.panorama-timeline button .timeline-index {
   display: block;
   margin-bottom: 4px;
   color: #b9985c;
   font-size: 8px;
+}
+.panorama-timeline button .timeline-label {
+  display: block;
+  min-width: 0;
+  color: inherit;
+  font-size: 10px;
+  line-height: 1.35;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
 }
 .panorama-timeline button.active {
   color: #ffe1a0;
@@ -2569,6 +2609,9 @@ button {
   outline: 2px solid #dab86f;
   outline-offset: 3px;
   animation: clue-highlight 1.2s ease;
+}
+.clue-panel.highlighted.locked {
+  background: #84662b24;
 }
 .feedback-clues {
   display: grid;
@@ -3458,13 +3501,131 @@ button {
   grid-column: 1 / -1;
 }
 .studio-form input,
-.studio-form textarea {
+.studio-form textarea,
+.studio-form select {
   width: 100%;
   border: 1px solid rgba(195, 165, 108, 0.3);
   background: rgba(7, 25, 24, 0.5);
   color: #f3e8c9;
   padding: 0.65rem 0.7rem;
   resize: vertical;
+}
+.studio-form select {
+  resize: none;
+}
+.studio-field-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #cdbf9e;
+  font-size: 0.82rem;
+}
+.studio-panorama-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding-bottom: 0.25rem;
+}
+.studio-panorama-tabs .outline-button.active {
+  border-color: var(--gold);
+  color: #f4d99b;
+  background: rgba(195, 165, 108, 0.13);
+}
+.studio-scene-picker {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 2 / 1;
+  margin-top: 1rem;
+  border: 1px solid rgba(195, 165, 108, 0.34);
+  background: #0b211f;
+  cursor: crosshair;
+}
+.studio-scene-tools {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+.studio-scene-tools > label {
+  display: grid;
+  min-width: min(320px, 100%);
+  gap: 0.35rem;
+  color: #cdbf9e;
+  font-size: 0.82rem;
+}
+.studio-scene-tools select {
+  width: 100%;
+  border: 1px solid rgba(195, 165, 108, 0.3);
+  background: rgba(7, 25, 24, 0.74);
+  color: #f3e8c9;
+  padding: 0.65rem 0.7rem;
+}
+.studio-scene-tools .outline-button.active {
+  border-color: var(--gold);
+  color: #f4d99b;
+  background: rgba(195, 165, 108, 0.16);
+}
+.studio-scene-marker {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  place-items: center;
+  translate: -50% -50%;
+  border: 1px solid #f0d79c;
+  border-radius: 50%;
+  background: rgba(18, 48, 43, 0.94);
+  color: #f6e5b8;
+  box-shadow: 0 0 0 4px rgba(195, 165, 108, 0.22);
+  font: 700 0.72rem/1 system-ui, sans-serif;
+  pointer-events: none;
+}
+.studio-scene-marker.discovery {
+  border-radius: 0;
+  rotate: 45deg;
+  background: rgba(132, 72, 50, 0.94);
+}
+.studio-scene-marker.discovery::first-letter {
+  rotate: -45deg;
+}
+.studio-scene-picker img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.84;
+}
+.studio-scene-picker span {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 0.55rem 0.75rem;
+  color: #f2e5c4;
+  background: linear-gradient(transparent, rgba(5, 19, 18, 0.9));
+  font-size: 0.78rem;
+  pointer-events: none;
+}
+.timeline-clue-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+  margin-top: 0.35rem;
+}
+.timeline-clue-checks label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #cdbf9e;
+  font-size: 0.78rem;
+}
+.timeline-clue-checks input {
+  width: auto;
+}
+.dialogue-options-editor,
+.combination-editor {
+  margin-top: 0.8rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(195, 165, 108, 0.14);
 }
 .studio-clues-heading {
   border-top: 1px solid var(--line);
@@ -3509,6 +3670,20 @@ button {
   gap: 0.2rem;
   text-align: left;
 }
+.saved-story-row .saved-story-edit {
+  flex: 1 1 9rem;
+  min-width: 0;
+}
+.saved-story-row .saved-story-edit strong,
+.saved-story-row .saved-story-edit small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.saved-story-row .saved-story-play,
+.saved-story-row > .text-button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
 .saved-story-row small {
   color: var(--muted);
 }
@@ -3540,6 +3715,12 @@ button {
     display: grid;
     align-items: start;
   }
+  .studio-actions {
+    align-items: stretch;
+  }
+  .studio-actions > * {
+    flex: 1 1 auto;
+  }
   .studio-grid,
   .studio-preview {
     display: grid;
@@ -3548,11 +3729,21 @@ button {
   .studio-sidebar {
     position: static;
   }
+  .saved-story-row {
+    flex-wrap: wrap;
+  }
+  .saved-story-row .saved-story-edit {
+    flex-basis: 100%;
+  }
   .studio-form.two-columns {
     grid-template-columns: 1fr;
   }
   .studio-form label.wide {
     grid-column: auto;
+  }
+  .studio-scene-tools {
+    display: grid;
+    align-items: stretch;
   }
   .dialogue-stage {
     grid-template-columns: 64px 1fr;
@@ -3585,5 +3776,318 @@ button {
   }
   .dialogue-text {
     font-size: 0.95rem;
+  }
+}
+
+/* Interaction polish for captures, dialogue progression and generated postcards. */
+.panorama-capture-controls {
+  position: absolute;
+  z-index: 3;
+  top: 76px;
+  right: 4%;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.panorama-capture-controls .icon-button {
+  border: 1px solid var(--line);
+  background: rgba(25, 48, 39, 0.88);
+  color: #e7d6ae;
+  box-shadow: 0 8px 24px rgba(5, 18, 15, 0.24);
+}
+.panorama-capture-controls .icon-button:hover {
+  border-color: var(--gold);
+  color: #f5e5bb;
+  background: rgba(55, 69, 48, 0.94);
+}
+.panorama-capture-status {
+  padding: 0.42rem 0.62rem;
+  border: 1px solid rgba(195, 165, 108, 0.35);
+  background: rgba(19, 42, 37, 0.92);
+  color: #e7d6ae;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+.dialogue-stage.is-clickable,
+.dialogue-bubble.is-clickable {
+  cursor: pointer;
+}
+.dialogue-stage.is-clickable:hover .dialogue-copy,
+.dialogue-bubble.is-clickable:hover {
+  border-color: rgba(235, 211, 155, 0.9);
+}
+.dialogue-stage.is-clickable {
+  padding: 0.55rem;
+  border: 1px solid transparent;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+.dialogue-stage.is-clickable:hover,
+.dialogue-stage.is-clickable:focus-visible {
+  border-color: rgba(195, 165, 108, 0.44);
+  background: rgba(195, 165, 108, 0.06);
+}
+.dialogue-stage.is-clickable:focus-visible {
+  outline: 2px solid #ead295;
+  outline-offset: 3px;
+}
+.dialogue-bubble.is-clickable:focus-visible {
+  outline: 2px solid #ead295;
+  outline-offset: 4px;
+}
+.dialogue-bubble.is-clickable {
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    transform 0.2s;
+}
+.dialogue-bubble.is-clickable:hover {
+  background: rgba(20, 48, 45, 0.96);
+  transform: translateY(-1px);
+}
+.postcard-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 620px;
+  margin: 0 auto;
+}
+.postcard-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.postcard-filter {
+  min-height: 34px;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid rgba(195, 165, 108, 0.28);
+  color: #b9c0a8;
+  background: rgba(13, 34, 32, 0.64);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+.postcard-filter:hover,
+.postcard-filter.active {
+  border-color: var(--gold);
+  color: #f2dfad;
+  background: rgba(195, 165, 108, 0.16);
+}
+.postcard-filter.active {
+  box-shadow: inset 0 -2px 0 var(--gold);
+}
+.postcard-qr-label {
+  color: #9fb29c;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  text-align: right;
+}
+.postcard-preview {
+  overflow: hidden;
+}
+.postcard-preview canvas {
+  max-width: 100%;
+}
+
+.ending-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.ending-stats > div {
+  min-width: 0;
+  padding: 0 1.1rem;
+}
+.ending-stats > div:first-child {
+  padding-left: 0;
+}
+.ending-stats > div:last-child {
+  padding-right: 0;
+}
+
+/* Keep the desktop landing composition compact on very tall screens. Mobile retains its
+   original flowing layout in the existing max-width rule. */
+@media (min-width: 681px) {
+  .home-page {
+    min-height: min(100svh, 820px);
+    overflow: hidden;
+  }
+  .site-header {
+    height: 88px;
+  }
+  .home-main {
+    min-height: calc(min(100svh, 820px) - 144px);
+    padding-top: 34px;
+    padding-bottom: 30px;
+  }
+  .site-footer {
+    min-height: 56px;
+  }
+  .hero-copy {
+    padding-top: 16px;
+    padding-bottom: 12px;
+  }
+  .title-layout {
+    margin-top: 22px;
+  }
+  .hero-coordinate {
+    margin-top: 34px;
+  }
+}
+
+/* Short desktop viewports need less vertical chrome so the first action stays visible. */
+@media (min-width: 681px) and (max-height: 820px) {
+  .home-main {
+    padding-top: 30px;
+    padding-bottom: 28px;
+    gap: 34px;
+  }
+  .hero-copy {
+    padding-top: 12px;
+    padding-bottom: 8px;
+  }
+  .title-layout {
+    margin-top: 20px;
+  }
+  .hero-english {
+    margin-top: 14px;
+  }
+  .hero-rule {
+    margin: 16px 0 14px;
+  }
+  .feature-row {
+    margin-top: 17px;
+  }
+  .hero-coordinate {
+    margin-top: 30px;
+  }
+  .journey-panel {
+    padding: 20px 22px 16px;
+  }
+  .panel-subtitle {
+    margin-bottom: 16px;
+  }
+  .chapter-list {
+    gap: 7px;
+  }
+  .chapter-card {
+    padding: 7px;
+  }
+  .chapter-description {
+    margin: 10px 0 12px;
+  }
+  .start-button {
+    margin-top: 15px;
+  }
+}
+@media (min-width: 681px) and (max-height: 740px) {
+  .site-header {
+    height: 86px;
+  }
+  .home-main {
+    min-height: calc(100svh - 142px);
+    padding-top: 22px;
+    padding-bottom: 20px;
+  }
+  .title-layout h1 {
+    font-size: clamp(48px, 5.5vw, 72px);
+  }
+  .hero-description {
+    line-height: 1.9;
+  }
+  .journey-panel {
+    padding: 16px 18px 13px;
+  }
+  .journey-panel h2 {
+    font-size: 22px;
+  }
+  .chapter-thumb {
+    width: 54px;
+    height: 54px;
+  }
+  .chapter-text > strong {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 680px) {
+  .panorama-capture-controls {
+    top: 58px;
+    right: 5%;
+  }
+  .panorama-capture-controls .icon-button {
+    width: 36px;
+    height: 36px;
+  }
+  .panorama-capture-status {
+    position: absolute;
+    top: 42px;
+    right: 0;
+    font-size: 0.66rem;
+  }
+  .postcard-toolbar {
+    display: grid;
+    gap: 0.55rem;
+    width: 100%;
+  }
+  .postcard-filter-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .postcard-filter {
+    width: 100%;
+    min-height: 38px;
+  }
+  .postcard-qr-label {
+    text-align: left;
+  }
+  .postcard-preview {
+    padding: 0.45rem;
+  }
+  .ending-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 1.15rem;
+    padding: 20px 0;
+  }
+  .ending-stats > div,
+  .ending-stats > div:first-child,
+  .ending-stats > div:last-child {
+    padding: 0 0.7rem;
+  }
+  .ending-stats > div:nth-child(odd) {
+    padding-left: 0;
+    border-right: 1px solid var(--line);
+  }
+  .ending-stats > div:nth-child(even) {
+    padding-right: 0;
+    border-right: 0;
+  }
+  .dialogue-stage {
+    min-width: 0;
+  }
+  .dialogue-copy,
+  .dialogue-text,
+  .dialogue-bubble {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .dialogue-overlay-content {
+    width: 100%;
+  }
+  .dialogue-overlay-options {
+    max-height: 30vh;
+    overflow-y: auto;
+    padding-right: 0.1rem;
+  }
+  .dialogue-overlay-option {
+    min-height: 42px;
+  }
+  .dialogue-continue {
+    position: static;
+    justify-self: end;
+    margin-top: 0.65rem;
+  }
+  .dialogue-text {
+    min-height: 2.8rem;
+    line-height: 1.7;
   }
 }

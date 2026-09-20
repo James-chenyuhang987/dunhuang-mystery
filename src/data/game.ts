@@ -10,8 +10,8 @@ const dunhuangLevels: level[] = [
     panorama: [
       {
         name: '现状勘查',
-        url: '/art/cave-01.svg',
-        ultraviolet_url: '/art/dunhuang-uv.svg',
+        url: '/dunhuang/panoramas/mogao-cave-172.png',
+        ultraviolet_url: '/art/dunhuang-gilded-uv.svg',
         click_points: [
           {
             vec: new Vector3(10, 0, 0),
@@ -24,15 +24,15 @@ const dunhuangLevels: level[] = [
           {
             vec: new Vector3(10, 0, 0),
             accept_click_range: 0.9,
-            name: '紫外墨迹',
-            description: '紫外纹理中显出的补记，说明这里曾进行过一次复查。',
+            name: '镀金题记',
+            description: '紫外光下显出一组带有暖金色辉光的墙面题记，普通光线下难以辨认。',
             in_uv: true,
           },
         ],
       },
       {
         name: '旧档复原',
-        url: '/art/cave-01.svg',
+        url: '/dunhuang/panoramas/mogao-cave-172.png',
         click_points: [
           {
             vec: new Vector3(9.6, -2, 2),
@@ -43,6 +43,10 @@ const dunhuangLevels: level[] = [
           },
         ],
       },
+    ],
+    timeline: [
+      { label: '现场勘查', panorama_index: 0, clue_indexes: [0, 1] },
+      { label: '旧档复原', panorama_index: 1, clue_indexes: [2] },
     ],
     hotspots: [
       { clue_index: 0, vec: new Vector3(10, 0.7, -2.1) },
@@ -101,7 +105,7 @@ const dunhuangLevels: level[] = [
     panorama: [
       {
         name: '壁面现状',
-        url: '/art/cave-02.svg',
+        url: '/dunhuang/panoramas/mogao-cave-322.png',
         ultraviolet_url: '/art/dunhuang-uv.svg',
         click_points: [
           {
@@ -113,6 +117,12 @@ const dunhuangLevels: level[] = [
           },
         ],
       },
+    ],
+    timeline: [
+      { label: '九色轮廓', panorama_index: 0, clue_indexes: [0] },
+      { label: '承诺与背弃', panorama_index: 0, clue_indexes: [1] },
+      { label: '褪色观察', panorama_index: 0, clue_indexes: [2] },
+      { label: '展签密码', panorama_index: 0, clue_indexes: [3] },
     ],
     hotspots: [
       { clue_index: 0, vec: new Vector3(10, 0.7, -2.1) },
@@ -192,7 +202,7 @@ const dunhuangLevels: level[] = [
     panorama: [
       {
         name: '整理前',
-        url: '/art/cave-03.svg',
+        url: '/dunhuang/panoramas/mogao-cave-420.png',
         click_points: [
           {
             vec: new Vector3(10, 0, 0),
@@ -205,7 +215,7 @@ const dunhuangLevels: level[] = [
       },
       {
         name: '数字复原后',
-        url: '/art/cave-03.svg',
+        url: '/dunhuang/panoramas/mogao-cave-420.png',
         ultraviolet_url: '/art/dunhuang-uv.svg',
         click_points: [
           {
@@ -217,6 +227,10 @@ const dunhuangLevels: level[] = [
           },
         ],
       },
+    ],
+    timeline: [
+      { label: '整理记录', panorama_index: 0, clue_indexes: [0, 1] },
+      { label: '数字复原', panorama_index: 1, clue_indexes: [2] },
     ],
     hotspots: [
       { clue_index: 0, vec: new Vector3(10, 0.7, -2.1) },
@@ -287,9 +301,14 @@ const terracottaLevels: level[] = [
       {
         name: '大佛',
         url: '/yungang/yungang_cave3_pano.jpg',
-        ultraviolet_url: '/yungang/yungang_cave3_pano.jpg',
+        initial_view: { longitude: 180, latitude: 30, fov: 70 },
         click_points: [],
       },
+    ],
+    timeline: [
+      { label: '北魏', panorama_index: 0, clue_indexes: [0] },
+      { label: '初唐', panorama_index: 0, clue_indexes: [1] },
+      { label: '辽金', panorama_index: 0, clue_indexes: [2] },
     ],
     hotspots: [
       { clue_index: 0, vec: new Vector3(-5.0762, 8.1731, -2.7265) },
@@ -356,9 +375,14 @@ const terracottaLevels: level[] = [
       {
         name: '大佛',
         url: '/yungang/yungang_cave5_pano.jpg',
-        ultraviolet_url: '/yungang/yungang_cave5_pano.jpg',
+        initial_view: { longitude: 180, latitude: 25, fov: 70 },
         click_points: [],
       },
+    ],
+    timeline: [
+      { label: '北魏营造', panorama_index: 0, clue_indexes: [0] },
+      { label: '服饰交融', panorama_index: 0, clue_indexes: [1] },
+      { label: '迁都余波', panorama_index: 0, clue_indexes: [2] },
     ],
     hotspots: [
       { clue_index: 0, vec: new Vector3(-5.5103, 8.3392, 0.3081) },
@@ -432,9 +456,14 @@ const terracottaLevels: level[] = [
       {
         name: '第六窟',
         url: '/yungang/yungang_cave6_pano.jpg',
-        ultraviolet_url: '/yungang/yungang_cave6_pano.jpg',
+        initial_view: { longitude: 180, latitude: 20, fov: 70 },
         click_points: [],
       },
+    ],
+    timeline: [
+      { label: '族群服饰', panorama_index: 0, clue_indexes: [0] },
+      { label: '褒衣博带', panorama_index: 0, clue_indexes: [1] },
+      { label: '平城交融', panorama_index: 0, clue_indexes: [2] },
     ],
     hotspots: [
       { clue_index: 0, vec: new Vector3(-7.2435, 5.5666, 4.0675) },

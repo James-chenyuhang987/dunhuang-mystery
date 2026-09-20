@@ -15,6 +15,7 @@ defineProps<{
     | 'users'
     | 'archive'
     | 'lock'
+    | 'camera'
 }>()
 const paths = {
   arrow: 'M4 12h15m-6-6 6 6-6 6',
@@ -32,6 +33,8 @@ const paths = {
     'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
   archive: 'M3 6h18M5 6v15h14V6M4 3h16v3M9 11h6',
   lock: 'M6 10V7a6 6 0 0 1 12 0v3M5 10h14v11H5V10Zm7 4v3',
+  camera:
+    'M4 7h3l2-3h6l2 3h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Zm8 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z',
 }
 </script>
 <template>

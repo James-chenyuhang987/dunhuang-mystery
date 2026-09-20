@@ -95,6 +95,27 @@ describe('clue panels', () => {
     expect(wrapper.text()).toContain('记录比猜测可靠')
   })
 
+  it('hands dialogue playback to the game overlay when configured as external', async () => {
+    const item = {
+      type: 'dialogue' as const,
+      name: '人物口述',
+      data: '一段谈话',
+      dialogue_id: 'external-dialogue',
+      dialogue: {
+        start: 'start',
+        nodes: [{ id: 'start', speaker: '守护者', text: '由游戏画面呈现', next: null }],
+      },
+    }
+    const wrapper = mount(CluePanel, {
+      props: { item, index: 0, externalDialogue: true },
+    })
+    await wrapper.get('.clue-toggle').trigger('click')
+    await wrapper.get('.dialogue-intro .primary').trigger('click')
+
+    expect(wrapper.emitted('dialogue-start')?.[0]).toEqual([item])
+    expect(wrapper.find('.clue-body').exists()).toBe(false)
+  })
+
   it.each(['image', 'audio', 'video'] as const)('reloads failed %s assets', async (type) => {
     const wrapper = mount(CluePanel, {
       props: { item: { type, name: '线索', data: '/missing' }, index: 1 },

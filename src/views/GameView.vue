@@ -10,6 +10,7 @@ import DifficultyControl from '@/components/DifficultyControl.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import MediaViewer from '@/components/MediaViewer.vue'
 import DialogueOverlay from '@/components/DialogueOverlay.vue'
+import { getStory, storyRevision } from '@/utils/storyPackage'
 const game = useGameStore()
 const routeIntroActive = inject<Ref<boolean>>('routeIntroActive', ref(false))
 const router = useRouter()
@@ -57,7 +58,8 @@ function answer(index: number) {
   toggleAnswer(index)
 }
 const cluePanels = ref<InstanceType<typeof CluePanel>[]>([])
-const highlightedClue = ref<number | null>(null)
+const highlightedClues = ref<number[]>([])
+const activeTimelineIndex = ref(0)
 const cluesOpen = ref(false)
 const settingsOpen = ref(false)
 const archiveOpen = ref(false)
@@ -65,16 +67,42 @@ const ultraviolet = ref(false)
 const discovery = ref<ClickPoint | null>(null)
 const activeDialogue = ref<clue | null>(null)
 const discoveryMedia = ref<InstanceType<typeof MediaViewer> | null>(null)
+let highlightTimer: number | undefined
+let highlightRevision = 0
 const placeId = computed(() =>
   typeof route.params.place === 'string' ? route.params.place : 'dunhuang',
 )
-const homePath = computed(() => `/${placeId.value}/home`)
-const thankPath = computed(() => `/${placeId.value}/thank`)
+const storyId = computed(() =>
+  typeof route.params.storyId === 'string' ? route.params.storyId : '',
+)
+const isStoryRoute = computed(() => storyId.value.length > 0)
+const homePath = computed(() =>
+  isStoryRoute.value
+    ? `/story/${encodeURIComponent(storyId.value)}/home`
+    : `/${placeId.value}/home`,
+)
+const thankPath = computed(() =>
+  isStoryRoute.value
+    ? `/story/${encodeURIComponent(storyId.value)}/thank`
+    : `/${placeId.value}/thank`,
+)
+const gameBackPath = computed(() => (isStoryRoute.value ? homePath.value : '/select'))
+const gameBackLabel = computed(() => (isStoryRoute.value ? '返回故事' : '石窟 · 探秘'))
 const discoveryClue = computed<clue | null>(() =>
   discovery.value?.image
     ? { type: 'image', name: discovery.value.name, data: discovery.value.image }
     : null,
 )
+const timelineItems = computed(() => {
+  const level = game.currentLevel
+  if (!level) return []
+  if (level.timeline?.length) return level.timeline
+  return level.panorama.map((panorama, index) => ({
+    label: panorama.name,
+    panorama_index: index,
+    clue_indexes: [],
+  }))
+})
 const solvedCount = computed(
   () =>
     game.selectedQuestionIndexes.filter((index) =>
@@ -116,21 +144,47 @@ function handleClue(index: number): void {
   }
   void revealClue(index)
 }
+function handleDialogueStart(item: clue): void {
+  activeDialogue.value = item
+}
+function clearClueHighlights(): void {
+  highlightRevision += 1
+  if (highlightTimer !== undefined) window.clearTimeout(highlightTimer)
+  highlightTimer = undefined
+  highlightedClues.value = []
+}
+async function highlightClueIndexes(indexes: number[]): Promise<void> {
+  clearClueHighlights()
+  const revision = highlightRevision
+  const clueCount = game.currentLevel?.clues.length ?? 0
+  const targets = [...new Set(indexes)].filter(
+    (index) => Number.isInteger(index) && index >= 0 && index < clueCount,
+  )
+  if (targets.length === 0) return
+  const levelIndex = game.currentLevelIndex
+  cluesOpen.value = true
+  highlightedClues.value = targets
+  await nextTick()
+  if (revision !== highlightRevision || levelIndex !== game.currentLevelIndex) return
+  for (const index of targets) {
+    if (game.isClueUnlocked(index)) cluePanels.value[index]?.reveal()
+  }
+  const firstUnlocked = targets.find((index) => game.isClueUnlocked(index))
+  const scrollTarget = firstUnlocked ?? targets[0]!
+  cluePanels.value[scrollTarget]?.$el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  highlightTimer = window.setTimeout(() => {
+    if (revision !== highlightRevision) return
+    highlightedClues.value = []
+    highlightTimer = undefined
+  }, 2400)
+}
 function revealFeedbackClue(index: number): void {
   void revealClue(index)
   questionDialog.value?.close()
 }
 async function revealClue(index: number) {
   if (!game.isClueUnlocked(index)) return
-  cluesOpen.value = true
-  highlightedClue.value = index
-  await nextTick()
-  const panel = cluePanels.value[index]
-  panel?.reveal()
-  panel?.$el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-  window.setTimeout(() => {
-    if (highlightedClue.value === index) highlightedClue.value = null
-  }, 2400)
+  await highlightClueIndexes([index])
 }
 function showDiscovery(pointIndex: number): void {
   const point = game.currentPanorama?.click_points[pointIndex]
@@ -158,10 +212,27 @@ function switchPanorama(index: number): void {
     activeDialogue.value = null
   }
 }
+function selectTimeline(index: number): void {
+  const item = timelineItems.value[index]
+  if (!item) return
+  activeTimelineIndex.value = index
+  if (item.panorama_index !== game.currentPanoramaIndex) switchPanorama(item.panorama_index)
+  else archiveOpen.value = false
+  if (game.currentLevel?.timeline?.length) cluesOpen.value = true
+  if (item.clue_indexes.length > 0) void highlightClueIndexes(item.clue_indexes)
+  else clearClueHighlights()
+}
 function toggleUltraviolet(): void {
   if (!game.currentPanorama?.ultraviolet_url) return
   ultraviolet.value = !ultraviolet.value
   discovery.value = null
+}
+function handleUltravioletError(): void {
+  ultraviolet.value = false
+  discovery.value = null
+}
+function savePostcardFrame(dataUrl: string): void {
+  game.captureFrame(dataUrl)
 }
 async function openDiscoveryImage(): Promise<void> {
   await nextTick()
@@ -171,6 +242,34 @@ function nextLevel() {
   feedback.value = null
   questionDialog.value?.close()
   if (game.advanceLevel()) void router.push(thankPath.value)
+}
+function ensureRuntimeSource(): boolean {
+  if (isStoryRoute.value) {
+    const story = getStory(storyId.value)
+    if (!story) {
+      void router.replace('/studio')
+      return false
+    }
+    const revision = storyRevision(story)
+    if (
+      game.sourceKind !== 'ugc' ||
+      game.sourceId !== story.id ||
+      game.sourceRevision !== revision
+    ) {
+      if (!game.loadStory(story)) {
+        void router.replace('/studio')
+        return false
+      }
+    } else game.restoreSource()
+    return true
+  }
+  if (game.locationId !== placeId.value || game.sourceKind !== 'builtin')
+    return game.loadBuiltin(placeId.value)
+  // A direct refresh can mount this view before App's route watcher restores
+  // the source. Re-read the matching namespace here to avoid redirecting to
+  // the home page with an empty in-memory store.
+  game.restoreSource()
+  return true
 }
 watch(
   () => game.difficulty,
@@ -188,8 +287,13 @@ watch(activeDialogue, (active) => {
   else if (!document.hidden && game.hasProgress && !game.completed) game.resumeTimer()
 })
 watch(
-  () => game.currentLevelIndex,
+  () => [game.locationId, game.currentLevelIndex] as const,
   () => {
+    clearClueHighlights()
+    activeTimelineIndex.value = Math.max(
+      0,
+      timelineItems.value.findIndex((item) => item.panorama_index === game.currentPanoramaIndex),
+    )
     cluesOpen.value = false
     archiveOpen.value = false
     ultraviolet.value = false
@@ -198,7 +302,7 @@ watch(
   },
 )
 onMounted(async () => {
-  if (game.locationId !== placeId.value) game.selectLocation(placeId.value)
+  if (!ensureRuntimeSource()) return
   if (!game.hasProgress) {
     await router.replace(homePath.value)
     return
@@ -207,6 +311,10 @@ onMounted(async () => {
     await router.replace(thankPath.value)
     return
   }
+  activeTimelineIndex.value = Math.max(
+    0,
+    timelineItems.value.findIndex((item) => item.panorama_index === game.currentPanoramaIndex),
+  )
   if (!routeIntroActive.value) game.resumeTimer()
   await nextTick()
 })
@@ -216,6 +324,7 @@ watch(routeIntroActive, (active) => {
     game.resumeTimer()
 })
 onBeforeUnmount(() => {
+  clearClueHighlights()
   game.pauseTimer()
   game.persist()
 })
@@ -225,17 +334,20 @@ onBeforeUnmount(() => {
     <PanoramaViewer
       :url="game.currentPanorama?.url ?? ''"
       :ultraviolet-url="game.currentPanorama?.ultraviolet_url"
+      :initial-view="game.currentPanorama?.initial_view"
       :hotspots="game.currentLevel.hotspots"
       :click-points="game.currentPanorama?.click_points"
       :ultraviolet="ultraviolet"
       @clue="handleClue"
       @discover="showDiscovery"
+      @uv-error="handleUltravioletError"
+      @capture="savePostcardFrame"
     />
     <div class="game-vignette" />
     <DialogueOverlay v-if="activeDialogue" :item="activeDialogue" @close="activeDialogue = null" />
     <header class="game-header">
-      <RouterLink :to="homePath" class="game-back"
-        ><AppIcon name="home" /><span>返回画境</span></RouterLink
+      <RouterLink :to="gameBackPath" class="game-back"
+        ><AppIcon name="home" /><span>{{ gameBackLabel }}</span></RouterLink
       >
       <div class="game-title">
         <span class="eyebrow"
@@ -282,7 +394,9 @@ onBeforeUnmount(() => {
           :item="clue"
           :index="index"
           :locked="!game.isClueUnlocked(index)"
-          :highlighted="highlightedClue === index"
+          :highlighted="highlightedClues.includes(index)"
+          external-dialogue
+          @dialogue-start="handleDialogueStart"
         />
       </div>
     </aside>
@@ -329,22 +443,18 @@ onBeforeUnmount(() => {
         <AppIcon name="book" />探秘手礼
       </button>
       <section id="archive-controls" class="archive-controls" :class="{ open: archiveOpen }">
-        <nav
-          v-if="game.currentLevel.panorama.length"
-          class="panorama-timeline"
-          aria-label="全景时间轴"
-        >
+        <nav v-if="timelineItems.length" class="panorama-timeline" aria-label="全景时间轴">
           <p class="eyebrow">TIME ARCHIVE · 时间轴</p>
           <div>
             <button
-              v-for="(item, index) in game.currentLevel.panorama"
-              :key="index"
-              :class="{ active: game.currentPanoramaIndex === index }"
-              :aria-current="game.currentPanoramaIndex === index ? 'step' : undefined"
-              @click="switchPanorama(index)"
+              v-for="(item, index) in timelineItems"
+              :key="`${item.panorama_index}-${index}-${item.label}`"
+              :class="{ active: activeTimelineIndex === index }"
+              :aria-current="activeTimelineIndex === index ? 'step' : undefined"
+              @click="selectTimeline(index)"
             >
-              <span>{{ String(index + 1).padStart(2, '0') }}</span
-              >{{ item.name }}
+              <span class="timeline-index">{{ String(index + 1).padStart(2, '0') }}</span
+              ><span class="timeline-label">{{ item.label }}</span>
             </button>
           </div>
         </nav>
@@ -360,7 +470,7 @@ onBeforeUnmount(() => {
           </button>
           <span class="discovery-count"
             >已发现 <strong>{{ game.discoveredCount }}</strong> / 共
-            {{ game.totalClickPointCount }}</span
+            {{ game.totalDiscoveryCount }}</span
           >
         </div>
       </section>

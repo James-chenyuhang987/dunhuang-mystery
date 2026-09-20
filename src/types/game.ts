@@ -60,16 +60,30 @@ export interface ClickPoint {
   dialogue_id?: string
 }
 
+export interface PanoramaInitialView {
+  longitude: number
+  latitude: number
+  fov?: number
+}
+
 export interface ImagePanorama {
   name: string
   url: string
   ultraviolet_url?: string
+  initial_view?: PanoramaInitialView
   click_points: ClickPoint[]
+}
+
+export interface TimelineEntry {
+  label: string
+  panorama_index: number
+  clue_indexes: number[]
 }
 
 export interface level {
   name: string
   panorama: ImagePanorama[]
+  timeline?: TimelineEntry[]
   thumbnail_url?: string
   subtitle?: string
   description?: string

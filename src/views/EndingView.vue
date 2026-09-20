@@ -2,28 +2,93 @@
 import { computed, onMounted } from 'vue'
 import { assetUrl } from '@/utils/assets'
 import { useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/game'
 import { gameLocations, siteConfig } from '@/data/game'
 import AppIcon from '@/components/AppIcon.vue'
 import PostcardGenerator from '@/components/PostcardGenerator.vue'
+import { getStory, storyRevision } from '@/utils/storyPackage'
 const game = useGameStore()
 const route = useRoute()
-const homePath = computed(
-  () => `/${typeof route.params.place === 'string' ? route.params.place : 'dunhuang'}/home`,
+const router = useRouter()
+const storyId = computed(() =>
+  typeof route.params.storyId === 'string' ? route.params.storyId : '',
+)
+const isStoryRoute = computed(() => storyId.value.length > 0)
+const homePath = computed(() =>
+  isStoryRoute.value
+    ? `/story/${encodeURIComponent(storyId.value)}/home`
+    : `/${typeof route.params.place === 'string' ? route.params.place : 'dunhuang'}/home`,
 )
 const elapsed = computed(
   () => `${Math.floor(game.elapsedMs / 60000)} 分 ${Math.floor(game.elapsedMs / 1000) % 60} 秒`,
 )
-const location = computed(
-  () => gameLocations.find((entry) => entry.id === game.locationId) ?? gameLocations[0],
-)
+const location = computed(() => {
+  if (isStoryRoute.value) {
+    const story = getStory(storyId.value) ?? game.activeStory
+    if (story?.id === storyId.value)
+      return {
+        id: story.id,
+        name: story.name,
+        subtitle: story.subtitle,
+        coordinates: story.coordinates,
+        background_url: story.background_url,
+      }
+  }
+  return gameLocations.find((entry) => entry.id === game.locationId) ?? gameLocations[0]
+})
 const postcardBackground = computed(
   () => location.value?.background_url ?? siteConfig.backgroundUrl,
 )
 const postcardCover = computed(
-  () => game.currentLevel?.thumbnail_url ?? game.currentLevel?.panorama[0]?.url,
+  () =>
+    game.capturedFrame || game.currentLevel?.thumbnail_url || game.currentLevel?.panorama[0]?.url,
+)
+const postcardSections = computed(() => [
+  { label: '正确推断', value: game.correctCount },
+  { label: '错误尝试', value: game.wrongCount },
+  { label: '跳过题目', value: game.skippedCount },
+  { label: '探索用时', value: elapsed.value },
+])
+const postcardShareValue = computed(() =>
+  typeof window === 'undefined'
+    ? `/#${homePath.value}`
+    : `${window.location.origin}${import.meta.env.BASE_URL}#${homePath.value}`,
+)
+const displayHeading = computed(() =>
+  isStoryRoute.value
+    ? (game.activeStory?.name ?? location.value?.name ?? siteConfig.title)
+    : game.completed
+      ? siteConfig.endingHeading
+      : siteConfig.aboutHeading,
+)
+const displayAuthor = computed(() =>
+  isStoryRoute.value ? (game.activeStory?.authors[0]?.name ?? '故事作者') : '',
 )
 onMounted(() => {
+  const story = isStoryRoute.value ? getStory(storyId.value) : null
+  if (isStoryRoute.value) {
+    if (!story) {
+      void router.replace('/studio')
+      return
+    }
+    const revision = storyRevision(story)
+    if (
+      game.sourceKind !== 'ugc' ||
+      game.sourceId !== story.id ||
+      game.sourceRevision !== revision
+    ) {
+      if (!game.loadStory(story)) {
+        void router.replace('/studio')
+        return
+      }
+    } else game.restoreSource()
+  } else if (
+    game.locationId !== (route.params.place ?? 'dunhuang') ||
+    game.sourceKind !== 'builtin'
+  ) {
+    if (!game.loadBuiltin(String(route.params.place ?? 'dunhuang'))) return
+  } else game.restoreSource()
   game.pauseTimer()
   game.persist()
 })
@@ -33,7 +98,7 @@ onMounted(() => {
     <div
       class="ending-art"
       :style="{
-        backgroundImage: `linear-gradient(#132c2bdd,#122b2af5), url(${assetUrl('/art/landscape.svg')})`,
+        backgroundImage: `linear-gradient(#132c2bdd,#122b2af5), url(${assetUrl(postcardBackground)})`,
       }"
     />
     <RouterLink :to="homePath" class="ending-home"><AppIcon name="home" />返回画境</RouterLink>
@@ -42,13 +107,14 @@ onMounted(() => {
       <div class="ending-medallion">
         ✧<span>千年<br />回响</span>✧
       </div>
-      <h1>{{ game.completed ? siteConfig.endingHeading : siteConfig.aboutHeading }}</h1>
+      <h1>{{ displayHeading }}</h1>
       <p class="ending-message">
         {{
           game.completed
             ? `感谢你执灯而来，为${location?.name ?? '古老遗迹'}寻回故事。`
             : `一场关于${location?.name ?? '文化遗产'}、记忆与好奇心的原创探索。`
-        }}<br />愿下一次相逢，仍有风沙与星光为伴。
+        }}<span v-if="displayAuthor"> · 作者：{{ displayAuthor }}</span
+        ><br />愿下一次相逢，仍有风沙与星光为伴。
       </p>
       <div v-if="game.hasProgress" class="ending-stats">
         <div>
@@ -79,6 +145,8 @@ onMounted(() => {
         :wrong="game.wrongCount"
         :skipped="game.skippedCount"
         :elapsed="elapsed"
+        :sections="postcardSections"
+        :qr-value="postcardShareValue"
       />
       <div class="credits">
         <p class="eyebrow">BEHIND THE MURALS · 创作团队</p>

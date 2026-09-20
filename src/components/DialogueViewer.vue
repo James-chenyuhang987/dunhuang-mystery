@@ -4,6 +4,10 @@ import type { clue, DialogueNode } from '@/types/game'
 import { assetUrl } from '@/utils/assets'
 
 const props = defineProps<{ item: clue }>()
+const emit = defineEmits<{
+  start: [item: clue]
+  'dialogue-start': [item: clue]
+}>()
 const started = ref(false)
 const nodeId = ref('')
 const definition = computed(() => props.item.dialogue)
@@ -17,6 +21,8 @@ function start() {
   if (!definition.value) return
   nodeId.value = definition.value.start
   started.value = true
+  emit('start', props.item)
+  emit('dialogue-start', props.item)
 }
 function choose(next: string | null) {
   if (next === null) {
@@ -28,6 +34,15 @@ function choose(next: string | null) {
 function continueNode() {
   if (node.value?.next) nodeId.value = node.value.next
   else started.value = false
+}
+function advanceFromStage(event: MouseEvent): void {
+  if (hasChoices.value || (event.target as HTMLElement).closest('button')) return
+  continueNode()
+}
+function advanceFromKeyboard(event: KeyboardEvent): void {
+  if (hasChoices.value) return
+  event.preventDefault()
+  continueNode()
 }
 watch(
   () => props.item.dialogue,
@@ -45,7 +60,16 @@ watch(
       <p>{{ item.data || '一段等待你聆听的对话。' }}</p>
       <button class="primary" @click="start">开始对话</button>
     </div>
-    <div v-else-if="node" class="dialogue-stage">
+    <div
+      v-else-if="node"
+      class="dialogue-stage"
+      :class="{ 'is-clickable': !hasChoices }"
+      :tabindex="hasChoices ? undefined : 0"
+      :aria-label="hasChoices ? undefined : '继续对话'"
+      @click="advanceFromStage"
+      @keydown.enter="advanceFromKeyboard"
+      @keydown.space="advanceFromKeyboard"
+    >
       <div class="dialogue-portrait" :class="{ placeholder: !node.avatar }">
         <img v-if="node.avatar" :src="assetUrl(node.avatar)" :alt="node.speaker" />
         <span v-else aria-hidden="true">{{ node.speaker.slice(0, 1) }}</span>

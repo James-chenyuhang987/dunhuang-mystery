@@ -65,12 +65,17 @@ watch(
     <div class="landscape-shade" />
     <div class="grain-overlay" />
     <header class="site-header">
-      <div class="brand">
+      <button
+        class="brand brand-home-button"
+        type="button"
+        aria-label="返回石窟探秘地点选择"
+        @click="router.push('/select')"
+      >
         <span class="brand-mark">✧</span
         ><span
           >{{ siteConfig.brand }}<small>{{ siteConfig.brandEnglish }}</small></span
         >
-      </div>
+      </button>
       <nav aria-label="首页导航">
         <span>{{ activeLocation?.name }}</span
         ><RouterLink :to="gamePath('thank')"><AppIcon name="users" />关于作者</RouterLink

@@ -95,13 +95,13 @@ test('mobile: responsive layout, live difficulty and isolated clue gestures', as
 })
 
 test('panorama and clue failures offer working reload buttons', async ({ page }) => {
-  await page.route('**/art/cave-01.svg', (route) => route.abort())
+  await page.route('**/dunhuang/panoramas/mogao-cave-172.png', (route) => route.abort())
   await page.goto('/')
   await chooseDefaultLocation(page)
   await page.getByRole('button', { name: '选关', exact: true }).click()
   await page.getByRole('button', { name: '开始所选关卡' }).click()
   await expect(page.getByRole('button', { name: '重新加载全景' })).toBeVisible()
-  await page.unroute('**/art/cave-01.svg')
+  await page.unroute('**/dunhuang/panoramas/mogao-cave-172.png')
   await page.getByRole('button', { name: '重新加载全景' }).click()
   await expect(page.locator('.panorama-status')).toHaveCount(0)
   await page.locator('.panorama canvas').evaluate((canvas) => {

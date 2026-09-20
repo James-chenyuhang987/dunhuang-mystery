@@ -319,6 +319,47 @@ describe('panorama timeline and discoveries', () => {
     expect(store.discoveredCount).toBe(1)
   })
 
+  it('counts clues before click points and increments when a hotspot unlocks a clue', () => {
+    const level = gameLevels[0]
+    if (!level) throw new Error('Missing level')
+    level.clues = [
+      { type: 'text', name: '线索一', data: '一' },
+      { type: 'text', name: '线索二', data: '二' },
+      { type: 'text', name: '线索三', data: '三' },
+    ]
+    level.hotspots = [
+      { clue_index: 0, x: 20, y: 20 },
+      { clue_index: 1, x: 50, y: 50 },
+      { clue_index: 2, x: 80, y: 80 },
+    ]
+    level.panorama[0]!.click_points = []
+    const store = useGameStore()
+    store.startGame(0)
+    expect(store.totalDiscoveryCount).toBe(3)
+    expect(store.totalClickPointCount).toBe(3)
+    expect(store.discoveredCount).toBe(0)
+    expect(store.unlockClue(1)).toBe(true)
+    expect(store.discoveredCount).toBe(1)
+  })
+
+  it('falls back to unique hotspot clues, then legacy non-dialogue click points', () => {
+    const level = gameLevels[0]
+    if (!level) throw new Error('Missing level')
+    level.hotspots = [
+      { clue_index: 3, x: 20, y: 20 },
+      { clue_index: 3, x: 25, y: 25 },
+      { clue_index: 8, x: 80, y: 80 },
+    ]
+    const store = useGameStore()
+    store.startGame(0)
+    expect(store.totalDiscoveryCount).toBe(2)
+    level.hotspots = []
+    configurePanoramas()
+    store.refreshConfig()
+    expect(store.totalDiscoveryCount).toBe(3)
+    expect(store.totalClickPointCount).toBe(3)
+  })
+
   it('persists its time point and findings and restores Vector3 methods', () => {
     configurePanoramas()
     const store = useGameStore()

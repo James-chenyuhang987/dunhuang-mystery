@@ -11,7 +11,17 @@ function expand() {
   inlineVideo.value?.pause()
   viewer.value?.open()
 }
-const props = defineProps<{ item: clue; index: number; highlighted?: boolean; locked?: boolean }>()
+const props = defineProps<{
+  item: clue
+  index: number
+  highlighted?: boolean
+  locked?: boolean
+  externalDialogue?: boolean
+}>()
+const emit = defineEmits<{
+  start: [item: clue]
+  'dialogue-start': [item: clue]
+}>()
 const open = ref(false)
 function reveal() {
   if (!props.locked) open.value = true
@@ -35,6 +45,11 @@ function retry() {
   failed.value = false
   revision.value += 1
   deadline()
+}
+function forwardDialogueStart(item: clue): void {
+  emit('start', item)
+  emit('dialogue-start', item)
+  if (props.externalDialogue) open.value = false
 }
 watch(open, (value) => {
   if (value) {
@@ -83,7 +98,11 @@ onBeforeUnmount(loaded)
     <div v-if="open && !locked" :id="`clue-${index}`" class="clue-body">
       <p v-if="item.hint">{{ item.hint }}</p>
       <p v-if="item.type === 'text'">{{ item.data }}</p>
-      <DialogueViewer v-else-if="item.type === 'dialogue'" :item="item" />
+      <DialogueViewer
+        v-else-if="item.type === 'dialogue'"
+        :item="item"
+        @dialogue-start="forwardDialogueStart"
+      />
       <div v-else-if="item.type === 'combination'" class="combination-clue">
         <p v-if="item.data">{{ item.data }}</p>
         <CluePanel
@@ -91,6 +110,7 @@ onBeforeUnmount(loaded)
           :key="`${index}-${subIndex}`"
           :item="subclue"
           :index="subIndex"
+          @dialogue-start="forwardDialogueStart"
         />
       </div>
       <div v-else-if="failed" role="alert">

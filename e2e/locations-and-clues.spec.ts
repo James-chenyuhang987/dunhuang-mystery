@@ -1,9 +1,11 @@
 import { test, expect } from '@playwright/test'
 import { gameLocations } from '../src/data/game'
-import { chooseDefaultLocation } from './helpers'
+import { chooseDefaultLocation, chooseLocation } from './helpers'
 
 const dunhuang = gameLocations.find((location) => location.id === 'dunhuang')
 if (!dunhuang) throw new Error('Dunhuang fixture is missing')
+const yungang = gameLocations.find((location) => location.id === 'yungang')
+if (!yungang) throw new Error('Yungang fixture is missing')
 
 test('root opens the destination selector and invalid routes resolve to the Dunhuang home', async ({
   page,
@@ -62,7 +64,7 @@ test('timeline, ultraviolet texture and sphere discoveries are persisted', async
   await expect(
     page.getByRole('navigation', { name: '全景时间轴' }).getByRole('button'),
   ).toHaveCount(2)
-  await expect(page.getByRole('button', { name: '现状勘查' })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: '现场勘查' })).toHaveAttribute(
     'aria-current',
     'step',
   )
@@ -136,7 +138,7 @@ test('timeline, ultraviolet texture and sphere discoveries are persisted', async
     button: 0,
     ...center,
   })
-  await expect(page.locator('.discovery-card')).toContainText('紫外墨迹')
+  await expect(page.locator('.discovery-card')).toContainText('镀金题记')
   await expect(page.locator('.discovery-count')).toContainText('已发现 2 / 共 3')
   expect(shaderErrors).toEqual([])
 
@@ -153,6 +155,93 @@ test('timeline, ultraviolet texture and sphere discoveries are persisted', async
     'step',
   )
   await expect(page.locator('.discovery-count')).toContainText('已发现 2 / 共 3')
+})
+
+test('Yungang timeline focuses clues and clue discovery starts at zero of three', async ({
+  page,
+}) => {
+  await page.goto('/yungang/home')
+  await chooseLocation(page, yungang.name)
+  await page.getByRole('button', { name: '选关', exact: true }).click()
+  await page.getByRole('button', { name: /第 1 章/ }).click()
+  await page.getByRole('button', { name: '开始所选关卡' }).click()
+
+  const timeline = page.getByRole('navigation', { name: '全景时间轴' })
+  const nodes = timeline.getByRole('button')
+  await expect(nodes).toHaveCount(3)
+  await expect(nodes.nth(0)).toContainText('北魏')
+  await expect(nodes.nth(1)).toContainText('初唐')
+  await expect(nodes.nth(2)).toContainText('辽金')
+  await expect(nodes.nth(0)).toHaveAttribute('aria-current', 'step')
+  await expect(page.locator('.discovery-count')).toContainText('已发现 0 / 共 3')
+  await expect(page.getByRole('button', { name: '开启紫外线' })).toHaveCount(0)
+
+  await nodes.nth(1).click()
+  await expect(nodes.nth(1)).toHaveAttribute('aria-current', 'step')
+  await expect(page.locator('.clue-panel').nth(1)).toHaveClass(/highlighted/)
+  await expect(page.locator('.clue-panel.highlighted')).toHaveCount(1)
+  await expect(page.locator('.clue-toggle').nth(1)).toContainText('未解锁')
+
+  const visibleHotspots = page.locator('.panorama-hotspot:visible')
+  await expect(visibleHotspots.first()).toBeVisible()
+  await visibleHotspots.first().click()
+  await expect(page.locator('.discovery-count')).toContainText('已发现 1 / 共 3')
+})
+
+test('ultraviolet texture failure exits ultraviolet mode', async ({ page }) => {
+  let ultravioletRequests = 0
+  await page.route('**/art/dunhuang-gilded-uv.svg', async (route) => {
+    ultravioletRequests += 1
+    await route.abort('failed')
+  })
+  await page.goto('/dunhuang/home')
+  await chooseDefaultLocation(page)
+  await page.getByRole('button', { name: '选关', exact: true }).click()
+  await page.getByRole('button', { name: /第 1 章/ }).click()
+  await page.getByRole('button', { name: '开始所选关卡' }).click()
+
+  await page.getByRole('button', { name: '开启紫外线' }).click()
+  await expect.poll(() => ultravioletRequests).toBe(1)
+  await expect(page.getByRole('button', { name: '开启紫外线' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '退出紫外线' })).toHaveCount(0)
+  const panorama = page.locator('.panorama')
+  await expect(panorama).toHaveAttribute('data-ultraviolet-pass', 'inactive')
+  await expect(page.locator('.panorama-transition')).toHaveCount(0)
+  const bounds = await panorama.boundingBox()
+  if (!bounds) throw new Error('Panorama bounds unavailable after ultraviolet recovery')
+  const center = { clientX: bounds.x + bounds.width / 2, clientY: bounds.y + bounds.height / 2 }
+  await panorama.dispatchEvent('pointerdown', {
+    pointerId: 1,
+    pointerType: 'mouse',
+    button: 0,
+    ...center,
+  })
+  await panorama.dispatchEvent('pointerup', {
+    pointerId: 1,
+    pointerType: 'mouse',
+    button: 0,
+    ...center,
+  })
+  await expect(page.locator('.discovery-card')).toContainText('蓝签残片')
+})
+
+test('same-panorama timeline nodes preserve ultraviolet mode', async ({ page }) => {
+  await page.goto('/dunhuang/home')
+  await chooseDefaultLocation(page)
+  await page.getByRole('button', { name: '选关', exact: true }).click()
+  await page.getByRole('button', { name: /第 2 章/ }).click()
+  await page.getByRole('button', { name: '开始所选关卡' }).click()
+
+  await page.getByRole('button', { name: '开启紫外线' }).click()
+  const panorama = page.locator('.panorama')
+  await expect(panorama).toHaveAttribute('data-ultraviolet-pass', 'active')
+  const nodes = page.getByRole('navigation', { name: '全景时间轴' }).getByRole('button')
+  await nodes.nth(1).click()
+  await expect(nodes.nth(1)).toHaveAttribute('aria-current', 'step')
+  await expect(page.locator('.clue-panel.highlighted')).toHaveCount(1)
+  await expect(page.locator('.clue-panel').nth(1)).toHaveClass(/highlighted/)
+  await expect(page.getByRole('button', { name: '退出紫外线' })).toBeVisible()
+  await expect(panorama).toHaveAttribute('data-ultraviolet-pass', 'active')
 })
 
 test('panorama hotspots reveal clues and a wrong answer advances without retry', async ({

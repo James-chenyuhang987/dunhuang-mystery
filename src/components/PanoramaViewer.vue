@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { onBeforeUnmount, ref, watch } from 'vue'
 import AppIcon from './AppIcon.vue'
-import type { ClickPoint, hotspot } from '@/types/game'
+import type { ClickPoint, hotspot, PanoramaInitialView } from '@/types/game'
 import { useSceneManager } from '@/composables/SceneManager'
 import { useGameUI } from '@/composables/GameUI'
 
@@ -12,16 +12,23 @@ const props = withDefaults(
     hotspots?: hotspot[]
     clickPoints?: ClickPoint[]
     ultraviolet?: boolean
+    initialView?: PanoramaInitialView
   }>(),
   { ultravioletUrl: '', hotspots: () => [], clickPoints: () => [], ultraviolet: false },
 )
-const emit = defineEmits<{ clue: [index: number]; discover: [index: number] }>()
+const emit = defineEmits<{
+  clue: [index: number]
+  discover: [index: number]
+  'uv-error': []
+  capture: [dataUrl: string]
+}>()
 const host = ref<HTMLDivElement | null>(null)
 const scene = useSceneManager({
   host,
   getUrl: () => props.url,
   getUltravioletUrl: () => props.ultravioletUrl,
   isUltraviolet: () => props.ultraviolet,
+  onUltravioletError: () => emit('uv-error'),
 })
 const ui = useGameUI({
   host,
@@ -34,6 +41,25 @@ const ui = useGameUI({
 })
 const { status, hasTexture, renderedUltraviolet, retry } = scene
 const { fov, projected, down, move, up, cancel, zoom, key } = ui
+const captureNotice = ref('')
+let captureNoticeTimer: number | undefined
+const applyInitialView = () => {
+  scene.longitude.value = props.initialView?.longitude ?? 0
+  scene.latitude.value = props.initialView?.latitude ?? 0
+  scene.fov.value = props.initialView?.fov ?? 70
+  scene.schedule()
+}
+applyInitialView()
+watch(
+  () =>
+    [
+      props.url,
+      props.initialView?.longitude,
+      props.initialView?.latitude,
+      props.initialView?.fov,
+    ] as const,
+  applyInitialView,
+)
 watch(
   () => [props.url, props.ultravioletUrl, props.ultraviolet] as const,
   () => {
@@ -48,6 +74,27 @@ watch(
   },
   { deep: true },
 )
+function captureCurrentFrame(): void {
+  const dataUrl = scene.captureFrame?.()
+  if (!dataUrl) {
+    captureNotice.value = '当前画面暂不可保存'
+  } else {
+    emit('capture', dataUrl)
+    const link = document.createElement('a')
+    link.href = dataUrl
+    link.download = `全景当前帧-${new Date().toISOString().slice(0, 10)}.png`
+    link.click()
+    captureNotice.value = '当前帧已保存'
+  }
+  if (captureNoticeTimer !== undefined) window.clearTimeout(captureNoticeTimer)
+  captureNoticeTimer = window.setTimeout(() => {
+    captureNotice.value = ''
+    captureNoticeTimer = undefined
+  }, 2200)
+}
+onBeforeUnmount(() => {
+  if (captureNoticeTimer !== undefined) window.clearTimeout(captureNoticeTimer)
+})
 </script>
 <template>
   <div class="panorama-wrap">
@@ -85,6 +132,20 @@ watch(
     <div class="zoom-controls" @pointerdown.stop @wheel.stop>
       <button aria-label="放大全景" @click="zoom(-5)">＋</button><span>{{ Math.round(fov) }}°</span
       ><button aria-label="缩小全景" @click="zoom(5)">−</button>
+    </div>
+    <div class="panorama-capture-controls" @pointerdown.stop @wheel.stop>
+      <button
+        class="icon-button"
+        type="button"
+        aria-label="截取当前画面作为明信片图片"
+        title="截取当前画面作为明信片图片"
+        @click="captureCurrentFrame"
+      >
+        <AppIcon name="camera" />
+      </button>
+      <span v-if="captureNotice" class="panorama-capture-status" role="status">{{
+        captureNotice
+      }}</span>
     </div>
   </div>
 </template>

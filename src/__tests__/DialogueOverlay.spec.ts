@@ -47,4 +47,28 @@ describe('dialogue overlay', () => {
     await wrapper.get('.dialogue-continue').trigger('click')
     expect(wrapper.emitted('close')).toHaveLength(1)
   })
+
+  it('advances a choice-free dialogue from any non-control area', async () => {
+    const wrapper = mount(DialogueOverlay, {
+      props: {
+        item: {
+          type: 'dialogue',
+          name: '连续口述',
+          data: '',
+          dialogue: {
+            start: 'start',
+            nodes: [
+              { id: 'start', speaker: '守护者', text: '第一句', next: 'end' },
+              { id: 'end', speaker: '守护者', text: '第二句', next: null },
+            ],
+          },
+        },
+      },
+    })
+
+    await wrapper.get('.dialogue-character').trigger('click')
+    expect(wrapper.text()).toContain('第二句')
+    await wrapper.get('.dialogue-overlay-content').trigger('click')
+    expect(wrapper.emitted('close')).toHaveLength(1)
+  })
 })
