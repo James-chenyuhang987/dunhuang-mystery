@@ -1651,6 +1651,30 @@ h2 {
   color: #748e7b;
   margin-top: 32px;
 }
+.settlement-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #020507;
+}
+.settlement-transition video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #020507;
+}
+.settlement-transition-meta {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.settlement-transition-meta .skip-intro {
+  pointer-events: auto;
+}
 @keyframes orbit {
   to {
     transform: rotate(360deg);
@@ -2588,6 +2612,22 @@ button {
 .panorama-hotspot .hotspot-label {
   position: relative;
   z-index: 2;
+}
+.panorama-hotspot.ultraviolet-discovery-hotspot {
+  border-color: #b7adff;
+  background: #17153be8;
+  color: #eef4ff;
+  box-shadow:
+    0 0 0 6px #766cff2e,
+    0 0 30px #877cffc2;
+}
+.panorama-hotspot.ultraviolet-discovery-hotspot:before,
+.panorama-hotspot.ultraviolet-discovery-hotspot:after {
+  border-color: #aaa3ff99;
+}
+.panorama-hotspot.ultraviolet-discovery-hotspot .panorama-particle {
+  background: #d6dcff;
+  box-shadow: 0 0 7px 1px #938aff;
 }
 .panorama-particle {
   position: absolute;

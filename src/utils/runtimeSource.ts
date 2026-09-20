@@ -58,12 +58,11 @@ export function isBuiltinPanoramaAsset(value: string): boolean {
 
 export function isCompatibleUvAsset(panorama: string, ultraviolet: string): boolean {
   if (!ultraviolet) return true
-  if (!BUILTIN_UV_ASSETS.has(ultraviolet) || !BUILTIN_PANORAMA_ASSETS.has(panorama)) return false
-  if (
-    panorama === '/art/cave-01.svg' ||
-    panorama === '/dunhuang/panoramas/mogao-cave-172.png'
-  )
-    return ultraviolet === '/art/dunhuang-gilded-uv.svg'
+  if (!BUILTIN_PANORAMA_ASSETS.has(panorama)) return false
+  if (ultraviolet === panorama) return true
+  if (!BUILTIN_UV_ASSETS.has(ultraviolet)) return false
+  if (panorama === '/art/cave-01.svg' || panorama === '/dunhuang/panoramas/mogao-cave-172.png')
+    return ultraviolet === '/art/dunhuang-uv.svg' || ultraviolet === '/art/dunhuang-gilded-uv.svg'
   if (
     panorama === '/art/cave-02.svg' ||
     panorama === '/art/cave-03.svg' ||

@@ -122,23 +122,15 @@ test('timeline, ultraviolet texture and sphere discoveries are persisted', async
     clientX: center.clientX + 20,
   })
   await expect(page.locator('.discovery-count')).toContainText('已发现 1 / 共 3')
+  await expect(page.getByRole('button', { name: '调查紫外线索：紫外墨迹' })).toHaveCount(0)
   await page.getByRole('button', { name: '开启紫外线' }).click()
   await expect(page.getByRole('button', { name: '退出紫外线' })).toBeVisible()
   await expect(page.locator('.panorama-transition')).toHaveCount(0)
   await expect(panorama).toHaveAttribute('data-ultraviolet-pass', 'active')
-  await panorama.dispatchEvent('pointerdown', {
-    pointerId: 3,
-    pointerType: 'mouse',
-    button: 0,
-    ...center,
-  })
-  await panorama.dispatchEvent('pointerup', {
-    pointerId: 3,
-    pointerType: 'mouse',
-    button: 0,
-    ...center,
-  })
-  await expect(page.locator('.discovery-card')).toContainText('镀金题记')
+  const ultravioletClue = page.getByRole('button', { name: '调查紫外线索：紫外墨迹' })
+  await expect(ultravioletClue).toBeVisible()
+  await ultravioletClue.click()
+  await expect(page.locator('.discovery-card')).toContainText('紫外墨迹')
   await expect(page.locator('.discovery-count')).toContainText('已发现 2 / 共 3')
   expect(shaderErrors).toEqual([])
 
@@ -147,7 +139,7 @@ test('timeline, ultraviolet texture and sphere discoveries are persisted', async
     'aria-current',
     'step',
   )
-  await expect(page.getByRole('button', { name: '开启紫外线' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: '开启紫外线' })).toBeVisible()
   await expect(panorama).toHaveAttribute('data-ultraviolet-pass', 'inactive')
   await page.reload()
   await expect(page.getByRole('button', { name: '旧档复原' })).toHaveAttribute(
@@ -174,7 +166,11 @@ test('Yungang timeline focuses clues and clue discovery starts at zero of three'
   await expect(nodes.nth(2)).toContainText('辽金')
   await expect(nodes.nth(0)).toHaveAttribute('aria-current', 'step')
   await expect(page.locator('.discovery-count')).toContainText('已发现 0 / 共 3')
-  await expect(page.getByRole('button', { name: '开启紫外线' })).toHaveCount(0)
+  await page.getByRole('button', { name: '开启紫外线' }).click()
+  await expect(page.getByRole('button', { name: '退出紫外线' })).toBeVisible()
+  await expect(page.locator('.panorama')).toHaveAttribute('data-ultraviolet-pass', 'active')
+  await page.getByRole('button', { name: '退出紫外线' }).click()
+  await expect(page.locator('.panorama')).toHaveAttribute('data-ultraviolet-pass', 'inactive')
 
   await nodes.nth(1).click()
   await expect(nodes.nth(1)).toHaveAttribute('aria-current', 'step')
@@ -188,11 +184,13 @@ test('Yungang timeline focuses clues and clue discovery starts at zero of three'
   await expect(page.locator('.discovery-count')).toContainText('已发现 1 / 共 3')
 })
 
-test('ultraviolet texture failure exits ultraviolet mode', async ({ page }) => {
-  let ultravioletRequests = 0
-  await page.route('**/art/dunhuang-gilded-uv.svg', async (route) => {
-    ultravioletRequests += 1
-    await route.abort('failed')
+test('filter-only ultraviolet mode keeps the real panorama and reuses its texture', async ({
+  page,
+}) => {
+  let panoramaRequests = 0
+  await page.route('**/dunhuang/panoramas/mogao-cave-172.png', async (route) => {
+    panoramaRequests += 1
+    await route.continue()
   })
   await page.goto('/dunhuang/home')
   await chooseDefaultLocation(page)
@@ -200,29 +198,17 @@ test('ultraviolet texture failure exits ultraviolet mode', async ({ page }) => {
   await page.getByRole('button', { name: /第 1 章/ }).click()
   await page.getByRole('button', { name: '开始所选关卡' }).click()
 
-  await page.getByRole('button', { name: '开启紫外线' }).click()
-  await expect.poll(() => ultravioletRequests).toBe(1)
-  await expect(page.getByRole('button', { name: '开启紫外线' })).toBeVisible()
-  await expect(page.getByRole('button', { name: '退出紫外线' })).toHaveCount(0)
   const panorama = page.locator('.panorama')
-  await expect(panorama).toHaveAttribute('data-ultraviolet-pass', 'inactive')
+  await expect.poll(() => panoramaRequests).toBeGreaterThan(0)
+  const requestsBeforeFiltering = panoramaRequests
+  await page.getByRole('button', { name: '开启紫外线' }).click()
+  await expect(page.getByRole('button', { name: '退出紫外线' })).toBeVisible()
+  await expect(panorama).toHaveAttribute('data-ultraviolet-pass', 'active')
   await expect(page.locator('.panorama-transition')).toHaveCount(0)
-  const bounds = await panorama.boundingBox()
-  if (!bounds) throw new Error('Panorama bounds unavailable after ultraviolet recovery')
-  const center = { clientX: bounds.x + bounds.width / 2, clientY: bounds.y + bounds.height / 2 }
-  await panorama.dispatchEvent('pointerdown', {
-    pointerId: 1,
-    pointerType: 'mouse',
-    button: 0,
-    ...center,
-  })
-  await panorama.dispatchEvent('pointerup', {
-    pointerId: 1,
-    pointerType: 'mouse',
-    button: 0,
-    ...center,
-  })
-  await expect(page.locator('.discovery-card')).toContainText('蓝签残片')
+  await page.getByRole('button', { name: '退出紫外线' }).click()
+  await page.getByRole('button', { name: '开启紫外线' }).click()
+  await expect(panorama).toHaveAttribute('data-ultraviolet-pass', 'active')
+  expect(panoramaRequests).toBe(requestsBeforeFiltering)
 })
 
 test('same-panorama timeline nodes preserve ultraviolet mode', async ({ page }) => {

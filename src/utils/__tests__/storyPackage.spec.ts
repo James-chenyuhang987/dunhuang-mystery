@@ -28,6 +28,14 @@ describe('story packages', () => {
     expect(story.levels[0]?.panorama[0]?.initial_view?.fov).toBe(DEFAULT_PANORAMA_FOV)
   })
 
+  it('accepts the current panorama as a portable ultraviolet filter source', () => {
+    const story = createBlankStory()
+    const panorama = story.levels[0]!.panorama[0]!
+    panorama.ultraviolet_url = panorama.url
+
+    expect(isStoryPackage(story)).toBe(true)
+  })
+
   it('normalizes imported vector coordinates back to Three vectors', () => {
     const story = createBlankStory()
     story.levels[0]!.panorama[0]!.click_points.push({

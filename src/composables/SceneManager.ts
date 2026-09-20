@@ -13,9 +13,9 @@ const ultravioletShader = {
   vertexShader:
     'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
   fragmentShader: `uniform sampler2D tDiffuse; uniform vec2 resolution; varying vec2 vUv;
-    float l(vec3 c){return dot(c,vec3(.2126,.7152,.0722));} float w(vec3 c){float d=max(c.r,max(c.g,c.b))-min(c.r,min(c.g,c.b));return smoothstep(.72,.98,l(c))*(1.-smoothstep(.08,.32,d));} float a(vec3 c){float y=min(c.r,c.g)-c.b,b=max(c.r,c.g),q=abs(c.r-c.g);return smoothstep(.08,.34,y)*smoothstep(.18,.78,b)*(1.-smoothstep(.38,.72,q));}
-    vec3 u(vec3 s){float v=l(s),d=max(s.r,max(s.g,s.b))-min(s.r,min(s.g,s.b));float x=mix(v,max(s.r,max(s.g,s.b)),clamp(d*.35,0.,.25));return mix(mix(vec3(.006,.012,.055),vec3(.075,.025,.26),smoothstep(.02,.48,x)),vec3(.22,.18,.62),smoothstep(.45,.92,x));}
-    void main(){vec3 s=texture2D(tDiffuse,vUv).rgb;vec2 p=vec2(2.4)/resolution;float f=w(s),k=a(s),g=(w(texture2D(tDiffuse,vUv+vec2(p.x,0.)).rgb)+w(texture2D(tDiffuse,vUv-vec2(p.x,0.)).rgb)+w(texture2D(tDiffuse,vUv+vec2(0.,p.y)).rgb)+w(texture2D(tDiffuse,vUv-vec2(0.,p.y)).rgb))*.25,h=(a(texture2D(tDiffuse,vUv+vec2(p.x,0.)).rgb)+a(texture2D(tDiffuse,vUv-vec2(p.x,0.)).rgb)+a(texture2D(tDiffuse,vUv+vec2(0.,p.y)).rgb)+a(texture2D(tDiffuse,vUv-vec2(0.,p.y)).rgb)+a(texture2D(tDiffuse,vUv+p).rgb)+a(texture2D(tDiffuse,vUv-p).rgb))*.1667;vec3 c=u(s)+g*vec3(.10,.22,.62)+h*vec3(.54,.22,.025);c=mix(c,vec3(1.,.61,.10),k*.94);gl_FragColor=vec4(mix(c,vec3(.62,.96,1.),f),1.);}`,
+    float l(vec3 c){return dot(c,vec3(.2126,.7152,.0722));} float w(vec3 c){float d=max(c.r,max(c.g,c.b))-min(c.r,min(c.g,c.b));return smoothstep(.72,.98,l(c))*(1.-smoothstep(.08,.32,d));}
+    vec3 u(vec3 s){float v=pow(clamp(l(s),0.,1.),.78),x=smoothstep(.025,.95,v);vec3 tint=mix(vec3(.008,.012,.055),vec3(.30,.14,.70),x);return tint+s*vec3(.06,.025,.08);}
+    void main(){vec3 s=texture2D(tDiffuse,vUv).rgb;vec2 p=vec2(1.5)/resolution;float f=w(s),g=(w(texture2D(tDiffuse,vUv+vec2(p.x,0.)).rgb)+w(texture2D(tDiffuse,vUv-vec2(p.x,0.)).rgb)+w(texture2D(tDiffuse,vUv+vec2(0.,p.y)).rgb)+w(texture2D(tDiffuse,vUv-vec2(0.,p.y)).rgb))*.25;vec3 c=u(s)+g*vec3(.035,.075,.22);gl_FragColor=vec4(mix(c,vec3(.36,.44,.95),f*.28),1.);}`,
 }
 type Hooks = {
   onInitialize?: () => void
@@ -77,6 +77,7 @@ export function useSceneManager(options: SceneManagerOptions): SceneManagerApi {
     observer: ResizeObserver | undefined
   let requestId = 0,
     loadId = 0,
+    loadedSource = '',
     timeout: ReturnType<typeof setTimeout> | undefined,
     contextLost = false,
     hooks: Hooks = options.hooks ?? {}
@@ -96,8 +97,8 @@ export function useSceneManager(options: SceneManagerOptions): SceneManagerApi {
     camera.updateMatrixWorld()
     if (composer && ultravioletPass?.enabled) composer.render()
     else renderer.render(scene, camera)
-    cssRenderer?.render(scene, camera)
     hooks.onRender?.(camera)
+    cssRenderer?.render(scene, camera)
   }
   const resize = () => {
     const h = options.host.value,
@@ -161,9 +162,19 @@ export function useSceneManager(options: SceneManagerOptions): SceneManagerApi {
   }
   const loadTexture = () => {
     const id = ++loadId,
-      useUv = options.isUltraviolet() && Boolean(options.getUltravioletUrl()),
-      source = assetUrl(useUv ? options.getUltravioletUrl() : options.getUrl())
+      useUv = options.isUltraviolet(),
+      requestedSource = useUv
+        ? options.getUltravioletUrl() || options.getUrl()
+        : options.getUrl(),
+      source = assetUrl(requestedSource)
     clearTimeout(timeout)
+    if (source && source === loadedSource && hasTexture.value && material?.map && ultravioletPass) {
+      ultravioletPass.enabled = useUv
+      renderedUltraviolet.value = useUv
+      status.value = 'ready'
+      schedule()
+      return
+    }
     status.value = 'loading'
     renderedUltraviolet.value = false
     if (ultravioletPass) ultravioletPass.enabled = false
@@ -194,6 +205,7 @@ export function useSceneManager(options: SceneManagerOptions): SceneManagerApi {
         material.map = texture
         material.color.set('#fff')
         material.needsUpdate = true
+        loadedSource = source
         ultravioletPass.enabled = useUv
         renderedUltraviolet.value = useUv
         hasTexture.value = true
@@ -232,6 +244,7 @@ export function useSceneManager(options: SceneManagerOptions): SceneManagerApi {
     composer = undefined
     ultravioletPass = undefined
     outputPass = undefined
+    loadedSource = ''
   }
   const retry = () => {
     if (!contextLost && renderer && material) {

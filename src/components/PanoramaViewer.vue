@@ -41,7 +41,7 @@ const ui = useGameUI({
   onDiscover: (index) => emit('discover', index),
 })
 const { status, hasTexture, renderedUltraviolet, retry } = scene
-const { fov, projected, down, move, up, cancel, zoom, key } = ui
+const { fov, down, move, up, cancel, zoom, key } = ui
 const captureNotice = ref('')
 let captureNoticeTimer: number | undefined
 const applyInitialView = () => {
@@ -65,10 +65,12 @@ watch(
   () => [props.url, props.ultravioletUrl, props.ultraviolet] as const,
   () => {
     if (scene.getRenderer()) scene.loadTexture()
+    ui.rebuildHotspots()
+    scene.schedule()
   },
 )
 watch(
-  () => props.hotspots,
+  () => [props.hotspots, props.clickPoints],
   () => {
     ui.rebuildHotspots()
     scene.schedule()

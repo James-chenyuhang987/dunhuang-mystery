@@ -17,7 +17,10 @@ export function hotspotDirection(point: hotspot): Vector3 {
 }
 
 export function projectHotspot(point: hotspot, camera: PerspectiveCamera) {
-  const direction = hotspotDirection(point)
+  return projectDirection(hotspotDirection(point), camera)
+}
+
+export function projectDirection(direction: Vector3, camera: PerspectiveCamera) {
   const projected = direction.clone().multiplyScalar(10).project(camera)
   const inFront = direction.dot(camera.getWorldDirection(new Vector3())) > 0
   return {

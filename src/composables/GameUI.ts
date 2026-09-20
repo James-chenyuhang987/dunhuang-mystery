@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js'
 import type { ClickPoint, hotspot } from '@/types/game'
 import { findMatchingClickPoint } from '@/utils/clickPoints'
-import { hotspotDirection, projectHotspot } from '@/utils/hotspots'
+import { hotspotDirection, projectDirection } from '@/utils/hotspots'
 import type { SceneManagerApi } from './SceneManager'
 
 export interface GameUIOptions {
@@ -18,34 +18,68 @@ export interface GameUIOptions {
 
 /** Owns interaction state, hotspot DOM, projection visibility and click-point raycasting. */
 export function useGameUI(options: GameUIOptions) {
-  const projected = ref<ReturnType<typeof projectHotspot>[]>([])
+  const projected = ref<ReturnType<typeof projectDirection>[]>([])
   const pointers = new Map<number, { x: number; y: number }>()
   const pointer = new THREE.Vector2(),
     raycaster = new THREE.Raycaster(),
     radius = 10
   let moved = false
   let pressStart: { x: number; y: number } | undefined
+  let interactiveDirections: THREE.Vector3[] = []
+
+  const createMarker = (
+    direction: THREE.Vector3,
+    className: string,
+    ariaLabel: string,
+    label: string,
+    onClick: () => void,
+  ) => {
+    const group = options.scene.getHotspotGroup()
+    if (!group) return
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = className
+    button.setAttribute('aria-label', ariaLabel)
+    button.title = ariaLabel
+    button.innerHTML = `<span class="hotspot-label">${label}</span>${Array.from({ length: 8 }, (_, index) => `<span class="panorama-particle" aria-hidden="true" style="--particle-angle:${index * 45}deg;--particle-delay:${index * 0.11}s"></span>`).join('')}`
+    button.addEventListener('pointerdown', (event) => event.stopPropagation())
+    button.addEventListener('wheel', (event) => event.stopPropagation())
+    button.addEventListener('click', onClick)
+    const object = new CSS2DObject(button)
+    const normalized = direction.clone().normalize()
+    object.position.copy(normalized.clone().multiplyScalar(radius))
+    interactiveDirections.push(normalized)
+    group.add(object)
+  }
 
   const rebuildHotspots = () => {
     const group = options.scene.getHotspotGroup()
     if (!group) return
     group.clear()
+    interactiveDirections = []
     options.getHotspots().forEach((point) => {
-      const button = document.createElement('button')
-      button.type = 'button'
-      button.className = 'panorama-hotspot'
-      button.setAttribute('aria-label', `查看线索 ${point.clue_index + 1}`)
-      button.innerHTML = `<span class="hotspot-label">${String(point.clue_index + 1).padStart(2, '0')}</span>${Array.from({ length: 8 }, (_, index) => `<span class="panorama-particle" aria-hidden="true" style="--particle-angle:${index * 45}deg;--particle-delay:${index * 0.11}s"></span>`).join('')}`
-      button.addEventListener('pointerdown', (event) => event.stopPropagation())
-      button.addEventListener('wheel', (event) => event.stopPropagation())
-      button.addEventListener('click', () => options.onClue(point.clue_index))
-      const object = new CSS2DObject(button)
-      object.position.copy(hotspotDirection(point).multiplyScalar(radius))
-      group.add(object)
+      createMarker(
+        hotspotDirection(point),
+        'panorama-hotspot',
+        `查看线索 ${point.clue_index + 1}`,
+        String(point.clue_index + 1).padStart(2, '0'),
+        () => options.onClue(point.clue_index),
+      )
+    })
+    if (!options.isUltraviolet()) return
+    options.getClickPoints().forEach((point, index) => {
+      if (!point.in_uv) return
+      createMarker(
+        point.vec,
+        'panorama-hotspot ultraviolet-discovery-hotspot',
+        `调查紫外线索：${point.name}`,
+        '✦',
+        () => options.onDiscover(index),
+      )
     })
   }
   const project = (camera: THREE.PerspectiveCamera) => {
-    projected.value = options.getHotspots().map((point) => projectHotspot(point, camera))
+    projected.value = interactiveDirections.map((direction) => projectDirection(direction, camera))
     options.scene.getHotspotGroup()?.children.forEach((object, index) => {
       object.visible = projected.value[index]?.visible ?? false
     })

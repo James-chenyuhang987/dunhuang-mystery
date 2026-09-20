@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { assetUrl } from '@/utils/assets'
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
@@ -8,9 +8,15 @@ import { gameLocations, siteConfig } from '@/data/game'
 import AppIcon from '@/components/AppIcon.vue'
 import PostcardGenerator from '@/components/PostcardGenerator.vue'
 import { getStory, storyRevision } from '@/utils/storyPackage'
+import dunhuangSettlementVideoUrl from '../../结算动画/敦煌结算.mp4?url'
+import yungangSettlementVideoUrl from '../../结算动画/云冈结算.mp4?url'
 const game = useGameStore()
 const route = useRoute()
 const router = useRouter()
+const settlementVideo = ref<HTMLVideoElement | null>(null)
+const settlementPlaying = ref(false)
+let settlementTimer: number | undefined
+let settlementFinished = false
 const storyId = computed(() =>
   typeof route.params.storyId === 'string' ? route.params.storyId : '',
 )
@@ -19,6 +25,16 @@ const homePath = computed(() =>
   isStoryRoute.value
     ? `/story/${encodeURIComponent(storyId.value)}/home`
     : `/${typeof route.params.place === 'string' ? route.params.place : 'dunhuang'}/home`,
+)
+const settlementVideoUrl = computed(() => {
+  if (isStoryRoute.value) return ''
+  const place = typeof route.params.place === 'string' ? route.params.place : 'dunhuang'
+  if (place === 'yungang') return yungangSettlementVideoUrl
+  if (place === 'dunhuang') return dunhuangSettlementVideoUrl
+  return ''
+})
+const shouldPlaySettlement = computed(
+  () => game.completed && settlementVideoUrl.value.length > 0,
 )
 const elapsed = computed(
   () => `${Math.floor(game.elapsedMs / 60000)} 分 ${Math.floor(game.elapsedMs / 1000) % 60} 秒`,
@@ -65,6 +81,42 @@ const displayHeading = computed(() =>
 const displayAuthor = computed(() =>
   isStoryRoute.value ? (game.activeStory?.authors[0]?.name ?? '故事作者') : '',
 )
+function clearSettlementTimer(): void {
+  if (settlementTimer !== undefined) window.clearTimeout(settlementTimer)
+  settlementTimer = undefined
+}
+function finishSettlement(): void {
+  if (!settlementPlaying.value || settlementFinished) return
+  settlementFinished = true
+  clearSettlementTimer()
+  settlementVideo.value?.pause()
+  void router.push(homePath.value).finally(() => {
+    settlementPlaying.value = false
+  })
+}
+async function playSettlement(): Promise<void> {
+  if (!shouldPlaySettlement.value || settlementPlaying.value) return
+  settlementFinished = false
+  settlementPlaying.value = true
+  clearSettlementTimer()
+  settlementTimer = window.setTimeout(finishSettlement, 20000)
+  await nextTick()
+  const video = settlementVideo.value
+  if (!video) {
+    finishSettlement()
+    return
+  }
+  try {
+    await video.play()
+  } catch {
+    video.muted = true
+    try {
+      await video.play()
+    } catch {
+      finishSettlement()
+    }
+  }
+}
 onMounted(() => {
   const story = isStoryRoute.value ? getStory(storyId.value) : null
   if (isStoryRoute.value) {
@@ -91,6 +143,10 @@ onMounted(() => {
   } else game.restoreSource()
   game.pauseTimer()
   game.persist()
+})
+onBeforeUnmount(() => {
+  clearSettlementTimer()
+  settlementVideo.value?.pause()
 })
 </script>
 <template>
@@ -158,10 +214,38 @@ onMounted(() => {
       <p class="ending-disclaimer">
         故事与画境均为原创演示，非考古资料。<br />谨向文化遗产的研究者与守护者致意。
       </p>
-      <RouterLink :to="homePath" class="primary"
+      <button
+        v-if="shouldPlaySettlement"
+        type="button"
+        class="primary"
+        @click="playSettlement"
+      >
+        {{ `再赴${location?.name ?? '画境'}` }}<AppIcon name="arrow" />
+      </button>
+      <RouterLink v-else :to="homePath" class="primary"
         >{{ game.completed ? `再赴${location?.name ?? '画境'}` : '开启探索' }}<AppIcon name="arrow"
       /></RouterLink>
       <p class="ending-signature">{{ siteConfig.brand }} / {{ siteConfig.brandEnglish }}</p>
+    </section>
+    <section
+      v-if="settlementPlaying"
+      class="settlement-transition"
+      :aria-label="`${location?.name ?? '画境'}结算动画`"
+    >
+      <video
+        ref="settlementVideo"
+        :src="settlementVideoUrl"
+        preload="auto"
+        autoplay
+        playsinline
+        disablepictureinpicture
+        controlslist="nodownload nofullscreen noplaybackrate"
+        @ended="finishSettlement"
+        @error="finishSettlement"
+      />
+      <div class="settlement-transition-meta">
+        <button type="button" class="skip-intro" @click="finishSettlement">跳过视频 →</button>
+      </div>
     </section>
   </main>
 </template>

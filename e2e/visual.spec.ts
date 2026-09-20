@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { chooseDefaultLocation } from './helpers'
+import { chooseDefaultLocation, chooseLocation } from './helpers'
 import { gameLevels } from '../src/data/game'
 
 test('desktop and mobile visual checks', async ({ page }, testInfo) => {
@@ -69,6 +69,23 @@ test('desktop and mobile visual checks', async ({ page }, testInfo) => {
   await expect(page.locator('.answer-option')).toHaveCount(4)
   await page.screenshot({ path: testInfo.outputPath('question-mobile.png'), fullPage: true })
   expect(errors).toEqual([])
+})
+
+test('Yungang ultraviolet filter keeps the stone details in a dark indigo range', async (
+  { page },
+  testInfo,
+) => {
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.goto('/')
+  await chooseLocation(page, '云冈石窟')
+  await page.getByRole('button', { name: '开始', exact: true }).click()
+  await expect(page.locator('.panorama-status')).toHaveCount(0)
+  await page.getByRole('button', { name: '开启紫外线' }).click()
+  await expect(page.locator('.panorama')).toHaveAttribute('data-ultraviolet-pass', 'active')
+  await page.screenshot({
+    path: testInfo.outputPath('yungang-ultraviolet.png'),
+    fullPage: true,
+  })
 })
 
 test('postcard pixel styles remain legible on desktop and mobile', async ({ page }, testInfo) => {

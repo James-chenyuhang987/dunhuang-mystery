@@ -62,26 +62,33 @@ const builtInPanoramas: Array<Pick<ImagePanorama, 'name' | 'url' | 'ultraviolet_
   {
     name: '莫高窟 · 第 172 窟',
     url: '/dunhuang/panoramas/mogao-cave-172.png',
-    ultraviolet_url: '/art/dunhuang-gilded-uv.svg',
+    ultraviolet_url: '/dunhuang/panoramas/mogao-cave-172.png',
   },
   {
     name: '莫高窟 · 第 322 窟',
     url: '/dunhuang/panoramas/mogao-cave-322.png',
-    ultraviolet_url: '/art/dunhuang-uv.svg',
+    ultraviolet_url: '/dunhuang/panoramas/mogao-cave-322.png',
   },
   {
     name: '莫高窟 · 第 420 窟',
     url: '/dunhuang/panoramas/mogao-cave-420.png',
-    ultraviolet_url: '/art/dunhuang-uv.svg',
+    ultraviolet_url: '/dunhuang/panoramas/mogao-cave-420.png',
   },
-  { name: '云冈 · 第三窟', url: '/yungang/yungang_cave3_pano.jpg' },
-  { name: '云冈 · 第五窟', url: '/yungang/yungang_cave5_pano.jpg' },
-  { name: '云冈 · 第六窟', url: '/yungang/yungang_cave6_pano.jpg' },
-]
-const builtInUvTextures = [
-  { label: '无紫外线纹理', value: '' },
-  { label: '莫高窟 · 镀金题记', value: '/art/dunhuang-gilded-uv.svg' },
-  { label: '莫高窟 · 紫外观察', value: '/art/dunhuang-uv.svg' },
+  {
+    name: '云冈 · 第三窟',
+    url: '/yungang/yungang_cave3_pano.jpg',
+    ultraviolet_url: '/yungang/yungang_cave3_pano.jpg',
+  },
+  {
+    name: '云冈 · 第五窟',
+    url: '/yungang/yungang_cave5_pano.jpg',
+    ultraviolet_url: '/yungang/yungang_cave5_pano.jpg',
+  },
+  {
+    name: '云冈 · 第六窟',
+    url: '/yungang/yungang_cave6_pano.jpg',
+    ultraviolet_url: '/yungang/yungang_cave6_pano.jpg',
+  },
 ]
 
 function refreshStories() {
@@ -641,14 +648,18 @@ onMounted(refreshStories)
             </label>
             <label>全景名称<input v-model="selectedPanorama.name" /></label>
             <label
-              >紫外线配套图
+              >紫外线效果
               <select v-model="selectedPanorama.ultraviolet_url">
+                <option value="">关闭紫外线</option>
+                <option :value="selectedPanorama.url">当前全景 · 滤镜模式</option>
                 <option
-                  v-for="texture in builtInUvTextures"
-                  :key="texture.value"
-                  :value="texture.value"
+                  v-if="
+                    selectedPanorama.ultraviolet_url &&
+                    selectedPanorama.ultraviolet_url !== selectedPanorama.url
+                  "
+                  :value="selectedPanorama.ultraviolet_url"
                 >
-                  {{ texture.label }}
+                  旧版配套图（兼容）
                 </option>
               </select>
             </label>

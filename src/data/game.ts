@@ -12,7 +12,7 @@ const dunhuangLevels: level[] = [
       {
         name: '现状勘查',
         url: '/dunhuang/panoramas/mogao-cave-172.png',
-        ultraviolet_url: '/art/dunhuang-gilded-uv.svg',
+        ultraviolet_url: '/dunhuang/panoramas/mogao-cave-172.png',
         click_points: [
           {
             vec: new Vector3(10, 0, 0),
@@ -25,8 +25,8 @@ const dunhuangLevels: level[] = [
           {
             vec: new Vector3(10, 0, 0),
             accept_click_range: 0.9,
-            name: '镀金题记',
-            description: '紫外光下显出一组带有暖金色辉光的墙面题记，普通光线下难以辨认。',
+            name: '紫外墨迹',
+            description: '紫外纹理中显出的补记，说明这里曾进行过一次复查。',
             in_uv: true,
           },
         ],
@@ -34,6 +34,7 @@ const dunhuangLevels: level[] = [
       {
         name: '旧档复原',
         url: '/dunhuang/panoramas/mogao-cave-172.png',
+        ultraviolet_url: '/dunhuang/panoramas/mogao-cave-172.png',
         click_points: [
           {
             vec: new Vector3(9.6, -2, 2),
@@ -107,7 +108,7 @@ const dunhuangLevels: level[] = [
       {
         name: '壁面现状',
         url: '/dunhuang/panoramas/mogao-cave-322.png',
-        ultraviolet_url: '/art/dunhuang-uv.svg',
+        ultraviolet_url: '/dunhuang/panoramas/mogao-cave-322.png',
         click_points: [
           {
             vec: new Vector3(10, 0, 0),
@@ -204,6 +205,7 @@ const dunhuangLevels: level[] = [
       {
         name: '整理前',
         url: '/dunhuang/panoramas/mogao-cave-420.png',
+        ultraviolet_url: '/dunhuang/panoramas/mogao-cave-420.png',
         click_points: [
           {
             vec: new Vector3(10, 0, 0),
@@ -217,7 +219,7 @@ const dunhuangLevels: level[] = [
       {
         name: '数字复原后',
         url: '/dunhuang/panoramas/mogao-cave-420.png',
-        ultraviolet_url: '/art/dunhuang-uv.svg',
+        ultraviolet_url: '/dunhuang/panoramas/mogao-cave-420.png',
         click_points: [
           {
             vec: new Vector3(10, 0, 0),
@@ -302,6 +304,7 @@ const terracottaLevels: level[] = [
       {
         name: '大佛',
         url: '/yungang/yungang_cave3_pano.jpg',
+        ultraviolet_url: '/yungang/yungang_cave3_pano.jpg',
         initial_view: { longitude: 180, latitude: 30, fov: DEFAULT_PANORAMA_FOV },
         click_points: [],
       },
@@ -376,6 +379,7 @@ const terracottaLevels: level[] = [
       {
         name: '大佛',
         url: '/yungang/yungang_cave5_pano.jpg',
+        ultraviolet_url: '/yungang/yungang_cave5_pano.jpg',
         initial_view: { longitude: 180, latitude: 25, fov: DEFAULT_PANORAMA_FOV },
         click_points: [],
       },
@@ -457,6 +461,7 @@ const terracottaLevels: level[] = [
       {
         name: '第六窟',
         url: '/yungang/yungang_cave6_pano.jpg',
+        ultraviolet_url: '/yungang/yungang_cave6_pano.jpg',
         initial_view: { longitude: 180, latitude: 20, fov: DEFAULT_PANORAMA_FOV },
         click_points: [],
       },
