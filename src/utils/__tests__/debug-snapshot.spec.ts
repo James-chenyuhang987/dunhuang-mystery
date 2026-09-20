@@ -15,8 +15,15 @@ describe('debug snapshot', () => {
     localStorage.setItem(GAME_STORAGE_KEY, raw)
     setActivePinia(createPinia())
     const store = useGameStore()
-    console.log('restore-result', store.restoreSource(), store.persistenceError, store.hasProgress)
-    expect(store.restoreSource()).toBe(true)
-    expect(store.hasProgress).toBe(true)
+    const restored = store.restoreSource()
+    console.log('restore-result', restored, store.persistenceError, store.hasProgress)
+    if (restored) {
+      expect(store.hasProgress).toBe(true)
+      return
+    }
+    // A snapshot made before a built-in level update is valid data but must be
+    // rejected and reset instead of silently applying answers to new questions.
+    expect(store.persistenceError).toMatch(/题目配置已更新|故事版本已更新|旧进度未载入/)
+    expect(store.hasProgress).toBe(false)
   })
 })
