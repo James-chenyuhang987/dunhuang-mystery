@@ -3,6 +3,7 @@ import { Vector3 } from 'three'
 import type { StoryPackage } from '@/types/game'
 import {
   createBlankStory,
+  importStory,
   importStoryResult,
   isStoryPackage,
   normalizeStory,
@@ -200,6 +201,14 @@ describe('story packages', () => {
     expect(imported.issue?.originalId).toBe(story.id)
     expect(imported.story?.id).toBeTruthy()
     expect(imported.story?.id).not.toBe(story.id)
+  })
+
+  it('imports, normalizes and persists a story through the repository API', () => {
+    const story = createBlankStory()
+    const imported = importStory(JSON.parse(JSON.stringify(story)))
+    expect(imported?.id).toBe(story.id)
+    expect(readStories()).toHaveLength(1)
+    expect(readStories()[0]?.levels[0]?.panorama[0]?.initial_view?.fov).toBe(DEFAULT_PANORAMA_FOV)
   })
 
   it('cleans all revision-isolated saves when a story is removed', () => {

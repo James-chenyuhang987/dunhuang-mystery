@@ -192,9 +192,11 @@ export function importStoryResult(raw: unknown): StoryImportResult {
   return { story }
 }
 
-/** Compatibility wrapper used by the editor and older callers. */
+/** Parse, normalize and persist an imported story package. */
 export function importStory(raw: unknown): StoryPackage | null {
-  return importStoryResult(raw).story
+  const result = importStoryResult(raw)
+  if (!result.story || !saveStory(result.story)) return null
+  return result.story
 }
 
 export const parseStoryPackage = importStoryResult

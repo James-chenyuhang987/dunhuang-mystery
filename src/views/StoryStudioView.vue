@@ -38,6 +38,15 @@ const selectedLevel = computed(() => story.levels[selectedIndex.value])
 const panoramaIndex = ref(0)
 const sceneTool = ref<'hotspot' | 'discovery'>('hotspot')
 const selectedHotspotClueIndex = ref(0)
+const previewImageFailed = ref(false)
+const previewImageSource = computed(() =>
+  assetUrl(
+    previewImageFailed.value
+      ? '/art/landscape.svg'
+      : story.cover_url || story.background_url || '/art/landscape.svg',
+  ),
+)
+
 const selectedPanorama = computed(() => {
   const panorama = selectedLevel.value?.panorama[panoramaIndex.value]
   if (panorama && !panorama.initial_view)
@@ -62,32 +71,32 @@ const builtInPanoramas: Array<Pick<ImagePanorama, 'name' | 'url' | 'ultraviolet_
   {
     name: '莫高窟 · 第 172 窟',
     url: '/dunhuang/panoramas/mogao-cave-172.png',
-    ultraviolet_url: '/dunhuang/panoramas/mogao-cave-172.png',
+    ultraviolet_url: '/art/dunhuang-gilded-uv.svg',
   },
   {
     name: '莫高窟 · 第 322 窟',
     url: '/dunhuang/panoramas/mogao-cave-322.png',
-    ultraviolet_url: '/dunhuang/panoramas/mogao-cave-322.png',
+    ultraviolet_url: '/art/dunhuang-uv.svg',
   },
   {
     name: '莫高窟 · 第 420 窟',
     url: '/dunhuang/panoramas/mogao-cave-420.png',
-    ultraviolet_url: '/dunhuang/panoramas/mogao-cave-420.png',
+    ultraviolet_url: '/art/dunhuang-uv.svg',
   },
   {
     name: '云冈 · 第三窟',
     url: '/yungang/yungang_cave3_pano.jpg',
-    ultraviolet_url: '/yungang/yungang_cave3_pano.jpg',
+    ultraviolet_url: '',
   },
   {
     name: '云冈 · 第五窟',
     url: '/yungang/yungang_cave5_pano.jpg',
-    ultraviolet_url: '/yungang/yungang_cave5_pano.jpg',
+    ultraviolet_url: '',
   },
   {
     name: '云冈 · 第六窟',
     url: '/yungang/yungang_cave6_pano.jpg',
-    ultraviolet_url: '/yungang/yungang_cave6_pano.jpg',
+    ultraviolet_url: '',
   },
 ]
 
@@ -104,6 +113,16 @@ function selectLevel(index: number) {
   selectedIndex.value = Math.max(0, Math.min(index, story.levels.length - 1))
   panoramaIndex.value = 0
   selectedHotspotClueIndex.value = 0
+}
+function addAuthor(): void {
+  story.authors.push({ name: '新作者', job: '创作身份' })
+}
+function removeAuthor(index: number): void {
+  if (index < 0 || index >= story.authors.length) return
+  story.authors.splice(index, 1)
+}
+function handlePreviewImageError(): void {
+  previewImageFailed.value = true
 }
 function addLevel() {
   story.levels.push(createBlankLevel(story.levels.length))
@@ -261,7 +280,10 @@ function hotspotPreviewPosition(point: hotspot): { x: number; y: number } {
 function markerStyle(position: { x: number; y: number }): Record<string, string> {
   return { left: `${position.x}%`, top: `${position.y}%` }
 }
-function setPointDialogue(point: NonNullable<typeof selectedPanorama.value>['click_points'][number], id: string) {
+function setPointDialogue(
+  point: NonNullable<typeof selectedPanorama.value>['click_points'][number],
+  id: string,
+) {
   if (id) point.dialogue_id = id
   else delete point.dialogue_id
 }
@@ -286,8 +308,58 @@ function setProblemIndexChecked(item: clue, problemIndex: number, checked: boole
   item.problem_indexes = [...indexes].sort((left, right) => left - right)
   if (item.problem_indexes.length === 0) item.problem_indexes = undefined
 }
+function dialogueId(): string {
+  return `dialogue-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`
+}
+function createEditorClue(type: clue['type']): clue {
+  if (type === 'dialogue') {
+    return {
+      type,
+      dialogue_id: dialogueId(),
+      name: '新人物对话',
+      data: '点击全景中的人物，开始这段对话。',
+      dialogue: {
+        start: 'start',
+        nodes: [{ id: 'start', speaker: '人物', text: '写下人物要说的话。', next: null }],
+      },
+    }
+  }
+  if (type === 'combination')
+    return { type, name: '新组合线索', data: '组合线索摘要。', subclues: [] }
+  return {
+    type,
+    name: `新${type === 'image' ? '图像' : type === 'audio' ? '音频' : type === 'video' ? '视频' : '文字'}线索`,
+    data: type === 'image' ? '/art/clue.svg' : '',
+  }
+}
+function setSubclueType(item: clue, type: clue['type']): void {
+  const replacement = createEditorClue(type)
+  item.type = replacement.type
+  item.name = replacement.name
+  item.data = replacement.data
+  item.subclues = replacement.subclues
+  item.dialogue_id = replacement.dialogue_id
+  item.dialogue = replacement.dialogue
+  if (type !== 'dialogue') delete item.dialogue_id
+  if (type !== 'dialogue') delete item.dialogue
+}
+function addSubclue(item: clue, type: clue['type'] = 'text'): void {
+  if (item.type !== 'combination') return
+  item.subclues = [...(item.subclues ?? []), createEditorClue(type)]
+}
+function removeSubclue(item: clue, index: number): void {
+  if (item.type !== 'combination' || !item.subclues) return
+  item.subclues.splice(index, 1)
+}
+function setSubclueProblemChecked(item: clue, problemIndex: number, checked: boolean): void {
+  const indexes = new Set(item.problem_indexes ?? [])
+  if (checked) indexes.add(problemIndex)
+  else indexes.delete(problemIndex)
+  item.problem_indexes = [...indexes].sort((left, right) => left - right)
+  if (item.problem_indexes.length === 0) delete item.problem_indexes
+}
 function addDialogueClue() {
-  const id = `dialogue-${Date.now().toString(36)}`
+  const id = dialogueId()
   const nodes: DialogueNode[] = [
     { id: 'start', speaker: '人物', text: '写下人物要说的话。', next: null },
   ]
@@ -492,6 +564,10 @@ function importStory(event: Event) {
   }
   reader.readAsText(file)
 }
+watch(
+  () => [story.cover_url, story.background_url],
+  () => (previewImageFailed.value = false),
+)
 watch(story, () => saveStory(story), { deep: true })
 onMounted(refreshStories)
 </script>
@@ -574,6 +650,24 @@ onMounted(refreshStories)
               >背景图片 URL<input v-model="story.background_url" placeholder="/art/landscape.svg"
             /></label>
             <label class="wide">故事简介<textarea v-model="story.introduction" rows="3" /></label>
+          </div>
+          <div class="studio-clues-heading">
+            <div>
+              <p class="eyebrow">AUTHORS · 创作署名</p>
+              <p class="muted">作者信息会显示在故事主页、结算页和导出故事包中。</p>
+            </div>
+            <button class="outline-button" type="button" @click="addAuthor">增加作者</button>
+          </div>
+          <div
+            v-for="(author, authorIndex) in story.authors"
+            :key="`author-${authorIndex}`"
+            class="studio-form two-columns author-editor"
+          >
+            <label>姓名<input v-model="author.name" /></label>
+            <label>身份<input v-model="author.job" /></label>
+            <button class="text-button" type="button" @click="removeAuthor(authorIndex)">
+              删除作者
+            </button>
           </div>
         </article>
 
@@ -760,11 +854,7 @@ onMounted(refreshStories)
               ✦
             </i>
             <span>
-              {{
-                sceneTool === 'hotspot'
-                  ? '点击场景放置所选线索热点'
-                  : '点击场景放置自由发现点'
-              }}
+              {{ sceneTool === 'hotspot' ? '点击场景放置所选线索热点' : '点击场景放置自由发现点' }}
             </span>
           </div>
 
@@ -786,6 +876,10 @@ onMounted(refreshStories)
             </div>
             <div class="studio-form two-columns">
               <label>名称<input v-model="point.name" /></label>
+              <label>发现图像 URL<input v-model="point.image" placeholder="可选" /></label>
+              <label class="inline-checkbox">
+                <input v-model="point.in_uv" type="checkbox" />仅在紫外线模式显示
+              </label>
               <label
                 >关联人物对话
                 <select
@@ -972,8 +1066,8 @@ onMounted(refreshStories)
                         ? '组合摘要'
                         : '媒体资源 URL'
                 }}
-                <textarea v-model="clue.data" rows="2"
-              /></label>
+                <textarea v-model="clue.data" rows="2" />
+              </label>
               <label>提示<input v-model="clue.hint" placeholder="可选" /></label>
               <label>推荐放置位置<input v-model="clue.placement" placeholder="可选" /></label>
               <label class="wide"
@@ -1058,23 +1152,134 @@ onMounted(refreshStories)
               </button>
             </template>
             <div v-else-if="clue.type === 'combination'" class="combination-editor">
-              <p class="muted">组合子线索</p>
+              <div class="studio-clue-heading">
+                <p class="muted">组合子线索</p>
+                <div class="studio-inline-actions">
+                  <button class="text-button" type="button" @click="addSubclue(clue, 'text')">
+                    ＋文字
+                  </button>
+                  <button class="text-button" type="button" @click="addSubclue(clue, 'image')">
+                    ＋图像
+                  </button>
+                  <button class="text-button" type="button" @click="addSubclue(clue, 'audio')">
+                    ＋音频
+                  </button>
+                  <button class="text-button" type="button" @click="addSubclue(clue, 'video')">
+                    ＋视频
+                  </button>
+                  <button class="text-button" type="button" @click="addSubclue(clue, 'dialogue')">
+                    ＋对话
+                  </button>
+                </div>
+              </div>
               <div
                 v-for="(subclue, subIndex) in clue.subclues ?? []"
                 :key="subIndex"
-                class="studio-form two-columns"
+                class="studio-clue-editor combination-subclue"
               >
-                <label
-                  >类型<select v-model="subclue.type">
-                    <option value="text">文字</option>
-                    <option value="image">图像</option>
-                    <option value="audio">音频</option>
-                    <option value="video">视频</option>
-                  </select></label
-                >
-                <label>名称<input v-model="subclue.name" /></label>
-                <label class="wide">内容<textarea v-model="subclue.data" rows="2" /></label>
+                <div class="studio-clue-heading">
+                  <span class="eyebrow">子线索 {{ subIndex + 1 }}</span>
+                  <button class="text-button" type="button" @click="removeSubclue(clue, subIndex)">
+                    删除
+                  </button>
+                </div>
+                <div class="studio-form two-columns">
+                  <label
+                    >类型<select
+                      :value="subclue.type"
+                      @change="
+                        setSubclueType(
+                          subclue,
+                          ($event.target as HTMLSelectElement).value as clue['type'],
+                        )
+                      "
+                    >
+                      <option value="text">文字</option>
+                      <option value="image">图像</option>
+                      <option value="audio">音频</option>
+                      <option value="video">视频</option>
+                      <option value="dialogue">人物对话</option>
+                    </select></label
+                  >
+                  <label>名称<input v-model="subclue.name" /></label>
+                  <label class="wide"
+                    >{{
+                      subclue.type === 'text'
+                        ? '文字内容'
+                        : subclue.type === 'dialogue'
+                          ? '对话引导语'
+                          : '媒体资源 URL'
+                    }}<textarea v-model="subclue.data" rows="2" />
+                  </label>
+                  <label>提示<input v-model="subclue.hint" placeholder="可选" /></label>
+                  <label
+                    >推荐放置位置<input v-model="subclue.placement" placeholder="可选"
+                  /></label>
+                  <div class="wide timeline-clue-checks">
+                    <span class="muted">关联题目</span>
+                    <label
+                      v-for="(problem, problemIndex) in selectedLevel.problems"
+                      :key="problemIndex"
+                    >
+                      <input
+                        type="checkbox"
+                        :checked="subclue.problem_indexes?.includes(problemIndex)"
+                        @change="
+                          setSubclueProblemChecked(
+                            subclue,
+                            problemIndex,
+                            ($event.target as HTMLInputElement).checked,
+                          )
+                        "
+                      />
+                      {{ problemIndex + 1 }} · {{ problem.title }}
+                    </label>
+                  </div>
+                </div>
+                <template v-if="subclue.type === 'dialogue' && subclue.dialogue">
+                  <div class="studio-form two-columns">
+                    <label>对话标识<input v-model="subclue.dialogue_id" /></label>
+                    <label
+                      >起始节点<select v-model="subclue.dialogue.start">
+                        <option
+                          v-for="node in subclue.dialogue.nodes"
+                          :key="node.id"
+                          :value="node.id"
+                        >
+                          {{ node.id }}
+                        </option>
+                      </select></label
+                    >
+                  </div>
+                  <div
+                    v-for="node in subclue.dialogue.nodes"
+                    :key="node.id"
+                    class="dialogue-node-editor"
+                  >
+                    <div class="studio-form two-columns">
+                      <label>节点 ID<input :value="node.id" readonly /></label>
+                      <label>人物<input v-model="node.speaker" /></label>
+                      <label class="wide">对白<textarea v-model="node.text" rows="2" /></label>
+                      <label
+                        >下一节点<select v-model="node.next">
+                          <option :value="null">结束</option>
+                          <option
+                            v-for="candidate in subclue.dialogue.nodes"
+                            :key="candidate.id"
+                            :value="candidate.id"
+                          >
+                            {{ candidate.id }}
+                          </option>
+                        </select></label
+                      >
+                    </div>
+                  </div>
+                  <button class="outline-button" type="button" @click="addDialogueNode(subclue)">
+                    ＋增加对话节点
+                  </button>
+                </template>
               </div>
+              <p v-if="!clue.subclues?.length" class="muted">还没有子线索，请从上方添加。</p>
             </div>
           </div>
 
@@ -1155,8 +1360,9 @@ onMounted(refreshStories)
           <p class="eyebrow">PREVIEW · 故事预览</p>
           <img
             class="studio-cover"
-            :src="assetUrl(story.cover_url || story.background_url)"
+            :src="previewImageSource"
             :alt="story.name"
+            @error="handlePreviewImageError"
           />
           <h2>{{ story.name }}</h2>
           <p class="muted">{{ story.subtitle }}</p>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { assetUrl } from '@/utils/assets'
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
@@ -14,6 +14,8 @@ const game = useGameStore()
 const route = useRoute()
 const router = useRouter()
 const settlementVideo = ref<HTMLVideoElement | null>(null)
+const endingBackgroundUrl = ref(assetUrl(siteConfig.backgroundUrl))
+let backgroundRevision = 0
 const settlementPlaying = ref(false)
 let settlementTimer: number | undefined
 let settlementFinished = false
@@ -33,9 +35,7 @@ const settlementVideoUrl = computed(() => {
   if (place === 'dunhuang') return dunhuangSettlementVideoUrl
   return ''
 })
-const shouldPlaySettlement = computed(
-  () => game.completed && settlementVideoUrl.value.length > 0,
-)
+const shouldPlaySettlement = computed(() => game.completed && settlementVideoUrl.value.length > 0)
 const elapsed = computed(
   () => `${Math.floor(game.elapsedMs / 60000)} 分 ${Math.floor(game.elapsedMs / 1000) % 60} 秒`,
 )
@@ -81,6 +81,19 @@ const displayHeading = computed(() =>
 const displayAuthor = computed(() =>
   isStoryRoute.value ? (game.activeStory?.authors[0]?.name ?? '故事作者') : '',
 )
+
+function resolveEndingBackground(source: string): void {
+  const revision = ++backgroundRevision
+  const fallback = assetUrl(siteConfig.backgroundUrl)
+  const image = new Image()
+  image.onload = () => {
+    if (revision === backgroundRevision) endingBackgroundUrl.value = assetUrl(source)
+  }
+  image.onerror = () => {
+    if (revision === backgroundRevision) endingBackgroundUrl.value = fallback
+  }
+  image.src = assetUrl(source || siteConfig.backgroundUrl)
+}
 function clearSettlementTimer(): void {
   if (settlementTimer !== undefined) window.clearTimeout(settlementTimer)
   settlementTimer = undefined
@@ -118,6 +131,7 @@ async function playSettlement(): Promise<void> {
   }
 }
 onMounted(() => {
+  resolveEndingBackground(postcardBackground.value)
   const story = isStoryRoute.value ? getStory(storyId.value) : null
   if (isStoryRoute.value) {
     if (!story) {
@@ -144,6 +158,7 @@ onMounted(() => {
   game.pauseTimer()
   game.persist()
 })
+watch(postcardBackground, (value) => resolveEndingBackground(value))
 onBeforeUnmount(() => {
   clearSettlementTimer()
   settlementVideo.value?.pause()
@@ -154,7 +169,7 @@ onBeforeUnmount(() => {
     <div
       class="ending-art"
       :style="{
-        backgroundImage: `linear-gradient(#132c2bdd,#122b2af5), url(${assetUrl(postcardBackground)})`,
+        backgroundImage: `linear-gradient(#132c2bdd,#122b2af5), url(${endingBackgroundUrl})`,
       }"
     />
     <RouterLink :to="homePath" class="ending-home"><AppIcon name="home" />返回画境</RouterLink>
@@ -214,12 +229,7 @@ onBeforeUnmount(() => {
       <p class="ending-disclaimer">
         故事与画境均为原创演示，非考古资料。<br />谨向文化遗产的研究者与守护者致意。
       </p>
-      <button
-        v-if="shouldPlaySettlement"
-        type="button"
-        class="primary"
-        @click="playSettlement"
-      >
+      <button v-if="shouldPlaySettlement" type="button" class="primary" @click="playSettlement">
         {{ `再赴${location?.name ?? '画境'}` }}<AppIcon name="arrow" />
       </button>
       <RouterLink v-else :to="homePath" class="primary"

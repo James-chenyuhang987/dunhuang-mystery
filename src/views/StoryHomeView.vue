@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/game'
 import { getStory, storyRevision } from '@/utils/storyPackage'
@@ -13,6 +13,22 @@ const router = useRouter()
 const game = useGameStore()
 const posterFailed = ref(false)
 const posterRevision = ref(0)
+const backgroundSource = computed(() =>
+  posterFailed.value
+    ? assetUrl('/art/landscape.svg')
+    : assetUrl(story.value?.background_url || '/art/landscape.svg'),
+)
+
+function useBackgroundFallback(): void {
+  posterFailed.value = true
+}
+
+function useChapterFallback(event: Event): void {
+  const image = event.currentTarget as HTMLImageElement | null
+  if (!image || image.dataset.fallbackApplied === 'true') return
+  image.dataset.fallbackApplied = 'true'
+  image.src = assetUrl('/art/cave-01.svg')
+}
 
 const storyId = computed(() =>
   typeof route.params.storyId === 'string' ? route.params.storyId : '',
@@ -31,6 +47,11 @@ function retryPoster(): void {
   posterFailed.value = false
   posterRevision.value += 1
 }
+
+watch(storyId, () => {
+  posterFailed.value = false
+  posterRevision.value += 1
+})
 
 function ensureStory(): boolean {
   const entry = story.value ?? getStory(storyId.value)
@@ -73,9 +94,9 @@ onMounted(() => {
     <img
       :key="`${story.id}-${posterRevision}`"
       class="landscape"
-      :src="assetUrl(story.background_url || '/art/landscape.svg')"
+      :src="backgroundSource"
       :alt="`${story.name}背景`"
-      @error="posterFailed = true"
+      @error="useBackgroundFallback"
     />
     <div class="landscape-shade" />
     <div class="grain-overlay" />
@@ -156,6 +177,7 @@ onMounted(() => {
               :src="
                 assetUrl(level.thumbnail_url ?? level.panorama[0]?.url ?? story.cover_url ?? '')
               "
+              @error="useChapterFallback"
               :alt="level.name"
             />
             <div class="chapter-text">
