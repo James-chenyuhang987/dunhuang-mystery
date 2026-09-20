@@ -20,6 +20,7 @@ const dunhuangLevels: level[] = [
       { clue_index: 0, vec: new Vector3(1.8283, 2.1378, -9.5962) },
       { clue_index: 1, vec: new Vector3(-4.5878, 1.088, 8.8186) },
       { clue_index: 2, vec: new Vector3(1.5402, 4.9641, -8.5432) },
+      { clue_index: 3, vec: new Vector3(9.1162, 2.8847, 2.928) },
     ],
     clues: [
       {
@@ -39,6 +40,77 @@ const dunhuangLevels: level[] = [
         name: '没有现代透视法，宫殿为什么仍然显得又高、又宽、又深？',
         problem_indexes: [2],
         data: '仔细看这组建筑，你会发现它并没有严格遵守现代单一视点透视。中央大殿采用偏仰视的处理，显得高大；两侧配殿用俯视角度，让院落显得开阔；后部楼阁又接近平视，把视线带向远处。画家把不同观察角度组合进同一幅画面，让观者同时感受到建筑的高度、宽度和纵深。',
+      },
+      {
+        type: 'dialogue',
+        name: '中央主尊的讲述',
+        data: '点击《观无量寿经变》中央的佛，听他讲述净土主场景、两侧经变叙事与建筑观看方式。',
+        problem_indexes: [0, 1, 2],
+        hint: '点击画面中央的主尊佛像。',
+        placement: '放在南壁或北壁《观无量寿经变》中央主尊位置。',
+        media_note: '无需新增媒体；如需要头像，可从全景中截取中央主尊局部，否则省略 avatar。',
+        dialogue_id: 'mogao172_central_buddha',
+        dialogue: {
+          start: 'start',
+          nodes: [
+            {
+              id: 'start',
+              speaker: '中央主尊·阿弥陀佛',
+              avatar: '/dunhuang/fo.png',
+              text: '善观者，你已来到第172窟。我是这一铺《观无量寿经变》中央的佛。你看见的不是一幅静止的风景，而是一部被画出来的经。你想先问什么？',
+              options: [
+                { label: '我该从哪里开始看？', next: 'read' },
+                { label: '南北两壁为什么同题却不同画？', next: 'two_walls' },
+                { label: '这些宫殿为什么又高、又宽、又深？', next: 'architecture' },
+                { label: '你是谁？为什么坐在中央？', next: 'identity' },
+                { label: '我明白了。', next: null },
+              ],
+            },
+            {
+              id: 'identity',
+              avatar: '/dunhuang/fo.png',
+              speaker: '中央主尊·阿弥陀佛',
+              text: '我是这一铺观无量寿经变的中央主尊——阿弥陀佛。中央的莲池、宫殿和菩萨眷属共同组成西方净土；我所在的位置，是整铺画面的视觉中心，也是意义中心。',
+              options: [
+                { label: '那我该如何读整铺画？', next: 'read' },
+                { label: '回到刚才。', next: 'start' },
+              ],
+            },
+            {
+              id: 'read',
+              avatar: '/dunhuang/fo.png',
+              speaker: '中央主尊·阿弥陀佛',
+              text: '不要只看中央。先看中央的西方净土主场景，再向两侧移动：两侧分别用连续场景讲述“未生怨”故事，并描绘“十六观”。画工把一部复杂经文拆成不同区域，让你既能看主场景，也能像读连环画一样追踪故事和修行步骤。',
+              options: [
+                { label: '南北两壁为什么不同？', next: 'two_walls' },
+                { label: '建筑为什么显得高大深远？', next: 'architecture' },
+                { label: '回到刚才。', next: 'start' },
+              ],
+            },
+            {
+              id: 'two_walls',
+              avatar: '/dunhuang/fo.png',
+              speaker: '中央主尊·阿弥陀佛',
+              text: '南、北两壁都画《观无量寿经变》，讲的是同一部经，却不是简单复制。不同画工在建筑、山水、人物动作和色调上各有处理。同一宗教主题，在盛唐画工手中可以出现两种不同的视觉表达。',
+              options: [
+                { label: '画面结构又是怎样安排的？', next: 'read' },
+                { label: '建筑画有什么特别？', next: 'architecture' },
+                { label: '回到刚才。', next: 'start' },
+              ],
+            },
+            {
+              id: 'architecture',
+              avatar: '/dunhuang/fo.png',
+              speaker: '中央主尊·阿弥陀佛',
+              text: '仔细看这组建筑：它没有严格遵守现代单一视点透视。中央大殿偏仰视，所以显得高大；两侧配殿用俯视，让院落开阔；后部楼阁接近平视，把视线带向远处。画家把不同观察角度组合进同一幅画面，于是你同时感到高度、宽度和纵深。',
+              options: [
+                { label: '我该从哪里开始看？', next: 'read' },
+                { label: '南北两壁为什么不同？', next: 'two_walls' },
+                { label: '回到刚才。', next: 'start' },
+              ],
+            },
+          ],
+        },
       },
     ],
     problems: [
