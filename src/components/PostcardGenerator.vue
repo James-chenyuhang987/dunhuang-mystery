@@ -2,9 +2,15 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import * as QRCode from 'qrcode'
 import { assetUrl } from '@/utils/assets'
+import {
+  applyPostcardFilterPixels,
+  randomPostcardFilter,
+  type PostcardFilter as PostcardFilterValue,
+  type PostcardFilterMode as PostcardFilterModeValue,
+} from '@/utils/postcardFilters'
 
-export type PostcardFilter = 'archive' | 'clear' | 'moonlight' | 'ink'
-export type PostcardFilterMode = PostcardFilter | 'random'
+export type PostcardFilter = PostcardFilterValue
+export type PostcardFilterMode = PostcardFilterModeValue
 
 export interface PostcardSection {
   label: string
@@ -48,9 +54,9 @@ const canvas = ref<HTMLCanvasElement | null>(null)
 const busy = ref(false)
 const error = ref('')
 const previewUrl = ref('')
-const filters: PostcardFilter[] = ['archive', 'clear', 'moonlight', 'ink']
-const randomFilter = (): PostcardFilter => filters[Math.floor(Math.random() * filters.length)]!
-const selectedFilter = ref<PostcardFilter>(props.filter === 'random' ? randomFilter() : props.filter)
+const selectedFilter = ref<PostcardFilter>(
+  props.filter === 'random' ? randomPostcardFilter() : props.filter,
+)
 let renderRevision = 0
 
 const filename = computed(() => {
@@ -58,10 +64,10 @@ const filename = computed(() => {
   return `${base || '探索明信片'}.png`
 })
 const filterOptions: Array<{ id: PostcardFilter; label: string }> = [
-  { id: 'archive', label: '档案暖金' },
-  { id: 'clear', label: '原色' },
-  { id: 'moonlight', label: '月影' },
-  { id: 'ink', label: '墨线' },
+  { id: 'original', label: '原图' },
+  { id: 'anime', label: '动漫风' },
+  { id: 'line-art', label: '线描风' },
+  { id: 'ink-wash', label: '水墨风' },
 ]
 const displaySections = computed<PostcardSection[]>(() =>
   props.sections.length
@@ -82,13 +88,6 @@ const qrSource = computed(() => {
   if (endpoint.includes('{data}')) return endpoint.replace('{data}', encoded)
   return `${endpoint}${endpoint.includes('?') ? '&' : '?'}data=${encoded}`
 })
-
-const filterCss: Record<PostcardFilter, string> = {
-  archive: 'sepia(.34) saturate(1.12) contrast(1.06)',
-  clear: 'none',
-  moonlight: 'saturate(.72) hue-rotate(16deg) brightness(.88) contrast(1.08)',
-  ink: 'grayscale(.72) contrast(1.2)',
-}
 
 function loadImage(source: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -112,7 +111,6 @@ function drawCover(
   const drawWidth = image.width * scale
   const drawHeight = image.height * scale
   context.save()
-  context.filter = filterCss[selectedFilter.value]
   context.beginPath()
   context.rect(x, y, width, height)
   context.clip()
@@ -124,6 +122,38 @@ function drawCover(
     drawHeight,
   )
   context.restore()
+}
+
+function drawPostcardImage(
+  context: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+): void {
+  if (selectedFilter.value === 'original') {
+    drawCover(context, image, x, y, width, height)
+    return
+  }
+  try {
+    const workCanvas = document.createElement('canvas')
+    workCanvas.width = Math.max(1, Math.round(width))
+    workCanvas.height = Math.max(1, Math.round(height))
+    const workContext = workCanvas.getContext('2d', { willReadFrequently: true })
+    if (!workContext) throw new Error('Canvas unavailable')
+    workContext.imageSmoothingEnabled = true
+    workContext.imageSmoothingQuality = 'high'
+    drawCover(workContext, image, 0, 0, workCanvas.width, workCanvas.height)
+    const source = workContext.getImageData(0, 0, workCanvas.width, workCanvas.height)
+    const filtered = applyPostcardFilterPixels(source, selectedFilter.value)
+    const output = workContext.createImageData(filtered.width, filtered.height)
+    output.data.set(filtered.data)
+    workContext.putImageData(output, 0, 0)
+    context.drawImage(workCanvas, x, y, width, height)
+  } catch {
+    drawCover(context, image, x, y, width, height)
+  }
 }
 
 function drawWrapped(
@@ -215,8 +245,12 @@ async function render(): Promise<void> {
 
   context.fillStyle = '#183734'
   context.fillRect(0, 0, target.width, target.height)
-  if (image) drawCover(context, image, 52, 52, 560, 796)
-  context.fillStyle = 'rgba(12, 37, 34, .72)'
+  if (image) drawPostcardImage(context, image, 52, 52, 560, 796)
+  const imageShade = context.createLinearGradient(52, 52, 52, 848)
+  imageShade.addColorStop(0, 'rgba(8, 28, 26, .08)')
+  imageShade.addColorStop(0.62, 'rgba(8, 28, 26, .14)')
+  imageShade.addColorStop(1, 'rgba(8, 28, 26, .68)')
+  context.fillStyle = imageShade
   context.fillRect(52, 52, 560, 796)
   context.fillStyle = 'rgba(7, 19, 18, .46)'
   context.fillRect(650, 52, 698, 796)
@@ -329,7 +363,7 @@ async function share(): Promise<void> {
 
 watch(
   () => props.filter,
-  (value) => (selectedFilter.value = value === 'random' ? randomFilter() : value),
+  (value) => (selectedFilter.value = value === 'random' ? randomPostcardFilter() : value),
 )
 watch(
   () => [

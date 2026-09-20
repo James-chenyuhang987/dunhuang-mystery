@@ -11,8 +11,9 @@ test('desktop: finish selected chapter, track wrong answer, persist progress', a
   await expect(page).toHaveURL(/\/dunhuang\/game$/)
   await expect(page.locator('.panorama canvas')).toBeVisible()
   await expect(page.locator('.panorama-status')).toHaveCount(0)
+  await expect(page.locator('.panorama')).toHaveAttribute('data-fov', '55')
   await page.getByRole('button', { name: '放大全景' }).click()
-  await expect(page.locator('.panorama')).toHaveAttribute('data-fov', '65')
+  await expect(page.locator('.panorama')).toHaveAttribute('data-fov', '50')
   await page.locator('.clue-drawer-heading').click()
   await expect(page.locator('.clue-toggle').nth(0)).toHaveAttribute('aria-disabled', 'true')
   await page.locator('.panorama-hotspot').first().click()
@@ -41,6 +42,17 @@ test('desktop: finish selected chapter, track wrong answer, persist progress', a
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('画卷有终，探索无尽。')
   await expect(page.locator('.ending-stats strong').nth(0)).toHaveText('0')
   await expect(page.locator('.ending-stats strong').nth(1)).toHaveText('1')
+  const postcardFilters = page.getByRole('group', { name: '明信片滤镜' })
+  await expect(postcardFilters.getByRole('button')).toHaveCount(4)
+  await expect(postcardFilters.getByRole('button', { name: '原图' })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  )
+  await postcardFilters.getByRole('button', { name: '原图' }).click()
+  await expect(postcardFilters.getByRole('button', { name: '原图' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
 })
 
 test('mobile: responsive layout, live difficulty and isolated clue gestures', async ({ page }) => {

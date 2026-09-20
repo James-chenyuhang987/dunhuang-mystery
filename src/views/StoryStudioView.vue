@@ -12,6 +12,7 @@ import type {
   StoryPackage,
 } from '@/types/game'
 import { assetUrl } from '@/utils/assets'
+import { DEFAULT_PANORAMA_FOV } from '@/utils/panorama'
 import {
   createBlankLevel,
   createBlankStory,
@@ -40,7 +41,7 @@ const selectedHotspotClueIndex = ref(0)
 const selectedPanorama = computed(() => {
   const panorama = selectedLevel.value?.panorama[panoramaIndex.value]
   if (panorama && !panorama.initial_view)
-    panorama.initial_view = { longitude: 0, latitude: 0, fov: 70 }
+    panorama.initial_view = { longitude: 0, latitude: 0, fov: DEFAULT_PANORAMA_FOV }
   return panorama
 })
 const currentStoryValid = computed(() => isStoryPackage(story))
@@ -90,7 +91,7 @@ function storyPath(id: string, section = 'home'): string {
   return `/story/${encodeURIComponent(id)}/${section}`
 }
 function returnToScene(): void {
-  void router.push('/dunhuang/home')
+  void router.push('/select')
 }
 function selectLevel(index: number) {
   selectedIndex.value = Math.max(0, Math.min(index, story.levels.length - 1))
@@ -119,6 +120,7 @@ function addPanorama(): void {
     name: preset.name,
     url: preset.url,
     ultraviolet_url: preset.ultraviolet_url,
+    initial_view: { longitude: 0, latitude: 0, fov: DEFAULT_PANORAMA_FOV },
     click_points: [],
   })
   panoramaIndex.value = level.panorama.length - 1

@@ -1,5 +1,6 @@
 import { Vector3 } from 'three'
 import type { StoryPackage, level } from '@/types/game'
+import { DEFAULT_PANORAMA_FOV } from '@/utils/panorama'
 import { isLevel } from '@/utils/utils'
 import {
   GAME_STORAGE_PREFIX,
@@ -46,7 +47,14 @@ export function createBlankLevel(index = 0): level {
     name: `未命名关卡 ${index + 1}`,
     subtitle: '新章节',
     description: '写下这一关的探索目标。',
-    panorama: [{ name: '默认画面', url: '/art/cave-01.svg', click_points: [] }],
+    panorama: [
+      {
+        name: '默认画面',
+        url: '/art/cave-01.svg',
+        initial_view: { longitude: 0, latitude: 0, fov: DEFAULT_PANORAMA_FOV },
+        click_points: [],
+      },
+    ],
     clues: [],
     problems: [],
   }

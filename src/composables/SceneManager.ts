@@ -6,6 +6,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js'
 import { assetUrl } from '@/utils/assets'
+import { DEFAULT_PANORAMA_FOV } from '@/utils/panorama'
 
 const ultravioletShader = {
   uniforms: { tDiffuse: { value: null }, resolution: { value: new THREE.Vector2(1, 1) } },
@@ -59,7 +60,7 @@ export function useSceneManager(options: SceneManagerOptions): SceneManagerApi {
   const status = ref<'loading' | 'ready' | 'error'>('loading'),
     hasTexture = ref(false),
     renderedUltraviolet = ref(false),
-    fov = ref(70),
+    fov = ref(DEFAULT_PANORAMA_FOV),
     longitude = ref(0),
     latitude = ref(0)
   let renderer: THREE.WebGLRenderer | undefined,
@@ -135,7 +136,7 @@ export function useSceneManager(options: SceneManagerOptions): SceneManagerApi {
       scene = new THREE.Scene()
       hotspotGroup = new THREE.Group()
       scene.add(hotspotGroup)
-      camera = new THREE.PerspectiveCamera(70, 1, 0.1, 100)
+      camera = new THREE.PerspectiveCamera(DEFAULT_PANORAMA_FOV, 1, 0.1, 100)
       composer = new EffectComposer(renderer)
       composer.setPixelRatio(pixelRatio())
       composer.addPass(new RenderPass(scene, camera))

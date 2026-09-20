@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import PanoramaViewer from '@/components/PanoramaViewer.vue'
+import { DEFAULT_PANORAMA_FOV } from '@/utils/panorama'
 
 const harness = vi.hoisted(() => ({
   options: undefined as
@@ -58,6 +59,15 @@ vi.mock('@/composables/GameUI', async () => {
 })
 
 describe('PanoramaViewer', () => {
+  it('uses the shared natural-view FOV when a panorama has no explicit view', () => {
+    mount(PanoramaViewer, {
+      props: { url: '/cave.jpg' },
+      global: { stubs: { AppIcon: true, Transition: false } },
+    })
+
+    expect(harness.scene?.fov.value).toBe(DEFAULT_PANORAMA_FOV)
+  })
+
   it('applies configured views without resetting on same-panorama clue changes', async () => {
     const wrapper = mount(PanoramaViewer, {
       props: {

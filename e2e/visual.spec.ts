@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { chooseDefaultLocation } from './helpers'
+import { gameLevels } from '../src/data/game'
 
 test('desktop and mobile visual checks', async ({ page }, testInfo) => {
   const errors: string[] = []
@@ -68,4 +69,46 @@ test('desktop and mobile visual checks', async ({ page }, testInfo) => {
   await expect(page.locator('.answer-option')).toHaveCount(4)
   await page.screenshot({ path: testInfo.outputPath('question-mobile.png'), fullPage: true })
   expect(errors).toEqual([])
+})
+
+test('postcard pixel styles remain legible on desktop and mobile', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.goto('/')
+  await chooseDefaultLocation(page)
+  await page.getByRole('button', { name: '选关', exact: true }).click()
+  await page.getByRole('button', { name: '开始所选关卡', exact: true }).click()
+  await page.getByRole('button', { name: '开启谜题', exact: true }).click()
+  const title = await page.locator('#question-title').innerText()
+  const problem = gameLevels[0]?.problems.find((entry) => entry.title === title)
+  if (!problem) throw new Error(`Missing postcard visual fixture: ${title}`)
+  await page.locator('.answer-option').nth(problem.true_answer).click()
+  await page.getByRole('button', { name: '查看本卷结果', exact: true }).click()
+  await page.getByRole('button', { name: '关闭题目', exact: true }).click()
+  await page.getByRole('button', { name: '本卷已解 · 继续探索', exact: true }).click()
+  await page.getByRole('button', { name: '落款 · 查看探索回响', exact: true }).click()
+
+  const postcard = page.locator('.postcard-generator')
+  const canvas = postcard.locator('canvas')
+  await expect(postcard).toBeVisible()
+  for (const [label, filename] of [
+    ['原图', 'postcard-original.png'],
+    ['动漫风', 'postcard-anime.png'],
+    ['线描风', 'postcard-line-art.png'],
+    ['水墨风', 'postcard-ink-wash.png'],
+  ] as const) {
+    const previous = await canvas.evaluate((element) => element.toDataURL())
+    await postcard.getByRole('button', { name: label, exact: true }).click()
+    await expect(postcard.getByRole('button', { name: label, exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    await expect.poll(() => canvas.evaluate((element) => element.toDataURL())).not.toBe(previous)
+    await postcard.screenshot({ path: testInfo.outputPath(filename) })
+  }
+
+  await page.setViewportSize({ width: 390, height: 844 })
+  await postcard.screenshot({ path: testInfo.outputPath('postcard-mobile.png') })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  )
 })

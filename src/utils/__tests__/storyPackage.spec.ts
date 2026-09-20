@@ -15,6 +15,7 @@ import {
   STORY_STORAGE_KEY,
 } from '@/utils/storyPackage'
 import { sourceStorageKey } from '@/utils/runtimeSource'
+import { DEFAULT_PANORAMA_FOV } from '@/utils/panorama'
 
 describe('story packages', () => {
   beforeEach(() => localStorage.clear())
@@ -24,6 +25,7 @@ describe('story packages', () => {
     expect(story.version).toBe(1)
     expect(story.levels).toHaveLength(1)
     expect(story.levels[0]?.panorama[0]?.url).toBe('/art/cave-01.svg')
+    expect(story.levels[0]?.panorama[0]?.initial_view?.fov).toBe(DEFAULT_PANORAMA_FOV)
   })
 
   it('normalizes imported vector coordinates back to Three vectors', () => {

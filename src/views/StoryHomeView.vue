@@ -85,7 +85,7 @@ onMounted(() => {
       </div>
       <nav aria-label="故事导航">
         <span>{{ story.name }}</span>
-        <RouterLink to="/dunhuang/home"><AppIcon name="home" />返回画境</RouterLink>
+        <RouterLink to="/select"><AppIcon name="home" />返回画境</RouterLink>
         <button type="button" @click="router.push('/studio')">
           <AppIcon name="map" />故事工坊
         </button>

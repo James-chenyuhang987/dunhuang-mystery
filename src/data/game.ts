@@ -1,5 +1,6 @@
 import { Vector3 } from 'three'
 import type { authors, level, location } from '@/types/game'
+import { DEFAULT_PANORAMA_FOV } from '@/utils/panorama'
 
 // All case events and evidence below are fictional educational material, not historical claims.
 const dunhuangLevels: level[] = [
@@ -301,7 +302,7 @@ const terracottaLevels: level[] = [
       {
         name: '大佛',
         url: '/yungang/yungang_cave3_pano.jpg',
-        initial_view: { longitude: 180, latitude: 30, fov: 70 },
+        initial_view: { longitude: 180, latitude: 30, fov: DEFAULT_PANORAMA_FOV },
         click_points: [],
       },
     ],
@@ -375,7 +376,7 @@ const terracottaLevels: level[] = [
       {
         name: '大佛',
         url: '/yungang/yungang_cave5_pano.jpg',
-        initial_view: { longitude: 180, latitude: 25, fov: 70 },
+        initial_view: { longitude: 180, latitude: 25, fov: DEFAULT_PANORAMA_FOV },
         click_points: [],
       },
     ],
@@ -456,7 +457,7 @@ const terracottaLevels: level[] = [
       {
         name: '第六窟',
         url: '/yungang/yungang_cave6_pano.jpg',
-        initial_view: { longitude: 180, latitude: 20, fov: 70 },
+        initial_view: { longitude: 180, latitude: 20, fov: DEFAULT_PANORAMA_FOV },
         click_points: [],
       },
     ],

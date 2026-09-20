@@ -4,6 +4,7 @@ import AppIcon from './AppIcon.vue'
 import type { ClickPoint, hotspot, PanoramaInitialView } from '@/types/game'
 import { useSceneManager } from '@/composables/SceneManager'
 import { useGameUI } from '@/composables/GameUI'
+import { DEFAULT_PANORAMA_FOV } from '@/utils/panorama'
 
 const props = withDefaults(
   defineProps<{
@@ -46,7 +47,7 @@ let captureNoticeTimer: number | undefined
 const applyInitialView = () => {
   scene.longitude.value = props.initialView?.longitude ?? 0
   scene.latitude.value = props.initialView?.latitude ?? 0
-  scene.fov.value = props.initialView?.fov ?? 70
+  scene.fov.value = props.initialView?.fov ?? DEFAULT_PANORAMA_FOV
   scene.schedule()
 }
 applyInitialView()
