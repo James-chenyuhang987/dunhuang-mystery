@@ -13,9 +13,11 @@ const ultravioletShader = {
   vertexShader:
     'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
   fragmentShader: `uniform sampler2D tDiffuse; uniform vec2 resolution; varying vec2 vUv;
-    float l(vec3 c){return dot(c,vec3(.2126,.7152,.0722));} float w(vec3 c){float d=max(c.r,max(c.g,c.b))-min(c.r,min(c.g,c.b));return smoothstep(.72,.98,l(c))*(1.-smoothstep(.08,.32,d));}
+    float l(vec3 c){return dot(c,vec3(.2126,.7152,.0722));}
+    float w(vec3 c){float d=max(c.r,max(c.g,c.b))-min(c.r,min(c.g,c.b));return smoothstep(.72,.98,l(c))*(1.-smoothstep(.08,.32,d));}
+    float gold(vec3 c){float warm=smoothstep(.08,.34,c.r-c.b)*smoothstep(.02,.22,c.g-c.b);return warm*smoothstep(.14,.72,l(c));}
     vec3 u(vec3 s){float v=pow(clamp(l(s),0.,1.),.78),x=smoothstep(.025,.95,v);vec3 tint=mix(vec3(.008,.012,.055),vec3(.30,.14,.70),x);return tint+s*vec3(.06,.025,.08);}
-    void main(){vec3 s=texture2D(tDiffuse,vUv).rgb;vec2 p=vec2(1.5)/resolution;float f=w(s),g=(w(texture2D(tDiffuse,vUv+vec2(p.x,0.)).rgb)+w(texture2D(tDiffuse,vUv-vec2(p.x,0.)).rgb)+w(texture2D(tDiffuse,vUv+vec2(0.,p.y)).rgb)+w(texture2D(tDiffuse,vUv-vec2(0.,p.y)).rgb))*.25;vec3 c=u(s)+g*vec3(.035,.075,.22);gl_FragColor=vec4(mix(c,vec3(.36,.44,.95),f*.28),1.);}`,
+    void main(){vec3 s=texture2D(tDiffuse,vUv).rgb;vec2 p=vec2(1.5)/resolution;float f=w(s),g=(w(texture2D(tDiffuse,vUv+vec2(p.x,0.)).rgb)+w(texture2D(tDiffuse,vUv-vec2(p.x,0.)).rgb)+w(texture2D(tDiffuse,vUv+vec2(0.,p.y)).rgb)+w(texture2D(tDiffuse,vUv-vec2(0.,p.y)).rgb))*.25;float goldCore=gold(s);float goldHalo=(gold(texture2D(tDiffuse,vUv+vec2(p.x,0.)).rgb)+gold(texture2D(tDiffuse,vUv-vec2(p.x,0.)).rgb)+gold(texture2D(tDiffuse,vUv+vec2(0.,p.y)).rgb)+gold(texture2D(tDiffuse,vUv-vec2(0.,p.y)).rgb))*.25;vec3 c=u(s)+g*vec3(.035,.075,.22);vec3 goldGlow=vec3(1.,.48,.08)*(goldCore*.82+goldHalo*.34);c+=goldGlow;gl_FragColor=vec4(mix(c,vec3(.36,.44,.95),f*.28),1.);}`,
 }
 type Hooks = {
   onInitialize?: () => void
@@ -163,9 +165,7 @@ export function useSceneManager(options: SceneManagerOptions): SceneManagerApi {
   const loadTexture = () => {
     const id = ++loadId,
       useUv = options.isUltraviolet(),
-      requestedSource = useUv
-        ? options.getUltravioletUrl() || options.getUrl()
-        : options.getUrl(),
+      requestedSource = useUv ? options.getUltravioletUrl() || options.getUrl() : options.getUrl(),
       source = assetUrl(requestedSource)
     clearTimeout(timeout)
     if (source && source === loadedSource && hasTexture.value && material?.map && ultravioletPass) {

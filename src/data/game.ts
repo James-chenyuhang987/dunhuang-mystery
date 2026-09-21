@@ -12,8 +12,16 @@ const dunhuangLevels: level[] = [
       {
         name: '现状勘查',
         url: '/dunhuang/panoramas/mogao-cave-172.png',
-        ultraviolet_url: '/dunhuang/panoramas/mogao-cave-172.png',
-        click_points: [],
+        ultraviolet_url: '/art/dunhuang-gilded-uv.svg',
+        click_points: [
+          {
+            vec: new Vector3(10, 0, 0),
+            accept_click_range: 1.2,
+            name: '镀金题记',
+            description: '紫外线下显出的镀金题记，沿着墙面纹样留下了暖金色的荧光痕迹。',
+            in_uv: true,
+          },
+        ],
       },
     ],
     hotspots: [
@@ -155,7 +163,7 @@ const dunhuangLevels: level[] = [
       {
         name: '现状勘查',
         url: '/dunhuang/panoramas/mogao-cave-322.png',
-        ultraviolet_url: '/dunhuang/panoramas/mogao-cave-322.png',
+        ultraviolet_url: '/art/dunhuang-uv.svg',
         click_points: [],
       },
     ],
@@ -226,7 +234,7 @@ const dunhuangLevels: level[] = [
       {
         name: '现状勘查',
         url: '/dunhuang/panoramas/mogao-cave-420.png',
-        ultraviolet_url: '/dunhuang/panoramas/mogao-cave-420.png',
+        ultraviolet_url: '/art/dunhuang-uv.svg',
         click_points: [],
       },
     ],
